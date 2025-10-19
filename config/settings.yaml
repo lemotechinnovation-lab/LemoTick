@@ -1,0 +1,90 @@
+# LemoTick Trading Bot Configuration
+# This file contains all trading parameters, thresholds, and settings
+
+# Deriv API Configuration
+deriv:
+  ws_url: "wss://ws.derivws.com/websockets/v3"
+  app_id: "1089"  # Deriv app ID
+  timeout: 30     # WebSocket timeout in seconds
+  reconnect_attempts: 10
+  ping_interval: 30
+
+# Trading Configuration
+trading:
+  symbol: "R_100"              # Trading symbol (R_100, R_75, etc.)
+  contract_duration: 1         # Contract duration in seconds
+  contract_duration_unit: "s"  # Duration unit (s, m, h, d)
+  contract_basis: "payout"     # Contract basis (payout, stake)
+  min_stake: 1.0               # Minimum stake amount
+  max_stake: 100.0             # Maximum stake amount
+  currency: "USD"              # Trading currency
+
+# Technical Indicators Configuration
+indicators:
+  ema_fast_period: 8           # Fast EMA period
+  ema_slow_period: 34          # Slow EMA period
+  momentum_threshold: 0.0001   # Momentum threshold for signals
+  volatility_window: 50        # Volatility calculation window
+  volatility_min: 0.0001       # Minimum volatility to trade
+  volatility_max: 0.01         # Maximum volatility to trade
+  rsi_period: 14               # RSI calculation period
+  rsi_oversold: 30             # RSI oversold threshold
+  rsi_overbought: 70           # RSI overbought threshold
+
+# Risk Management Configuration
+risk:
+  risk_per_trade: 0.01         # Risk per trade (1% of equity)
+  max_daily_drawdown: 0.05     # Maximum daily drawdown (5%)
+  max_concurrent_trades: 1     # Maximum concurrent trades
+  cooldown_after_loss: 5.0     # Cooldown after loss in seconds
+  equity_check_interval: 60    # Equity check interval in seconds
+
+# Data Storage Configuration
+data:
+  db_path: "data/bot_state.db" # SQLite database path
+  tick_storage: true           # Store tick data
+  trade_storage: true          # Store trade data
+  performance_tracking: true   # Track performance metrics
+  cleanup_days: 30             # Days of data to keep
+
+# Logging Configuration
+logging:
+  level: "INFO"                # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  console_output: true         # Enable console logging
+  file_output: true            # Enable file logging
+  max_file_size: 10485760      # Max log file size in bytes (10MB)
+  backup_count: 5              # Number of log file backups
+  structured_logging: true     # Use structured JSON logging
+
+# Performance Monitoring
+monitoring:
+  metrics_enabled: true        # Enable performance metrics
+  metrics_interval: 300        # Metrics collection interval in seconds
+  alert_on_errors: true        # Alert on errors
+  alert_on_drawdown: true      # Alert on drawdown
+  drawdown_threshold: 0.03     # Drawdown alert threshold (3%)
+
+# Strategy Parameters
+strategy:
+  signal_confirmation: false   # Require signal confirmation
+  trend_filter: true           # Enable trend filter
+  volatility_filter: true      # Enable volatility filter
+  rsi_filter: true             # Enable RSI filter
+  adaptive_stake: true         # Use adaptive stake sizing
+
+# Backtesting Configuration
+backtesting:
+  enabled: false               # Enable backtesting mode
+  data_source: "database"      # Data source (database, file)
+  start_date: "2024-01-01"     # Backtest start date
+  end_date: "2024-12-31"       # Backtest end date
+  initial_equity: 1000.0       # Initial equity for backtesting
+  commission: 0.0              # Commission per trade
+
+# Development Settings
+development:
+  debug_mode: false            # Enable debug mode
+  simulation_mode: false       # Enable simulation mode (no real trades)
+  test_mode: false             # Enable test mode
+  verbose_logging: false       # Enable verbose logging
+
