@@ -39,7 +39,7 @@ env/
 ENV/
 
 # IDE
-.vscode/
+# .vscode/  # Commented out to include VS Code settings for team development
 .idea/
 *.swp
 *.swo
