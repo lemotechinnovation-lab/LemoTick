@@ -1,0 +1,28 @@
+
+# HELP lemotick_trades_total Total number of trades executed
+# TYPE lemotick_trades_total counter
+lemotick_trades_total 5
+
+# HELP lemotick_trades_profit_total Total profit from trades
+# TYPE lemotick_trades_profit_total counter
+lemotick_trades_profit_total 12.50
+
+# HELP lemotick_trades_loss_total Total loss from trades
+# TYPE lemotick_trades_loss_total counter
+lemotick_trades_loss_total 3.25
+
+# HELP lemotick_bot_equity Current bot equity
+# TYPE lemotick_bot_equity gauge
+lemotick_bot_equity 1009.25
+
+# HELP lemotick_trades_active Active trades count
+# TYPE lemotick_trades_active gauge
+lemotick_trades_active 2
+
+# HELP lemotick_trades_won Total winning trades
+# TYPE lemotick_trades_won counter
+lemotick_trades_won 3
+
+# HELP lemotick_trades_lost Total losing trades
+# TYPE lemotick_trades_lost counter
+lemotick_trades_lost 2

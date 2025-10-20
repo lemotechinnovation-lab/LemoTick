@@ -2,7 +2,7 @@
 websocket-client>=1.6.0
 pyyaml>=6.0
 python-dotenv>=1.0.0
-sqlite3  # Built-in Python module
+# sqlite3 is built-in Python module - no need to install
 
 # Data processing and analysis
 pandas>=2.0.0
@@ -23,4 +23,5 @@ mypy>=1.5.0
 # Optional: Advanced features
 redis>=4.6.0  # For distributed state management
 prometheus-client>=0.17.0  # For metrics collection
+requests>=2.31.0  # For Loki logging
 

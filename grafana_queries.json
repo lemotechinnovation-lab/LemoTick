@@ -1,0 +1,8 @@
+{
+  "Bot Status": "up{job=\"lemotick-bot\"}",
+  "Total Trades": "lemotick_trades_total",
+  "Total Profit": "lemotick_trades_profit_total",
+  "Total Loss": "lemotick_trades_loss_total",
+  "Net P&L": "lemotick_trades_profit_total - lemotick_trades_loss_total",
+  "Win/Loss Ratio": "lemotick_trades_profit_total / (lemotick_trades_loss_total + 0.001)"
+}

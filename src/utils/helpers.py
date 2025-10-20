@@ -6,7 +6,7 @@ Includes timestamp formatting, data validation, and common functions.
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
 
 
 def get_timestamp() -> int:
@@ -27,11 +27,11 @@ def generate_trade_id() -> str:
 def format_price(price: float, decimals: int = 6) -> str:
     """
     Format price with specified decimal places.
-    
+
     Args:
         price: Price value to format
         decimals: Number of decimal places
-        
+
     Returns:
         Formatted price string
     """
@@ -41,11 +41,11 @@ def format_price(price: float, decimals: int = 6) -> str:
 def format_percentage(value: float, decimals: int = 2) -> str:
     """
     Format percentage value.
-    
+
     Args:
         value: Percentage value (0.05 for 5%)
         decimals: Number of decimal places
-        
+
     Returns:
         Formatted percentage string
     """
@@ -55,10 +55,10 @@ def format_percentage(value: float, decimals: int = 2) -> str:
 def validate_price(price: Any) -> bool:
     """
     Validate if value is a valid price.
-    
+
     Args:
         price: Value to validate
-        
+
     Returns:
         True if valid price, False otherwise
     """
@@ -69,15 +69,17 @@ def validate_price(price: Any) -> bool:
         return False
 
 
-def validate_stake(stake: Any, min_stake: float = 0.1, max_stake: float = 10000) -> bool:
+def validate_stake(
+    stake: Any, min_stake: float = 0.1, max_stake: float = 10000
+) -> bool:
     """
     Validate if value is a valid stake amount.
-    
+
     Args:
         stake: Stake value to validate
         min_stake: Minimum allowed stake
         max_stake: Maximum allowed stake
-        
+
     Returns:
         True if valid stake, False otherwise
     """
@@ -91,11 +93,11 @@ def validate_stake(stake: Any, min_stake: float = 0.1, max_stake: float = 10000)
 def safe_float(value: Any, default: float = 0.0) -> float:
     """
     Safely convert value to float with default fallback.
-    
+
     Args:
         value: Value to convert
         default: Default value if conversion fails
-        
+
     Returns:
         Float value or default
     """
@@ -108,11 +110,11 @@ def safe_float(value: Any, default: float = 0.0) -> float:
 def safe_int(value: Any, default: int = 0) -> int:
     """
     Safely convert value to int with default fallback.
-    
+
     Args:
         value: Value to convert
         default: Default value if conversion fails
-        
+
     Returns:
         Integer value or default
     """
@@ -125,31 +127,35 @@ def safe_int(value: Any, default: int = 0) -> int:
 def clamp(value: float, min_val: float, max_val: float) -> float:
     """
     Clamp value between min and max.
-    
+
     Args:
         value: Value to clamp
         min_val: Minimum allowed value
         max_val: Maximum allowed value
-        
+
     Returns:
         Clamped value
     """
+    # Add type checking to handle None values
+    if value is None:
+        return min_val
     return max(min_val, min(max_val, value))
 
 
 def calculate_percentage_change(old_value: float, new_value: float) -> float:
     """
     Calculate percentage change between two values.
-    
+
     Args:
         old_value: Original value
         new_value: New value
-        
+
     Returns:
         Percentage change (0.05 for 5% increase)
     """
     if old_value == 0:
-        return 0.0
+        # Handle zero old_value more accurately
+        return float('inf') if new_value != 0 else 0.0
     return (new_value - old_value) / old_value
 
 
@@ -157,7 +163,7 @@ def is_within_trading_hours() -> bool:
     """
     Check if current time is within trading hours.
     For 24/7 markets like synthetic indices, this always returns True.
-    
+
     Returns:
         True if within trading hours
     """
@@ -168,93 +174,116 @@ def is_within_trading_hours() -> bool:
 def calculate_kelly_fraction(win_rate: float, avg_win: float, avg_loss: float) -> float:
     """
     Calculate Kelly Criterion fraction for position sizing.
-    
+
     Args:
         win_rate: Win rate (0.6 for 60%)
         avg_win: Average win amount
         avg_loss: Average loss amount
-        
+
     Returns:
         Kelly fraction for position sizing
     """
     if avg_loss == 0:
         return 0.0
-    
+
     # Kelly formula: f = (bp - q) / b
     # where b = avg_win/avg_loss, p = win_rate, q = 1 - win_rate
     b = avg_win / avg_loss
     p = win_rate
     q = 1 - win_rate
-    
+
     kelly = (b * p - q) / b
-    
+
     # Cap Kelly at reasonable levels (typically 0.25 max)
     return clamp(kelly, 0.0, 0.25)
 
 
-def exponential_backoff_delay(attempt: int, base_delay: float = 1.0, max_delay: float = 60.0) -> float:
+def exponential_backoff_delay(
+    attempt: int, base_delay: float = 1.0, max_delay: float = 60.0
+) -> float:
     """
-    Calculate exponential backoff delay for retry attempts.
-    
+    Calculate exponential backoff delay for retry attempts with jitter.
+
     Args:
         attempt: Current attempt number (0-based)
         base_delay: Base delay in seconds
         max_delay: Maximum delay in seconds
-        
+
     Returns:
-        Delay in seconds
+        Delay in seconds with jitter
     """
+    import random
     delay = base_delay * (2 ** attempt)
-    return min(delay, max_delay)
+    delay = min(delay, max_delay)
+    # Add ±10% jitter to prevent thundering herd
+    return delay * random.uniform(0.9, 1.1)
 
 
-def format_duration(seconds: float) -> str:
+def format_duration(seconds: float, verbose: bool = False) -> str:
     """
     Format duration in human-readable format.
-    
+
     Args:
         seconds: Duration in seconds
-        
+        verbose: If True, provide detailed breakdown
+
     Returns:
         Formatted duration string
     """
-    if seconds < 60:
-        return f"{seconds:.1f}s"
-    elif seconds < 3600:
-        minutes = seconds / 60
-        return f"{minutes:.1f}m"
+    if verbose:
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = seconds % 60
+        if hours > 0:
+            return f"{hours}h {minutes}m {secs:.1f}s"
+        elif minutes > 0:
+            return f"{minutes}m {secs:.1f}s"
+        else:
+            return f"{secs:.1f}s"
     else:
-        hours = seconds / 3600
-        return f"{hours:.1f}h"
+        if seconds < 60:
+            return f"{seconds:.1f}s"
+        elif seconds < 3600:
+            minutes = seconds / 60
+            return f"{minutes:.1f}m"
+        else:
+            hours = seconds / 3600
+            return f"{hours:.1f}h"
 
 
 def sanitize_log_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Sanitize data for logging by removing sensitive information.
-    
+    Handles nested dictionaries recursively.
+
     Args:
         data: Data dictionary to sanitize
-        
+
     Returns:
         Sanitized data dictionary
     """
-    sensitive_keys = ['token', 'password', 'secret', 'key', 'auth']
-    sanitized = data.copy()
+    sensitive_keys = ["token", "password", "secret", "key", "auth"]
+    sanitized = {}
     
-    for key in sanitized:
-        if any(sensitive in key.lower() for sensitive in sensitive_keys):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            # Recursively sanitize nested dictionaries
+            sanitized[key] = sanitize_log_data(value)
+        elif any(sensitive in key.lower() for sensitive in sensitive_keys):
             sanitized[key] = "***REDACTED***"
-    
+        else:
+            sanitized[key] = value
+
     return sanitized
 
 
 def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merge multiple dictionaries, with later dicts overriding earlier ones.
-    
+
     Args:
         *dicts: Dictionaries to merge
-        
+
     Returns:
         Merged dictionary
     """
@@ -263,3 +292,23 @@ def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
         result.update(d)
     return result
 
+
+def get_candle_color(open_price: float, close_price: float) -> str:
+    """
+    Determine candle color based on open and close prices.
+
+    Args:
+        open_price: Opening price of the candle
+        close_price: Closing price of the candle
+
+    Returns:
+        "green" for bullish (close > open),
+        "red" for bearish (close < open),
+        "doji" for neutral (close == open)
+    """
+    if close_price > open_price:
+        return "green"   # bullish
+    elif close_price < open_price:
+        return "red"     # bearish
+    else:
+        return "doji"    # neutral

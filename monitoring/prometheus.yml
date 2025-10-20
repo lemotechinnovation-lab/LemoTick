@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "lemotick_rules.yml"
+
+scrape_configs:
+  # LemoTick Bot Metrics
+  - job_name: 'lemotick-bot'
+    static_configs:
+        # Docker container and local development
+        - targets: ['lemotick-bot:8000', 'host.docker.internal:8000', 'localhost:8000']
+    scrape_interval: 5s
+    # Python prometheus_client.start_http_server serves metrics at '/'
+    metrics_path: /
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # Redis (if available)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 15s

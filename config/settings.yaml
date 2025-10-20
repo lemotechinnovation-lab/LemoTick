@@ -1,90 +1,107 @@
-# LemoTick Trading Bot Configuration
-# This file contains all trading parameters, thresholds, and settings
-
-# Deriv API Configuration
-deriv:
-  ws_url: "wss://ws.derivws.com/websockets/v3"
-  app_id: "1089"  # Deriv app ID
-  timeout: 30     # WebSocket timeout in seconds
-  reconnect_attempts: 10
-  ping_interval: 30
-
-# Trading Configuration
-trading:
-  symbol: "R_100"              # Trading symbol (R_100, R_75, etc.)
-  contract_duration: 1         # Contract duration in seconds
-  contract_duration_unit: "s"  # Duration unit (s, m, h, d)
-  contract_basis: "payout"     # Contract basis (payout, stake)
-  min_stake: 1.0               # Minimum stake amount
-  max_stake: 100.0             # Maximum stake amount
-  currency: "USD"              # Trading currency
-
-# Technical Indicators Configuration
-indicators:
-  ema_fast_period: 8           # Fast EMA period
-  ema_slow_period: 34          # Slow EMA period
-  momentum_threshold: 0.0001   # Momentum threshold for signals
-  volatility_window: 50        # Volatility calculation window
-  volatility_min: 0.0001       # Minimum volatility to trade
-  volatility_max: 0.01         # Maximum volatility to trade
-  rsi_period: 14               # RSI calculation period
-  rsi_oversold: 30             # RSI oversold threshold
-  rsi_overbought: 70           # RSI overbought threshold
-
-# Risk Management Configuration
-risk:
-  risk_per_trade: 0.01         # Risk per trade (1% of equity)
-  max_daily_drawdown: 0.05     # Maximum daily drawdown (5%)
-  max_concurrent_trades: 1     # Maximum concurrent trades
-  cooldown_after_loss: 5.0     # Cooldown after loss in seconds
-  equity_check_interval: 60    # Equity check interval in seconds
-
-# Data Storage Configuration
-data:
-  db_path: "data/bot_state.db" # SQLite database path
-  tick_storage: true           # Store tick data
-  trade_storage: true          # Store trade data
-  performance_tracking: true   # Track performance metrics
-  cleanup_days: 30             # Days of data to keep
-
-# Logging Configuration
-logging:
-  level: "INFO"                # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-  console_output: true         # Enable console logging
-  file_output: true            # Enable file logging
-  max_file_size: 10485760      # Max log file size in bytes (10MB)
-  backup_count: 5              # Number of log file backups
-  structured_logging: true     # Use structured JSON logging
-
-# Performance Monitoring
-monitoring:
-  metrics_enabled: true        # Enable performance metrics
-  metrics_interval: 300        # Metrics collection interval in seconds
-  alert_on_errors: true        # Alert on errors
-  alert_on_drawdown: true      # Alert on drawdown
-  drawdown_threshold: 0.03     # Drawdown alert threshold (3%)
-
-# Strategy Parameters
-strategy:
-  signal_confirmation: false   # Require signal confirmation
-  trend_filter: true           # Enable trend filter
-  volatility_filter: true      # Enable volatility filter
-  rsi_filter: true             # Enable RSI filter
-  adaptive_stake: true         # Use adaptive stake sizing
-
-# Backtesting Configuration
 backtesting:
-  enabled: false               # Enable backtesting mode
-  data_source: "database"      # Data source (database, file)
-  start_date: "2024-01-01"     # Backtest start date
-  end_date: "2024-12-31"       # Backtest end date
-  initial_equity: 1000.0       # Initial equity for backtesting
-  commission: 0.0              # Commission per trade
-
-# Development Settings
+  commission: 0.0
+  data_source: database
+  enabled: false
+  end_date: '2024-12-31'
+  initial_equity: 1000.0
+  start_date: '2024-01-01'
+data:
+  cleanup_days: 30
+  db_path: data/bot_state.db
+  performance_tracking: true
+  tick_storage: false
+  trade_storage: false
+deriv:
+  app_id: '1089'
+  ping_interval: 30
+  reconnect_attempts: 10
+  timeout: 30
+  ws_url: wss://ws.derivws.com/websockets/v3
 development:
-  debug_mode: false            # Enable debug mode
-  simulation_mode: false       # Enable simulation mode (no real trades)
-  test_mode: false             # Enable test mode
-  verbose_logging: false       # Enable verbose logging
+  debug_mode: false
+  simulation_mode: false
+  test_mode: false
+  verbose_logging: false
+indicators:
+  ema_fast_period: 2   # 2-period EMA for 1-minute timeframe (ultra-fast response)
+  ema_slow_period: 5   # 5-period EMA for 1-minute timeframe (trend confirmation)
+  macd_fast_period: 6   # Fast EMA for MACD (optimized for 1-minute scalping)
+  macd_slow_period: 13  # Slow EMA for MACD (captures short-term trend)
+  macd_signal_period: 5 # Signal line EMA for MACD (reduces false signals)
+  momentum_threshold: 0.0001  # 10x more sensitive for constant signals
+  volatility_max: 1.0  # Allow all volatility
+  volatility_min: 0.00001  # Ultra low minimum for constant signals
+  volatility_window: 20  # Appropriate window for 1-minute timeframe
+logging:
+  backup_count: 5
+  console_output: true
+  file_output: true
+  level: INFO
+  max_file_size: 10485760
+  structured_logging: true
+monitoring:
+  alert_on_drawdown: true
+  alert_on_errors: true
+  drawdown_threshold: 0.03
+  grafana_enabled: true
+  loki_enabled: true
+  metrics_enabled: true
+  metrics_interval: 300
+  prometheus_enabled: true
+risk_management:
+  cooldown_seconds: 5.0      # Minimal cooldown for rapid trading
+  max_concurrent_trades: 50  # High concurrent trades for minute trading
+  max_daily_trades: 999999   # Unlimited daily trades for volume
+  max_daily_drawdown: 0.15   # 15% max drawdown for safety
+  risk_per_trade: 0.05       # 5% risk per trade for higher profits
+  equity_check_interval: 1   # Check every second for rapid response
+  # Production safety: force_always_trade should be false in production
+  force_always_trade: true   # Force trading always enabled for noise
 
+  # Dynamic stake sizing for profit guarantee - aggressive compounding
+  dynamic_stake_enabled: true
+  win_rate_multiplier: 2.0   # Double stake on wins for rapid compounding
+  loss_rate_multiplier: 0.3  # Reduce to 30% on losses for quick recovery
+  profit_acceleration: true  # Enable profit acceleration
+  compounding_rate: 1.5     # 50% faster compounding
+strategy:
+  adaptive_stake: true
+  rsi_filter: false   # Disable RSI filtering for tick-based trading optimization
+  signal_confirmation: false  # Disable signal confirmation for instant execution
+  trend_filter: false  # Disable trend filtering for rapid signals
+  volatility_filter: false  # Disable volatility filtering for constant signals
+  # Loss reversal strategy
+  loss_reversal_enabled: true
+  max_consecutive_losses: 1  # Reverse after 1 loss for faster recovery
+
+  # Profit guarantee settings - aggressive compounding
+  daily_profit_target: 100.0  # Higher daily target for minute trading
+  profit_acceleration_enabled: true  # Enable profit acceleration
+  signal_frequency_multiplier: 5.0  # 5x more signals per minute
+
+  # EMA + Pin Bar settings for ultra-fast strategy
+  pinbar_duration_ticks: 1       # 1 minute for EMA2/EMA5 strategy
+  pinbar_min_wick_ratio: 0.05    # Minimum wick length as % of candle body (5% - ultra loose for 1-min scalping)
+  ema_trend_min_slope: 0.000001  # Minimum EMA slope for EMA2/EMA5 (0.0001 points - ultra loose for 1-min scalping)
+
+  # Trade management settings
+  trade_cooldown_ticks: 3        # Minimum ticks between trades (3-5 seconds cooldown)
+  max_concurrent_trades: 1       # Maximum concurrent trades (1 for binary options)
+  ultra_short_trade_threshold: 15 # Trades ≤ this many ticks are considered ultra-short (no early cancellation)
+
+trading:
+  contract_basis: stake
+  contract_duration: 1  # 1 minute for EMA2/EMA5 + Pin Bar strategy
+  contract_duration_unit: m  # Use minutes (interval unit)
+  currency: USD
+  max_stake: 10.0
+  min_stake: 10.0
+  symbol: 1HZ100V
+  take_profit_pct: 0.30
+  stop_loss_pct: 0.10
+  payout_ratio: 0.8  # Configurable payout ratio for binary options
+  symbol_durations:
+    1HZ100V: 1   # Use 1 minute for high volatility indices (EMA2/EMA5 strategy)
+    1HZ50V: 1    # Use 1 minute for moderate volatility
+    R_50: 1      # Use 1 minute for slower trends
+    BOOM500: 1   # Use 1 minute for boom indices

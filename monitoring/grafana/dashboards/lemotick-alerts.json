@@ -1,0 +1,74 @@
+{
+    "alertRules": [
+        {
+            "name": "High Drawdown Alert",
+            "condition": "lemotick_daily_drawdown > 0.05",
+            "severity": "critical",
+            "message": "Daily drawdown exceeded 5%! Current drawdown: {{ $value }}%",
+            "runbook": "Check risk management settings and consider stopping the bot"
+        },
+        {
+            "name": "WebSocket Disconnection",
+            "condition": "lemotick_websocket_connections == 0",
+            "severity": "critical",
+            "message": "WebSocket connection lost! Bot may not be receiving market data",
+            "runbook": "Check network connectivity and Deriv API status"
+        },
+        {
+            "name": "Excessive Reconnections",
+            "condition": "rate(lemotick_websocket_reconnects_total[5m]) > 0.1",
+            "severity": "warning",
+            "message": "High WebSocket reconnection rate: {{ $value }} reconnects/min",
+            "runbook": "Check network stability and API connection quality"
+        },
+        {
+            "name": "No Trades for Extended Period",
+            "condition": "rate(lemotick_trades_total[10m]) == 0",
+            "severity": "warning",
+            "message": "No trades executed in the last 10 minutes",
+            "runbook": "Check if market conditions are suitable for trading signals"
+        },
+        {
+            "name": "High Loss Rate",
+            "condition": "rate(lemotick_trades_total{result=\"loss\"}[5m]) / rate(lemotick_trades_total[5m]) > 0.7",
+            "severity": "warning",
+            "message": "High loss rate detected: {{ $value }}% of recent trades are losses",
+            "runbook": "Review trading strategy and consider pausing the bot"
+        },
+        {
+            "name": "Low Equity Alert",
+            "condition": "lemotick_current_equity < 1000",
+            "severity": "critical",
+            "message": "Account equity is critically low: ${{ $value }}",
+            "runbook": "Stop trading immediately and review risk management"
+        },
+        {
+            "name": "High Processing Latency",
+            "condition": "histogram_quantile(0.95, rate(lemotick_tick_processing_seconds_bucket[5m])) > 0.1",
+            "severity": "warning",
+            "message": "High tick processing latency: {{ $value }}s (95th percentile)",
+            "runbook": "Check system performance and optimize code if needed"
+        },
+        {
+            "name": "Database Connection Issues",
+            "condition": "rate(lemotick_database_operations_total{operation_type=\"error\"}[5m]) > 0.01",
+            "severity": "warning",
+            "message": "Database errors detected: {{ $value }} errors/min",
+            "runbook": "Check database connectivity and disk space"
+        },
+        {
+            "name": "Signal Generation Stopped",
+            "condition": "rate(lemotick_signals_generated_total[5m]) == 0",
+            "severity": "info",
+            "message": "No signals generated in the last 5 minutes",
+            "runbook": "Check if market conditions meet signal criteria"
+        },
+        {
+            "name": "Excessive Signal Filtering",
+            "condition": "rate(lemotick_signals_filtered_total[5m]) / rate(lemotick_signals_generated_total[5m]) > 0.9",
+            "severity": "info",
+            "message": "High signal filtering rate: {{ $value }}% of signals are being filtered",
+            "runbook": "Review signal criteria and market conditions"
+        }
+    ]
+}

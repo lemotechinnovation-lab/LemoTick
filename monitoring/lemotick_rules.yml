@@ -1,0 +1,112 @@
+groups:
+  - name: lemotick_trading_alerts
+    rules:
+      - alert: HighDrawdown
+        expr: lemotick_daily_drawdown > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          service: lemotick
+        annotations:
+          summary: "High daily drawdown detected"
+          description: "Daily drawdown is {{ $value }}% (threshold: 5%)"
+          runbook_url: "https://docs.lemotick.com/alerts/high-drawdown"
+
+      - alert: WebSocketDisconnected
+        expr: lemotick_websocket_connections == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: lemotick
+        annotations:
+          summary: "WebSocket connection lost"
+          description: "Bot is not connected to Deriv WebSocket"
+          runbook_url: "https://docs.lemotick.com/alerts/websocket-disconnect"
+
+      - alert: ExcessiveReconnections
+        expr: rate(lemotick_websocket_reconnects_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: lemotick
+        annotations:
+          summary: "High WebSocket reconnection rate"
+          description: "Reconnection rate is {{ $value }} per minute"
+          runbook_url: "https://docs.lemotick.com/alerts/excessive-reconnections"
+
+      - alert: NoTradesForExtendedPeriod
+        expr: rate(lemotick_trades_total[10m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: lemotick
+        annotations:
+          summary: "No trades executed recently"
+          description: "No trades in the last 10 minutes"
+          runbook_url: "https://docs.lemotick.com/alerts/no-trades"
+
+      - alert: HighLossRate
+        expr: rate(lemotick_trades_total{result="loss"}[5m]) / rate(lemotick_trades_total[5m]) > 0.7
+        for: 3m
+        labels:
+          severity: warning
+          service: lemotick
+        annotations:
+          summary: "High loss rate detected"
+          description: "{{ $value }}% of recent trades are losses"
+          runbook_url: "https://docs.lemotick.com/alerts/high-loss-rate"
+
+      - alert: LowEquity
+        expr: lemotick_current_equity < 1000
+        for: 1m
+        labels:
+          severity: critical
+          service: lemotick
+        annotations:
+          summary: "Account equity critically low"
+          description: "Current equity is ${{ $value }}"
+          runbook_url: "https://docs.lemotick.com/alerts/low-equity"
+
+      - alert: HighProcessingLatency
+        expr: histogram_quantile(0.95, rate(lemotick_tick_processing_seconds_bucket[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: lemotick
+        annotations:
+          summary: "High tick processing latency"
+          description: "95th percentile latency is {{ $value }}s"
+          runbook_url: "https://docs.lemotick.com/alerts/high-latency"
+
+      - alert: DatabaseErrors
+        expr: rate(lemotick_database_operations_total{operation_type="error"}[5m]) > 0.01
+        for: 1m
+        labels:
+          severity: warning
+          service: lemotick
+        annotations:
+          summary: "Database errors detected"
+          description: "{{ $value }} database errors per minute"
+          runbook_url: "https://docs.lemotick.com/alerts/database-errors"
+
+      - alert: NoSignalGeneration
+        expr: rate(lemotick_signals_generated_total[5m]) == 0
+        for: 3m
+        labels:
+          severity: info
+          service: lemotick
+        annotations:
+          summary: "No signals generated"
+          description: "No trading signals in the last 5 minutes"
+          runbook_url: "https://docs.lemotick.com/alerts/no-signals"
+
+      - alert: ExcessiveSignalFiltering
+        expr: rate(lemotick_signals_filtered_total[5m]) / rate(lemotick_signals_generated_total[5m]) > 0.9
+        for: 2m
+        labels:
+          severity: info
+          service: lemotick
+        annotations:
+          summary: "High signal filtering rate"
+          description: "{{ $value }}% of signals are being filtered"
+          runbook_url: "https://docs.lemotick.com/alerts/excessive-filtering"

@@ -1,0 +1,450 @@
+{
+    "id": null,
+    "title": "LemoTick Trading Bot Dashboard",
+    "tags": [
+        "lemotick",
+        "trading",
+        "bot"
+    ],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "panels": [
+        {
+            "id": 1,
+            "title": "Trading Performance Overview",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(lemotick_trades_total[5m]))",
+                    "legendFormat": "Trades/min"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 2,
+            "title": "Current Equity",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 6,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_current_equity",
+                    "legendFormat": "Equity"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "currencyUSD",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 5000
+                            },
+                            {
+                                "color": "green",
+                                "value": 10000
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 3,
+            "title": "Daily Drawdown",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 12,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_daily_drawdown * 100",
+                    "legendFormat": "Drawdown %"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 1
+                            },
+                            {
+                                "color": "red",
+                                "value": 2
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 4,
+            "title": "Trades Over Time",
+            "type": "graph",
+            "gridPos": {
+                "h": 6,
+                "w": 12,
+                "x": 0,
+                "y": 6
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(lemotick_trades_total[1m])) by (action)",
+                    "legendFormat": "{{action}} trades/min"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Trades per minute",
+                    "min": 0
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "title": "Win/Loss Ratio",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 6,
+                "y": 3
+            },
+            "targets": [
+                {
+                    "expr": "(sum(lemotick_trades_total{result=\"win\"}) / sum(lemotick_trades_total)) * 100",
+                    "legendFormat": "Win %"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "green",
+                                "value": 70
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 6,
+            "title": "Technical Indicators",
+            "type": "graph",
+            "gridPos": {
+                "h": 6,
+                "w": 24,
+                "x": 0,
+                "y": 12
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_ema_fast",
+                    "legendFormat": "EMA Fast"
+                },
+                {
+                    "expr": "lemotick_ema_slow",
+                    "legendFormat": "EMA Slow"
+                },
+                {
+                    "expr": "lemotick_momentum * 1000000",
+                    "legendFormat": "Momentum (x1M)"
+                },
+                {
+                    "expr": "lemotick_volatility * 1000000",
+                    "legendFormat": "Volatility (x1M)"
+                },
+                {
+                    "expr": "lemotick_rsi",
+                    "legendFormat": "RSI"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Indicator Value",
+                    "min": 0
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "title": "Signal Generation",
+            "type": "graph",
+            "gridPos": {
+                "h": 6,
+                "w": 12,
+                "x": 0,
+                "y": 18
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(lemotick_signals_generated_total[1m])) by (signal_type)",
+                    "legendFormat": "{{signal_type}} signals/min"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Signals per minute",
+                    "min": 0
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "title": "Signal Filters",
+            "type": "graph",
+            "gridPos": {
+                "h": 6,
+                "w": 12,
+                "x": 12,
+                "y": 18
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(lemotick_signals_filtered_total[1m])) by (filter_type)",
+                    "legendFormat": "{{filter_type}} filters/min"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Filtered signals per minute",
+                    "min": 0
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "title": "System Health",
+            "type": "graph",
+            "gridPos": {
+                "h": 5,
+                "w": 12,
+                "x": 0,
+                "y": 24
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_websocket_connections",
+                    "legendFormat": "WebSocket Connected"
+                },
+                {
+                    "expr": "sum(rate(lemotick_websocket_reconnects_total[1m]))",
+                    "legendFormat": "Reconnects/min"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Connection Status",
+                    "min": 0,
+                    "max": 1
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "title": "Performance Metrics",
+            "type": "graph",
+            "gridPos": {
+                "h": 5,
+                "w": 12,
+                "x": 12,
+                "y": 24
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.95, rate(lemotick_tick_processing_seconds_bucket[5m]))",
+                    "legendFormat": "95th percentile tick processing"
+                },
+                {
+                    "expr": "histogram_quantile(0.95, rate(lemotick_trade_execution_seconds_bucket[5m]))",
+                    "legendFormat": "95th percentile trade execution"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Seconds",
+                    "min": 0
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "title": "Active Trades",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 18,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_active_trades",
+                    "legendFormat": "Active Trades"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 1
+                            },
+                            {
+                                "color": "red",
+                                "value": 2
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 12,
+            "title": "Profit/Loss",
+            "type": "stat",
+            "gridPos": {
+                "h": 3,
+                "w": 6,
+                "x": 0,
+                "y": 3
+            },
+            "targets": [
+                {
+                    "expr": "lemotick_trades_profit_total - lemotick_trades_loss_total",
+                    "legendFormat": "Net P&L"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "currencyUSD",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "green",
+                                "value": 1
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 13,
+            "title": "Database Operations",
+            "type": "graph",
+            "gridPos": {
+                "h": 5,
+                "w": 24,
+                "x": 0,
+                "y": 29
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(lemotick_database_operations_total[1m])) by (operation_type)",
+                    "legendFormat": "{{operation_type}} ops/min"
+                }
+            ],
+            "yAxes": [
+                {
+                    "label": "Operations per minute",
+                    "min": 0
+                }
+            ]
+        }
+    ],
+    "templating": {
+        "list": []
+    },
+    "annotations": {
+        "list": [
+            {
+                "name": "Trades",
+                "datasource": "Prometheus",
+                "enable": true,
+                "expr": "lemotick_trades_total",
+                "iconColor": "green"
+            }
+        ]
+    }
+}
