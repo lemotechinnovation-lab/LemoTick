@@ -36,7 +36,6 @@ class StreamHandler:
         # Connection parameters
         self.ws_url = f"{config.deriv_ws_url}?app_id={config.app_id}"
         self.api_token = config.api_token
-        self.symbol = config.symbol
         self.metrics = get_metrics()
 
         # Threading
@@ -50,17 +49,23 @@ class StreamHandler:
         # Optional trade message callbacks (registered by TradeExecutor)
         self._on_proposal: Optional[Callable[[Dict[str, Any]], None]] = None
         self._on_buy: Optional[Callable[[Dict[str, Any]], None]] = None
+        self._on_sell: Optional[Callable[[Dict[str, Any]], None]] = None
+        self._on_sell_error: Optional[Callable[[Dict[str, Any]], None]] = None
         self._on_contract_update: Optional[Callable[[Dict[str, Any]], None]] = None
 
     def register_trade_callbacks(
         self,
         on_proposal: Optional[Callable[[Dict[str, Any]], None]] = None,
         on_buy: Optional[Callable[[Dict[str, Any]], None]] = None,
+        on_sell: Optional[Callable[[Dict[str, Any]], None]] = None,
+        on_sell_error: Optional[Callable[[Dict[str, Any]], None]] = None,
         on_contract_update: Optional[Callable[[Dict[str, Any]], None]] = None,
     ) -> None:
         """Register callbacks for trade-related messages."""
         self._on_proposal = on_proposal
         self._on_buy = on_buy
+        self._on_sell = on_sell
+        self._on_sell_error = on_sell_error
         self._on_contract_update = on_contract_update
 
     def connect(self) -> bool:
@@ -105,7 +110,8 @@ class StreamHandler:
                 logger.info(f"Successfully authenticated. Client ID: {client_id}")
 
                 # Subscribe to ticks
-                subscribe_payload = {"ticks": self.symbol}
+                current_symbol = config.symbol
+                subscribe_payload = {"ticks": current_symbol}
                 self.ws.send(json.dumps(subscribe_payload))
 
                 # Wait for subscription confirmation
@@ -114,7 +120,7 @@ class StreamHandler:
                     logger.error(f"Subscription failed: {sub_response['error']}")
                     return False
 
-                logger.info(f"Successfully subscribed to ticks for {self.symbol}")
+                logger.info(f"Successfully subscribed to ticks for {current_symbol}")
 
                 self.is_connected = True
                 try:
@@ -281,6 +287,9 @@ class StreamHandler:
                 tick_data = message["tick"]
                 quote = tick_data.get("quote")
                 epoch = tick_data.get("epoch")
+                symbol = tick_data.get("symbol", "unknown")
+
+                logger.info(f"RECEIVED TICK DATA: {symbol} = {quote} at {epoch}")
 
                 if quote is not None:
                     try:
@@ -288,6 +297,7 @@ class StreamHandler:
                         # Store latest tick for signal revalidation
                         with self._tick_lock:
                             self._latest_tick = price
+                        logger.info(f"Processing tick: {price} for strategy analysis")
                         self.on_tick_callback(price, epoch or int(time.time()))
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Invalid tick data: {e}")
@@ -295,7 +305,7 @@ class StreamHandler:
             # Handle ping response
             elif "pong" in message:
                 logger.debug("Received pong")
-            
+
             # Handle ping messages from server
             elif message.get("msg_type") == "ping":
                 logger.debug("Ping received from server, ignoring.")
@@ -310,6 +320,14 @@ class StreamHandler:
                 if error_data.get("code") == "InvalidToken":
                     logger.error("Invalid API token. Please check your credentials.")
                     self.stop()
+                elif error_data.get("code") == "InvalidOfferings":
+                    logger.warning(f"Contract resale not offered: {error_data.get('message', 'Unknown reason')}")
+                    # Forward to trade executor to mark contract as non-resellable
+                    if self._on_sell_error:
+                        try:
+                            self._on_sell_error(error_data)
+                        except Exception as e:
+                            logger.warning(f"Sell error callback error: {e}")
 
             # Handle proposal responses (for trade execution)
             elif "proposal" in message:
@@ -321,31 +339,39 @@ class StreamHandler:
                     except Exception as e:
                         logger.warning(f"Proposal callback error: {e}")
 
-            # Handle buy responses
+            # Handle buy responses (for trade execution)
             elif "buy" in message:
                 # Forward buy responses to executor if registered
-                logger.debug("Received buy response")
+                logger.info(f"Received buy response: {message}")
                 if self._on_buy:
                     try:
                         self._on_buy(message)
                     except Exception as e:
                         logger.warning(f"Buy callback error: {e}")
 
-            # Contract updates
-            elif message.get("msg_type") == "proposal_open_contract":
+            # Handle sell responses (for early closure)
+            elif "sell" in message:
+                # Forward sell responses to executor if registered
+                logger.info(f"Received sell response: {message}")
+                if self._on_sell:
+                    try:
+                        self._on_sell(message)
+                    except Exception as e:
+                        logger.warning(f"Sell callback error: {e}")
+
+            # Handle contract updates (for trade monitoring)
+            elif "proposal_open_contract" in message:
+                # Forward contract updates to executor if registered
+                logger.debug("Received contract update")
                 if self._on_contract_update:
                     try:
                         self._on_contract_update(message.get("proposal_open_contract", {}))
                     except Exception as e:
                         logger.warning(f"Contract update callback error: {e}")
 
-            # Log unknown message types (but don't spam for ping messages)
+            # Log other messages for debugging
             else:
-                msg_type = message.get("msg_type", "unknown")
-                if msg_type not in ["ping", "pong"]:
-                    logger.debug(f"Unknown message type: {list(message.keys())}")
-                else:
-                    logger.debug(f"Received {msg_type} message from server")
+                logger.debug(f"📨 Received other message: {message}")
 
         except Exception as e:
             logger.error(f"Error handling message: {e}")
@@ -383,7 +409,7 @@ class StreamHandler:
             "is_connected": self.is_connected,
             "is_running": self.is_running,
             "reconnect_attempts": self.reconnect_attempts,
-            "symbol": self.symbol,
+            "symbol": config.symbol,
             "last_ping": self.last_ping_time,
         }
 

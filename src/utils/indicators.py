@@ -143,8 +143,8 @@ class IncrementalRSI:
         self.prices = deque(maxlen=period + 1)
         self.gains = deque(maxlen=period)
         self.losses = deque(maxlen=period)
-        self.avg_gain = 0.0
-        self.avg_loss = 0.0
+        self.avg_gain = None
+        self.avg_loss = None
         self.rsi = 50.0  # Start with neutral RSI
 
     def update(self, price: float) -> float:
@@ -270,15 +270,19 @@ class IncrementalMACD:
         # MACD line (fast EMA - slow EMA)
         self.macd_line = 0.0
 
-        # Signal line (EMA of MACD line)
-        self.signal_ema = IncrementalEMA(signal_period)
+        # Signal line (EMA of MACD line) - we'll calculate this manually for proper running EMA
         self.signal_line = 0.0
+        self._signal_initialized = False
 
         # Histogram (MACD - Signal)
         self.histogram = 0.0
 
         # Values history for calculations
         self.macd_history = deque(maxlen=signal_period + 1)
+
+        # Track initialization state - need max(fast, slow) periods for EMAs + signal_period for signal line
+        self._ema_updates_count = 0
+        self._is_ready = False
 
     def update(self, price: float) -> tuple[float, float, float]:
         """
@@ -290,6 +294,9 @@ class IncrementalMACD:
         Returns:
             Tuple of (MACD line, signal line, histogram)
         """
+        # Track EMA updates for initialization
+        self._ema_updates_count += 1
+
         # Update EMAs
         fast_ema_val = self.fast_ema.update(price)
         slow_ema_val = self.slow_ema.update(price)
@@ -303,20 +310,43 @@ class IncrementalMACD:
         # Update MACD history for signal line calculation
         self.macd_history.append(self.macd_line)
 
-        # Calculate signal line (only when we have enough history)
-        if len(self.macd_history) >= self.signal_period:
-            signal_val = self.signal_ema.update(self.macd_line)
-            if signal_val is not None:
-                self.signal_line = signal_val
+        # Calculate signal line (running EMA of MACD line)
+        if not self._signal_initialized:
+            # First MACD value: initialize signal line
+            self.signal_line = self.macd_line
+            self._signal_initialized = True
+        else:
+            # Subsequent values: update running EMA
+            alpha = 2.0 / (self.signal_period + 1.0)
+            self.signal_line = alpha * self.macd_line + (1 - alpha) * self.signal_line
 
         # Calculate histogram
         self.histogram = self.macd_line - self.signal_line
+
+        # Check if MACD is ready (EMAs need max(fast, slow) periods, signal needs additional signal_period values)
+        min_required_updates = max(self.fast_period, self.slow_period) + self.signal_period
+        self._is_ready = (self._ema_updates_count >= min_required_updates and
+                         len(self.macd_history) >= self.signal_period)
 
         return self.macd_line, self.signal_line, self.histogram
 
     def get_value(self) -> tuple[float, float, float]:
         """Get current MACD values without updating."""
         return self.macd_line, self.signal_line, self.histogram
+
+    def is_ready(self) -> bool:
+        """Check if MACD is ready for use (EMAs and signal line are properly initialized)."""
+        return self._is_ready
+
+    def get_initialization_status(self) -> tuple[int, int]:
+        """
+        Get MACD initialization status.
+
+        Returns:
+            Tuple of (current_updates, required_updates)
+        """
+        min_required_updates = max(self.fast_period, self.slow_period) + self.signal_period
+        return self._ema_updates_count, min_required_updates
 
     def is_bullish(self) -> bool:
         """Check if MACD is bullish (MACD > Signal)."""
@@ -400,6 +430,64 @@ class IncrementalStochastic:
     def is_oversold(self, threshold: float = 20.0) -> bool:
         """Check if Stochastic is oversold."""
         return self.percent_k < threshold
+
+
+class IncrementalATR:
+    """Average True Range with incremental updates."""
+
+    def __init__(self, period: int):
+        """
+        Initialize ATR with given period.
+
+        Args:
+            period: Number of periods for ATR calculation
+        """
+        self.period = period
+        self.true_ranges = deque(maxlen=period)
+        self.atr: Optional[float] = None
+        self.is_initialized = False
+
+    def update(self, high: float, low: float, close: float) -> float:
+        """
+        Update ATR with new OHLC values.
+
+        Args:
+            high: High price
+            low: Low price
+            close: Close price
+
+        Returns:
+            Current ATR value
+        """
+        # Calculate True Range
+        tr1 = high - low
+        tr2 = abs(high - close)
+        tr3 = abs(low - close)
+        true_range = max(tr1, tr2, tr3)
+
+        # Add to true ranges
+        self.true_ranges.append(true_range)
+
+        if len(self.true_ranges) >= self.period:
+            if not self.is_initialized:
+                # Initialize ATR as simple average of first 'period' true ranges
+                self.atr = sum(self.true_ranges) / self.period
+                self.is_initialized = True
+            else:
+                # Update ATR using Wilder's smoothing
+                self.atr = (self.atr * (self.period - 1) + true_range) / self.period
+
+        return self.atr if self.is_initialized else 0.0
+
+    def get_value(self) -> Optional[float]:
+        """Get current ATR value without updating."""
+        return self.atr
+
+    def reset(self) -> None:
+        """Reset ATR to uninitialized state."""
+        self.true_ranges.clear()
+        self.atr = None
+        self.is_initialized = False
 
 
 def calculate_alpha(period: int) -> float:

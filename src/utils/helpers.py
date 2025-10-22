@@ -312,3 +312,66 @@ def get_candle_color(open_price: float, close_price: float) -> str:
         return "red"     # bearish
     else:
         return "doji"    # neutral
+
+
+def calculate_ticks_sl_tp(entry_price: float, tick_size: float, risk_percentage: float, reward_multiplier: float) -> tuple[float, float]:
+    """
+    Converts price-based SL/TP into tick counts for Rise/Fall contracts.
+    
+    Args:
+        entry_price: Entry price of trade
+        tick_size: Minimum price movement per tick
+        risk_percentage: Risk per trade (0.01 = 1%)
+        reward_multiplier: Desired reward-to-risk ratio
+    
+    Returns:
+        Tuple of (ticks_to_stop_loss, ticks_to_take_profit)
+    """
+    if tick_size <= 0:
+        raise ValueError("Tick size must be positive")
+    
+    risk_amount = entry_price * risk_percentage
+    ticks_to_sl = risk_amount / tick_size
+    ticks_to_tp = ticks_to_sl * reward_multiplier
+    
+    return ticks_to_sl, ticks_to_tp
+
+
+def calculate_tick_size_for_symbol(symbol: str) -> float:
+    """
+    Get tick size for different trading symbols.
+    
+    Args:
+        symbol: Trading symbol (e.g., 'R_100', 'R_75', 'R_50')
+        
+    Returns:
+        Tick size for the symbol
+    """
+    # Tick sizes for Deriv synthetic indices
+    tick_sizes = {
+        'R_100': 0.005,   # Volatility 100 Index
+        'R_75': 0.005,    # Volatility 75 Index  
+        'R_50': 0.005,    # Volatility 50 Index
+        'R_25': 0.005,    # Volatility 25 Index
+        'R_200': 0.005,   # Volatility 200 Index
+        'R_10': 0.005,    # Volatility 10 Index
+    }
+    
+    return tick_sizes.get(symbol, 0.005)  # Default to 0.005 if symbol not found
+
+
+def calculate_dynamic_ticks_sl_tp(entry_price: float, symbol: str, risk_percentage: float = 0.01, reward_multiplier: float = 1.5) -> tuple[float, float]:
+    """
+    Calculate dynamic tick-based SL/TP for a given symbol and risk parameters.
+    
+    Args:
+        entry_price: Entry price of trade
+        symbol: Trading symbol
+        risk_percentage: Risk per trade (default 1%)
+        reward_multiplier: Desired reward-to-risk ratio (default 1.5:1)
+        
+    Returns:
+        Tuple of (ticks_to_stop_loss, ticks_to_take_profit)
+    """
+    tick_size = calculate_tick_size_for_symbol(symbol)
+    return calculate_ticks_sl_tp(entry_price, tick_size, risk_percentage, reward_multiplier)

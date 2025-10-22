@@ -27,7 +27,7 @@ class RiskManager:
         self.peak_equity = initial_equity
 
         # Risk parameters
-        self.risk_per_trade = config.get("risk_management.risk_per_trade", 0.02)
+        self.risk_per_trade = config.get("risk_management.risk_per_trade", 0.005)
         self.max_daily_drawdown = config.get("risk_management.max_daily_drawdown", 0.10)
         self.max_stake = config.max_stake
         self.min_stake = config.min_stake
@@ -119,42 +119,63 @@ class RiskManager:
         return True, "Trading allowed"
 
     def calculate_stake(
-        self, volatility: float = 0.001, confidence: float = 1.0
+        self, volatility: float = 0.001, confidence: float = 1.0, signal_strength: float = 1.0
     ) -> float:
         """
-        Calculate appropriate stake size based on risk parameters.
+        Calculate appropriate stake size based on percentage-based risk management.
 
         Args:
             volatility: Current market volatility
             confidence: Signal confidence (0.0 to 1.0)
+            signal_strength: Signal strength from indicators (0.0 to 1.0)
 
         Returns:
             Calculated stake amount
         """
-        # Base stake calculation - aggressive for minute trading
-        base_risk = self.current_equity * (self.risk_per_trade * 1.5)  # Increase risk by 50% for higher profits
+        # Use percentage-based risk per trade (from config or default 0.5%)
+        risk_per_trade_pct = config.get('risk_management.risk_per_trade_pct', 0.005)  # 0.5% of equity per trade
 
-        # Adjust for volatility (aggressive - higher stake in volatility for minute trading)
-        volatility_factor = clamp(2.0 / (volatility + 0.0001), 0.5, 5.0)  # More aggressive volatility adjustment
+        # If min_stake equals max_stake, use fixed stake value
+        if self.min_stake == self.max_stake:
+            base_stake = self.min_stake  # Use fixed stake value (e.g., 10.0)
+        else:
+            # Calculate base stake as percentage of current equity
+            base_stake = self.current_equity * risk_per_trade_pct
 
-        # Adjust for confidence (aggressive)
-        confidence_factor = clamp(confidence, 0.8, 1.5)  # Allow higher stakes on confidence
+        # Adjust for signal strength (stronger signals = higher stake, but capped)
+        strength_multiplier = clamp(signal_strength, 0.5, 2.0)  # 0.5x to 2x multiplier based on signal strength
+
+        # Adjust for confidence (higher confidence = higher stake)
+        confidence_multiplier = clamp(confidence, 0.8, 1.3)  # 0.8x to 1.3x based on confidence
+
+        # Adjust for volatility (higher volatility = smaller stake for safety)
+        volatility_factor = clamp(1.0 / (volatility * 100 + 1.0), 0.3, 1.5)  # Reduce stake in high volatility
 
         # Calculate final stake
-        stake = base_risk * volatility_factor * confidence_factor
+        stake = base_stake * strength_multiplier * confidence_multiplier * volatility_factor
 
-        # Apply limits - aggressive limits for minute trading
-        max_stake_by_equity = self.current_equity * 0.25  # Max 25% of equity for rapid compounding
+        # Apply absolute limits for safety
+        max_stake_by_equity = self.current_equity * 0.10  # Max 10% of equity per trade (more conservative)
+        min_stake_by_equity = self.current_equity * 0.005  # Min 0.5% of equity per trade
+
         effective_max_stake = min(self.max_stake, max_stake_by_equity)
-        stake = clamp(stake, self.min_stake, effective_max_stake)
+        effective_min_stake = max(self.min_stake, min_stake_by_equity)
+
+        stake = clamp(stake, effective_min_stake, effective_max_stake)
 
         # Round to 2 decimal places
         stake = round(stake, 2)
 
-        logger.debug(
-            f"Calculated stake: {stake} (base_risk: {base_risk}, "
-            f"vol_factor: {volatility_factor:.2f}, conf_factor: {confidence_factor:.2f})"
-        )
+        if self.min_stake == self.max_stake:
+            logger.info(
+                f"Fixed stake: {stake} (fixed value), "
+                f"strength: {strength_multiplier:.2f}x, confidence: {confidence_multiplier:.2f}x, volatility: {volatility_factor:.2f}x"
+            )
+        else:
+            logger.info(
+                f"Percentage-based stake: {stake} ({risk_per_trade_pct*100:.1f}% of {self.current_equity:.2f}), "
+                f"strength: {strength_multiplier:.2f}x, confidence: {confidence_multiplier:.2f}x, volatility: {volatility_factor:.2f}x"
+            )
 
         return stake
 
@@ -189,7 +210,7 @@ class RiskManager:
             balance = account_balance if account_balance else self.current_equity
 
             # Risk 1% of account per trade (can be adjusted)
-            risk_per_trade = balance * 0.01
+            risk_per_trade = balance * 0.005
 
             # Calculate stake based on risk distance
             # stake = risk_amount / risk_distance
@@ -199,7 +220,7 @@ class RiskManager:
             stake = max(self.min_stake, min(stake, self.max_stake))
 
             # Ensure stake doesn't exceed 10% of account
-            max_stake_by_balance = balance * 0.1
+            max_stake_by_balance = balance * 0.005
             stake = min(stake, max_stake_by_balance)
 
             logger.info(

@@ -33,8 +33,9 @@ trading:
   contract_duration: 15
   contract_duration_unit: s
   symbol_durations:
-    1HZ100V: 10
-    1HZ50V: 7
+    R_100: 1
+    R_75: 10
+    R_50: 5
 ```
 
 ## Notes

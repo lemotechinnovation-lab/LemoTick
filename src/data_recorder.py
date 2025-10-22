@@ -144,7 +144,7 @@ class DataRecorder:
             symbol: Trading symbol
         """
         try:
-            symbol = symbol or config.symbol
+            symbol = symbol or config.symbol  # Always use current config symbol
             timestamp = get_timestamp()
             created_at = get_utc_timestamp()
 
@@ -223,6 +223,54 @@ class DataRecorder:
 
         except Exception as e:
             logger.error(f"Error recording trade: {e}")
+
+    def update_trade_status(self, contract_id: str, status: str, exit_price: float = None, profit: float = None) -> None:
+        """
+        Update trade status in the database.
+
+        Args:
+            contract_id: Contract ID to update
+            status: New status (e.g., "closed", "cancelled")
+            exit_price: Exit price (optional)
+            profit: Profit/loss amount (optional)
+        """
+        try:
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            cursor = conn.cursor()
+
+            # Build update query dynamically based on provided parameters
+            update_fields = ["status = ?"]
+            update_values = [status]
+
+            if exit_price is not None:
+                update_fields.append("exit_price = ?")
+                update_values.append(exit_price)
+
+            if profit is not None:
+                update_fields.append("profit = ?")
+                update_values.append(profit)
+
+            # Add completion time for closed trades
+            if status == "closed":
+                update_fields.append("completion_time = ?")
+                update_values.append(get_timestamp())
+
+            update_values.append(contract_id)
+
+            query = f"""
+                UPDATE trades 
+                SET {', '.join(update_fields)}
+                WHERE contract_id = ?
+            """
+
+            cursor.execute(query, update_values)
+            conn.commit()
+            conn.close()
+
+            logger.info(f"Trade status updated: {contract_id} -> {status}")
+
+        except Exception as e:
+            logger.error(f"Error updating trade status: {e}")
 
     def record_performance(self, performance_data: Dict[str, Any]) -> None:
         """

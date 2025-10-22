@@ -16,6 +16,7 @@ from .risk_manager import RiskManager
 from .data_recorder import DataRecorder
 from .metrics import get_metrics, start_metrics_server
 from .loki_logger import get_loki_logger
+from .market_selector import get_market_selector
 
 
 class LemoTickBot:
@@ -31,7 +32,12 @@ class LemoTickBot:
         self.data_recorder = DataRecorder()
         self.strategy_engine = StrategyEngine()
         self.stream_handler = StreamHandler(self._on_tick_received)
-        self.trade_executor = TradeExecutor(self.stream_handler)
+        self.trade_executor = TradeExecutor(self.stream_handler, self.strategy_engine, self.data_recorder)
+
+        # Initialize market selector for optimal market selection
+        self.market_selector = get_market_selector()
+        self.current_symbol = config.get("trading.symbol", "R_100")
+        self.last_market_switch = 0
 
         # Set up trade cancellation callback
         self.strategy_engine.on_trade_cancel = self._cancel_trade_by_strategy
@@ -116,9 +122,13 @@ class LemoTickBot:
     def _trading_loop(self) -> None:
         """Main trading loop."""
         logger.info("Entering main trading loop")
+        last_tick_time = time.time()
+        last_market_check = 0
 
         while self.is_running and not self.shutdown_event.is_set():
             try:
+                current_time = time.time()
+
                 # Check if we can trade
                 can_trade, reason = self.risk_manager.can_trade()
                 if not can_trade:
@@ -134,6 +144,16 @@ class LemoTickBot:
                     time.sleep(5)
                     continue
 
+                # Check for market switching (every 5 minutes)
+                if current_time - last_market_check > 300:  # Every 5 minutes
+                    self._check_and_switch_market()
+                    last_market_check = current_time
+
+                # Log status periodically to show bot is alive
+                if current_time - last_tick_time > 10:  # Every 10 seconds
+                    logger.info(f"Bot running - Market: {self.current_symbol}, Active trades: {len(self.strategy_engine.active_trades)}")
+                    last_tick_time = current_time
+
                 # Small sleep to prevent busy waiting
                 time.sleep(0.1)
 
@@ -145,6 +165,256 @@ class LemoTickBot:
                 time.sleep(1)
 
         logger.info("Trading loop exited")
+
+    def _check_and_switch_market(self) -> None:
+        """
+        Check if market should be switched based on performance and switch if needed.
+        """
+        try:
+            current_time = time.time()
+
+            # Check minimum interval between switches
+            min_switch_interval = config.get("strategy.min_market_switch_interval", 300)
+            if current_time - self.last_market_switch < min_switch_interval:
+                return
+
+            # Check if current market should be switched
+            if self.market_selector.should_switch_market(self.current_symbol):
+                # Get best alternative market
+                new_symbol = self.market_selector.get_best_alternative_market(
+                    self.current_symbol,
+                    config.get("trading.contract_duration", 1)
+                )
+
+                if new_symbol != self.current_symbol:
+                    logger.info(f"Switching market from {self.current_symbol} to {new_symbol}")
+
+                    # Update current symbol
+                    self.current_symbol = new_symbol
+                    self.last_market_switch = current_time
+
+                    # Update stream handler to use new symbol
+                    # Note: This would need to be implemented in stream_handler
+                    # For now, we'll log the change
+                    logger.info(f"Market switched to {self.current_symbol}")
+
+                    # Update configuration
+                    # Note: In a real implementation, this would update the stream subscription
+                    # For now, we'll just log and track the change
+
+            else:
+                logger.debug(f"Market {self.current_symbol} performance OK, no switch needed")
+
+        except Exception as e:
+            logger.error(f"Error checking market switch: {e}")
+
+    def _check_early_closure_conditions(self, current_price: float, epoch: int) -> None:
+        """
+        Check active trades for early closure conditions:
+        - If 8+ ticks elapsed and trade is losing -> close immediately
+        - If 8+ ticks elapsed and not losing -> start monitoring for TP
+        - If price indicates significant loss (< 0) -> close immediately
+        - MACD-based closure: If MACD contradicts trade direction for 5+ ticks -> close
+
+        Args:
+            current_price: Current market price
+            epoch: Current timestamp
+        """
+        try:
+            # Check active contracts in trade executor
+            active_contracts = self.trade_executor.active_contracts
+            
+            if not active_contracts:
+                return  # No active contracts to check
+                
+            logger.info(f"Checking early closure for {len(active_contracts)} active contracts")
+            
+            for contract_id, contract_data in list(active_contracts.items()):
+                try:
+                    # Use the trade executor's early closure logic with tick count
+                    should_close, reason = self.trade_executor.should_close_early(contract_data, self.tick_count)
+                    
+                    # Debug logging for early closure analysis
+                    logger.info(f"Early closure check for {contract_id}: should_close={should_close}, reason='{reason}'")
+                    
+                    if should_close:
+                        logger.warning(f"EARLY CLOSURE TRIGGERED for contract {contract_id}: {reason}")
+                        logger.info(f"[LemoTick] Early closure triggered for contract {contract_id}")
+                        self.trade_executor._execute_sell(contract_id, f"early_closure_{reason}")
+                        logger.info(f"[LemoTick] Sell request sent for contract {contract_id}")
+                    else:
+                        logger.debug(f"Contract {contract_id} not ready for early closure: {reason}")
+
+                except Exception as e:
+                    logger.error(f"Error checking contract {contract_id}: {e}")
+                    continue
+
+        except Exception as e:
+            logger.error(f"Error in early closure check: {e}")
+
+    def _is_trade_losing(self, signal: str, current_price: float, trade: dict) -> bool:
+        """
+        Determine if a trade is currently losing based on price movement relative to barrier.
+
+        Args:
+            signal: Trade signal (BUY/SELL)
+            current_price: Current market price
+            trade: Trade data dictionary
+
+        Returns:
+            True if trade is losing, False otherwise
+        """
+        try:
+            # For binary options, we can estimate based on barrier and current price
+            # This is an approximation since we don't have real-time indicative prices
+
+            barrier = trade.get("barrier", 0)
+            if barrier == 0:
+                # No barrier info, can't determine
+                return False
+
+            if signal == "BUY":  # CALL option
+                # For CALL, we're losing if current price is below barrier
+                # (option is out-of-the-money)
+                return current_price <= barrier
+            else:  # SELL option (PUT)
+                # For PUT, we're losing if current price is above barrier
+                # (option is out-of-the-money)
+                return current_price >= barrier
+
+        except Exception as e:
+            logger.error(f"Error checking if trade is losing: {e}")
+            return False
+
+    def _should_take_profit(self, signal: str, current_price: float, trade: dict) -> bool:
+        """
+        Check if take profit conditions are met based on barrier and current price.
+
+        Args:
+            signal: Trade signal (BUY/SELL)
+            current_price: Current market price
+            trade: Trade data dictionary
+
+        Returns:
+            True if should take profit, False otherwise
+        """
+        try:
+            # For binary options, we can estimate profit based on barrier and current price
+            # If the option is significantly in-the-money, consider taking profit
+
+            barrier = trade.get("barrier", 0)
+            if barrier == 0:
+                # No barrier info, can't determine
+                return False
+
+            # Calculate distance from barrier (how in-the-money the option is)
+            distance_from_barrier = abs(current_price - barrier)
+            barrier_threshold = barrier * 0.001  # 0.1% threshold
+
+            if signal == "BUY":  # CALL option
+                # For CALL, we're in profit if current price is significantly above barrier
+                return current_price > barrier + barrier_threshold
+            else:  # SELL option (PUT)
+                # For PUT, we're in profit if current price is significantly below barrier
+                return current_price < barrier - barrier_threshold
+
+        except Exception as e:
+            logger.error(f"Error checking take profit condition: {e}")
+            return False
+
+    def _check_macd_contradiction(self, signal: str, trade: dict) -> bool:
+        """
+        Check if MACD contradicts the trade direction for 5+ consecutive ticks.
+        
+        Args:
+            signal: Trade signal (BUY/SELL)
+            trade: Trade data dictionary
+            
+        Returns:
+            True if MACD contradicts direction for 5+ ticks, False otherwise
+        """
+        try:
+            # Check if MACD early closure is enabled
+            if not config.get("strategy.macd_early_closure_enabled", True):
+                return False  # MACD early closure disabled
+            
+            # Get current MACD values
+            macd_line, macd_signal, macd_histogram = self.strategy_engine.macd.get_value()
+            
+            # Check if MACD is ready
+            if not self.strategy_engine.macd.is_ready():
+                return False  # MACD not ready, can't make decision
+            
+            # Initialize MACD contradiction tracking if not exists
+            if "macd_contradiction_count" not in trade:
+                trade["macd_contradiction_count"] = 0
+                trade["last_macd_histogram"] = macd_histogram
+            
+            # Check if MACD contradicts the trade direction
+            macd_contradicts = False
+            
+            if signal == "BUY":
+                # For BUY trades, MACD should be positive (bullish)
+                # If MACD histogram is negative for 5+ ticks, it contradicts the BUY signal
+                if macd_histogram < 0:
+                    macd_contradicts = True
+            elif signal == "SELL":
+                # For SELL trades, MACD should be negative (bearish)  
+                # If MACD histogram is positive for 5+ ticks, it contradicts the SELL signal
+                if macd_histogram > 0:
+                    macd_contradicts = True
+            
+            # Update contradiction count
+            if macd_contradicts:
+                trade["macd_contradiction_count"] += 1
+                logger.debug(f"MACD contradicts {signal} trade: histogram={macd_histogram:.6f}, count={trade['macd_contradiction_count']}")
+            else:
+                # Reset count if MACD no longer contradicts
+                trade["macd_contradiction_count"] = 0
+                logger.debug(f"MACD supports {signal} trade: histogram={macd_histogram:.6f}, count reset to 0")
+            
+            # Update last MACD histogram for tracking
+            trade["last_macd_histogram"] = macd_histogram
+            
+            # Return True if MACD has contradicted for the configured threshold
+            macd_threshold = config.get("strategy.macd_contradiction_threshold", 5)
+            return trade["macd_contradiction_count"] >= macd_threshold
+            
+        except Exception as e:
+            logger.error(f"Error checking MACD contradiction: {e}")
+            return False
+
+    def _close_trade_early(self, trade: dict, reason: str) -> None:
+        """
+        Close a trade early based on conditions.
+
+        Args:
+            trade: Trade data dictionary
+            reason: Reason for early closure
+        """
+        try:
+            trade_id = trade.get("trade_id")
+            signal = trade.get("signal", "unknown")
+
+            if not trade_id:
+                logger.error(f"Cannot close trade - no trade_id: {trade}")
+                return
+
+            logger.warning(f"Closing {signal} trade early: {reason}")
+
+            # Call cancellation callback if available
+            if self.strategy_engine.on_trade_cancel:
+                try:
+                    logger.info(f"Calling early closure callback for {signal} trade")
+                    self.strategy_engine.on_trade_cancel(trade)
+                    logger.info(f"Early closure callback completed for {signal} trade")
+                except Exception as e:
+                    logger.error(f"Error in early closure callback: {e}")
+            else:
+                logger.warning("No early closure callback set")
+
+        except Exception as e:
+            logger.error(f"Error in early trade closure: {e}")
 
     def _on_tick_received(self, price: float, epoch: int) -> None:
         """
@@ -162,17 +432,53 @@ class LemoTickBot:
                 self.data_recorder.record_tick(price, epoch)
 
             # Update strategy engine
-            result = self.strategy_engine.update(price, epoch)
-            if isinstance(result, tuple):
-                signal, duration = result
-            else:
-                # Handle case where strategy returns just signal (for backward compatibility)
-                signal = result
-                duration = 1  # Default duration
+            logger.debug(f"Updating strategy engine with price: {price}")
+            try:
+                result = self.strategy_engine.update(price, epoch)
+                logger.debug(f"Strategy engine result: {result}, type: {type(result)}")
+            except Exception as e:
+                logger.error(f"Exception in strategy engine update: {e}")
+                logger.error(f"Exception type: {type(e).__name__}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                # Return early if strategy engine fails
+                return
 
+            try:
+                if isinstance(result, tuple) and len(result) == 3:
+                    signal, duration, risk_reward = result
+                    logger.debug(f"Parsed signal: {signal}, duration: {duration}, risk_reward: {risk_reward}")
+                elif isinstance(result, tuple) and len(result) == 2:
+                    signal, duration = result
+                    risk_reward = None  # No risk/reward values available
+                    logger.debug(f"Parsed signal (no risk/reward): {signal}, duration: {duration}")
+                else:
+                    # Handle case where strategy returns just signal (for backward compatibility)
+                    signal = result
+                    duration = 1  # Default duration
+                    risk_reward = None  # No risk/reward values available
+                    logger.debug(f"Parsed single signal: {signal}")
+
+                # Debug: Check what signal we got
+                logger.debug(f"Final signal check: signal={signal}, type={type(signal)}, is_hold={signal == SignalType.HOLD}")
+            except Exception as e:
+                logger.error(f"Exception in signal parsing: {e}")
+                logger.error(f"Exception type: {type(e).__name__}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                # Return early if signal parsing fails
+                return
 
             # Cleanup expired trades from strategy engine tracking
             self.strategy_engine.cleanup_expired_trades()
+
+            # Check for active trades first - prevent new signals if trades are active
+            if self.strategy_engine.active_trades:
+                logger.debug(f"Active trades exist ({len(self.strategy_engine.active_trades)}), skipping new signal generation")
+
+                # Check for early closure conditions for active trades
+                self._check_early_closure_conditions(price, epoch)
+                return
 
             # Check for trades with invalid EMA conditions after 7 ticks
             trades_to_cancel = self.strategy_engine.get_trades_to_cancel(min_ticks_before_check=7)
@@ -182,14 +488,22 @@ class LemoTickBot:
                 # Cancel the trades that no longer meet EMA conditions
                 logger.info(f"Attempting to cancel {len(trades_to_cancel)} trades: {[t['signal'] for t in trades_to_cancel]}")
                 self.strategy_engine.cancel_trades(trades_to_cancel)
+                return
 
             # Handle trading signals (EMA + Pin Bar strategy)
+            logger.debug(f"About to check signal: {signal}")
             if signal != SignalType.HOLD:
                 logger.info(f"Generated {signal.value} signal with {duration} minute duration")
                 logger.debug(f"Current active trades: {len(self.strategy_engine.active_trades)}")
-                if self.strategy_engine.active_trades:
-                    logger.debug(f"Active trade details: {[(t['signal'], t.get('entry_time', 'unknown'), t.get('ticks_elapsed', 0)) for t in self.strategy_engine.active_trades]}")
-                self._handle_pinbar_signal(signal, price, epoch, duration)
+
+                # Debug: Log risk/reward values for position sizing
+                if risk_reward:
+                    logger.info(f"Risk/Reward calculated: Risk={risk_reward.get('risk')}, Reward={risk_reward.get('reward')}")
+                else:
+                    logger.warning("No risk/reward values calculated for signal!")
+
+                # Note: No SL/TP for CALL/PUT contracts - they only work with Multiplier contracts
+                self._handle_pinbar_signal(signal, price, epoch, duration, None)
 
             # Log performance metrics periodically
             current_time = time.time()
@@ -199,8 +513,11 @@ class LemoTickBot:
 
         except Exception as e:
             logger.error(f"Error processing tick: {e}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
 
-    def _handle_pinbar_signal(self, signal: SignalType, price: float, epoch: int, duration: int) -> None:
+    def _handle_pinbar_signal(self, signal: SignalType, price: float, epoch: int, duration: int, risk_reward: dict = None) -> None:
         """
         Handle Pin Bar trading signal using direct buy orders.
 
@@ -209,27 +526,59 @@ class LemoTickBot:
             price: Current price
             epoch: Price timestamp
             duration: Contract duration in minutes
+            risk_reward: Risk/reward calculations for position sizing (optional)
         """
         try:
-            # Check for active trades before placing new ones
-            if self.strategy_engine.has_active_trades():
-                logger.warning(f"Active trade(s) in progress, skipping new {signal.value} signal")
+            # CRITICAL FIX: Wait for active trades to finish before placing new ones
+            # This prevents overlapping trades and ensures proper trade waiting
+            if len(self.strategy_engine.active_trades) > 0:
+                active_trade_info = []
+                current_time = int(time.time())
+
+                for trade in self.strategy_engine.active_trades:
+                    entry_time = trade.get("entry_time")
+                    trade_duration = trade.get("duration", 1)
+                    if entry_time is not None:
+                        time_elapsed = current_time - entry_time
+                        time_remaining = max(0, (trade_duration * 60) - time_elapsed)
+                        active_trade_info.append({
+                            "signal": trade.get("signal", "unknown"),
+                            "time_elapsed": time_elapsed,
+                            "time_remaining": time_remaining,
+                            "duration": trade_duration * 60
+                        })
+
+                logger.warning(f"Active trade(s) in progress - WAITING for completion. Active trades: {len(self.strategy_engine.active_trades)}")
+                for trade_info in active_trade_info:
+                    logger.warning(f"  Trade {trade_info['signal']}: elapsed {trade_info['time_elapsed']}s, remaining {trade_info['time_remaining']}s")
+
+                # DO NOT place new trades until current ones finish
+                return
+
+            # Check trade cooldown period (prevents rapid trade execution)
+            current_time = time.time()
+            time_since_last_trade = current_time - self.strategy_engine.last_trade_timestamp
+            trade_cooldown_seconds = self.strategy_engine.trade_cooldown_seconds
+
+            if time_since_last_trade < trade_cooldown_seconds:
+                remaining_time = trade_cooldown_seconds - time_since_last_trade
+                logger.info(f"TRADE COOLDOWN ACTIVE: {time_since_last_trade:.1f}s elapsed, {remaining_time:.1f}s remaining (cooldown: {trade_cooldown_seconds}s)")
                 return
 
             # For pin bars, we use current price as barrier for binary options
             barrier_price = price
 
             # Revalidate signal before execution
-            current_spot = self.stream_handler.get_latest_tick(config.symbol)
+            current_spot = self.stream_handler.get_latest_tick(self.current_symbol)
             if current_spot is None:
                 logger.warning("No current spot price available, skipping trade")
                 return
 
-            # Check if market moved against us before execution
-            if signal == SignalType.BUY and current_spot < price * 0.995:  # 0.5% buffer
+            # Check if market moved against us before execution (reduced buffer for faster execution)
+            if signal == SignalType.BUY and current_spot < price * 0.998:  # 0.2% buffer for faster execution
                 logger.warning(f"Market reversed before buy (signal: {price}, current: {current_spot})")
                 return
-            elif signal == SignalType.SELL and current_spot > price * 1.005:  # 0.5% buffer
+            elif signal == SignalType.SELL and current_spot > price * 1.002:  # 0.2% buffer for faster execution
                 logger.warning(f"Market reversed before sell (signal: {price}, current: {current_spot})")
                 return
 
@@ -239,32 +588,34 @@ class LemoTickBot:
             # Extract indicator values
             volatility = indicators.get("volatility", 0.001)
             momentum_val = indicators.get("momentum", 0.0)
-            ema_2_val = indicators.get("ema_2", 0.0)
             ema_5_val = indicators.get("ema_5", 0.0)
+            ema_8_val = indicators.get("ema_8", 0.0)
 
-            # Calculate base stake size
-            base_stake = self.risk_manager.calculate_stake(volatility)
+            # Calculate stake using percentage-based risk management
+            # Get signal strength from MACD histogram for stake sizing
+            macd_line, macd_signal, macd_histogram = self.strategy_engine.macd.get_value()
+            signal_strength = min(abs(macd_histogram) / 0.5, 1.0)  # Normalize to 0-1 range
 
-            # Apply dynamic stake sizing for profit guarantee
-            win_rate = getattr(self.strategy_engine, 'win_rate', 0.0)
-            consecutive_wins = getattr(self.strategy_engine, 'consecutive_wins', 0)
-            consecutive_losses = getattr(self.strategy_engine, 'consecutive_losses', 0)
-
-            stake = self.risk_manager.calculate_dynamic_stake(
-                base_stake=base_stake,
-                win_rate=win_rate,
-                consecutive_wins=consecutive_wins,
-                consecutive_losses=consecutive_losses
+            stake = self.risk_manager.calculate_stake(
+                volatility=indicators.get("volatility", 0.001),
+                confidence=0.8,  # Default confidence, could be calculated from signal quality
+                signal_strength=signal_strength
             )
 
+            # Log stake calculation for debugging
+            logger.info(f"Calculated stake using percentage-based risk: {stake} (strength: {signal_strength:.2f})")
+
             # Place direct buy order with barrier price and duration
+            # NOTE: No SL/TP for CALL/PUT contracts - only supported for Multiplier contracts
+
+            logger.info(f"Attempting to place trade: {signal.value} stake={stake} duration={duration} symbol={self.current_symbol} (CALL/PUT - no SL/TP)")
             trade_id = self.trade_executor.place_trade(
                 signal_type=signal.value,
                 stake=stake,
-                entry_price=barrier_price,  # Use current price as barrier for binary options
                 duration=duration,  # Use pattern-specific duration
                 on_trade_result=self._on_trade_result,
             )
+            logger.info(f"Trade placement result: {trade_id}")
 
             if trade_id:
                 # Register trade with risk manager
@@ -281,11 +632,13 @@ class LemoTickBot:
                     signal=signal.value,
                     entry_time=epoch,
                     entry_tick=self.strategy_engine.tick_count,
-                    duration=duration
+                    duration=duration,
+                    barrier=barrier_price,  # Store barrier for early closure logic
+                    trade_id=trade_id  # Store trade_id for closing trades
                 )
 
                 logger.info(
-                    f"Pin Bar direct buy: {trade_id} - {signal.value} {stake} at barrier {barrier_price}"
+                    f"Pin Bar direct buy: {trade_id} - {signal.value} {stake} at barrier {barrier_price} on {self.current_symbol}"
                 )
 
         except Exception as e:
@@ -311,8 +664,10 @@ class LemoTickBot:
             # Find the contract that matches this trade (by signal type and status)
             contract_to_cancel = None
             for contract_id, contract_data in active_contracts.items():
+                # Check if this contract matches the trade signal
+                # Note: status can be "buy_sent" for contracts that are being processed
                 if (contract_data.get("signal_type") == trade_data.get("signal") and
-                    contract_data.get("status") == "active"):
+                    contract_data.get("status") in ["proposal_sent", "active", "executed", "buy_sent"]):
                     contract_to_cancel = contract_id
                     break
 
@@ -322,6 +677,10 @@ class LemoTickBot:
                 self.trade_executor._execute_sell(contract_to_cancel, "ema_condition_failed")
             else:
                 logger.warning(f"No active contract found to cancel for {trade_data.get('signal')} trade. Available contracts: {list(active_contracts.keys())}")
+                # Debug: Log contract details to understand the structure
+                for contract_id, contract_data in active_contracts.items():
+                    logger.info(f"Contract {contract_id}: signal_type={contract_data.get('signal_type')}, status={contract_data.get('status')}")
+                    logger.info(f"  Looking for: signal={trade_data.get('signal')}")
 
         except Exception as e:
             logger.error(f"Error cancelling trade by strategy: {e}")
@@ -354,14 +713,19 @@ class LemoTickBot:
                 epoch = trade_data.get("timestamp", int(time.time()))
 
                 # Add to strategy engine's active trades for proper tracking
-                self.strategy_engine.active_trades.append({
-                    "signal": signal_type,
-                    "entry_time": epoch,
-                    "entry_tick": getattr(self.strategy_engine, 'tick_count', 0),
-                    "duration": duration,
-                    "trade_id": trade_id
-                })
+                # Use register_executed_trade method to ensure proper data structure
+                self.strategy_engine.register_executed_trade(
+                    signal=signal_type,
+                    entry_time=epoch,
+                    entry_tick=getattr(self.strategy_engine, 'tick_count', 0),
+                    duration=duration,
+                    barrier=trade_data.get("barrier", 0),  # Include barrier if available
+                    trade_id=trade_id  # Store trade_id for closing trades
+                )
 
+                # Update trade timestamp for cooldown mechanism
+                self.strategy_engine.last_trade_timestamp = time.time()
+                
                 logger.info(f"Trade executed and tracked: {trade_id} - {signal_type}")
 
             elif status == "completed":
@@ -370,6 +734,14 @@ class LemoTickBot:
                     trade for trade in self.strategy_engine.active_trades
                     if trade.get("trade_id") != trade_id
                 ]
+
+                # Remove from trade executor's active contracts
+                # Use contract_id if available, otherwise use trade_id
+                contract_id = trade_data.get("contract_id")
+                if contract_id and contract_id in self.trade_executor.active_contracts:
+                    del self.trade_executor.active_contracts[contract_id]
+                elif trade_id in self.trade_executor.active_contracts:
+                    del self.trade_executor.active_contracts[trade_id]
 
                 # Update risk manager
                 profit = trade_data.get("final_profit", 0)
@@ -402,6 +774,14 @@ class LemoTickBot:
                     self.risk_manager.remove_trade(trade_id)
                 except Exception:
                     pass
+
+                # Also ensure trade executor removes the contract
+                # Use contract_id if available, otherwise use trade_id
+                contract_id = trade_data.get("contract_id")
+                if contract_id and contract_id in self.trade_executor.active_contracts:
+                    del self.trade_executor.active_contracts[contract_id]
+                elif trade_id in self.trade_executor.active_contracts:
+                    del self.trade_executor.active_contracts[trade_id]
 
         except Exception as e:
             logger.error(f"Error handling trade result for status {status}: {e}")
@@ -486,10 +866,15 @@ class LemoTickBot:
         Returns:
             Bot status dictionary
         """
+        # Get market summary for current status
+        market_summary = self.market_selector.get_market_summary()
+
         return {
             "is_running": self.is_running,
             "uptime": time.time() - self.start_time if self.start_time else 0,
             "tick_count": self.tick_count,
+            "current_market": self.current_symbol,
+            "market_summary": market_summary,
             "risk_metrics": self.risk_manager.get_risk_metrics(),
             "strategy_status": self.strategy_engine.get_strategy_status(),
             "executor_status": self.trade_executor.get_trade_status(),
