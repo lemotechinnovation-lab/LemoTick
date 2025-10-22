@@ -1,0 +1,192 @@
+backtesting:
+  commission: 0.0
+  data_source: database
+  enabled: false
+  end_date: '2024-12-31'
+  initial_equity: 1000.0
+  start_date: '2024-01-01'
+data:
+  cleanup_days: 30
+  db_path: data/bot_state.db
+  performance_tracking: true
+  tick_storage: false
+  trade_storage: false
+deriv:
+  app_id: '1089'
+  ping_interval: 30
+  reconnect_attempts: 10
+  timeout: 30
+  ws_url: wss://ws.derivws.com/websockets/v3
+development:
+  debug_mode: false
+  simulation_mode: false
+  test_mode: false
+  verbose_logging: false
+indicators:
+  # === OPTIMIZED FOR R_100 (Volatility 100 Index) ===
+  # R_100 Characteristics: Moderate volatility, balanced algorithmic movement
+  # Optimization Strategy: Balanced settings for reliable trend detection and stable signals
+  #
+  # Current settings (for R_100): 5/8 EMA, 1/2/1 MACD (optimized for R_100)
+  #
+  ema_fast_period: 5   # 5-period EMA for trend filter (matches strategy section)
+  ema_slow_period: 8   # 8-period EMA for trend filter (balanced for R_100)
+  macd_fast_period: 1   # Fast EMA for MACD (1-period for responsive signals)
+  macd_slow_period: 2   # Slow EMA for MACD (2-period for trend detection)
+  macd_signal_period: 1 # Signal line EMA for MACD (1-period for quick signals)
+  momentum_threshold: 0.0002  # Adjusted for R_100's smoother movement (was 0.0001)
+  volatility_max: 1.0  # Allow all volatility
+  volatility_min: 0.00005  # Slightly higher minimum for R_100 (was 0.00001)
+  volatility_window: 25  # Slightly longer window for R_100 patterns (was 20)
+  atr_period: 14  # ATR period for dynamic SL/TP calculation
+logging:
+  backup_count: 5
+  console_output: true
+  file_output: true
+  level: DEBUG
+  max_file_size: 10485760
+  structured_logging: true
+monitoring:
+  alert_on_drawdown: true
+  alert_on_errors: true
+  drawdown_threshold: 0.03
+  grafana_enabled: true
+  loki_enabled: true
+  metrics_enabled: true
+  metrics_interval: 300
+  prometheus_enabled: true
+risk_management:
+  cooldown_seconds: 5.0     # 10 seconds cooldown between entries for faster trading
+  max_concurrent_trades: 1   # Only 1 concurrent trade for proper trade waiting
+  max_daily_trades: 999999   # Unlimited daily trades for volume
+  max_daily_drawdown: 0.15   # 15% max drawdown for safety
+  risk_per_trade: 0.005       # 2% risk per trade for safer trading
+  equity_check_interval: 1   # Check every second for rapid response
+  # Production safety: force_always_trade should be false in production
+  force_always_trade: false  # Disabled for proper risk management
+
+  # Percentage-based risk management settings
+  risk_per_trade_pct: 0.005   # 0.5% of equity per trade (percentage-based)
+
+  # Dynamic stake sizing for profit guarantee - conservative compounding
+  dynamic_stake_enabled: true
+  win_rate_multiplier: 1.5   # 1.5x stake on wins for steady compounding
+  loss_rate_multiplier: 0.15   # Reduce to 50% on losses for safer recovery
+  compounding_rate: 1.2      # 20% faster compounding (more conservative)
+strategy:
+  adaptive_stake: true
+  rsi_filter: false   # Disable RSI filtering for tick-based trading optimization
+  signal_confirmation: false  # Disable signal confirmation for instant execution
+  trend_filter: false  # Disable trend filtering for rapid signals
+  volatility_filter: false  # Disable volatility filtering for constant signals
+  
+  # EXPONENTIAL EMA STRATEGY FOR RISE/FALL OPTIMIZATION
+  # Use proper Exponential Moving Average crossover for Rise/Fall contracts
+  exponential_ema_strategy: true     # Enable exponential EMA strategy
+  
+  # EMA crossover confirmation settings
+  ema_crossover_confirmation: true  # Require EMA crossover confirmation
+  ema_crossover_threshold: 0.0001   # Reduced minimum EMA spread for valid crossover (0.01%)
+  ema_trend_persistence: 2          # Reduced trend persistence to 2 ticks for faster signals
+  
+  # MACD-based early closure settings
+  macd_early_closure_enabled: true  # Enable MACD-based early closure
+  macd_contradiction_threshold: 5   # Close trade if MACD contradicts direction for 5+ ticks
+  
+  # MACD fallback signal settings
+  macd_fallback_enabled: true       # Enable MACD fallback signals when EMA strategy fails
+  macd_fallback_ema_strictness: 0.5 # Reduce EMA strictness by 50% for fallback signals
+  
+  # Loss reversal strategy
+  loss_reversal_enabled: true
+  max_consecutive_losses: 2  # Reverse after 2 losses for better recovery
+
+  # Profit guarantee settings - conservative for Rise/Fall
+  daily_profit_target: 50.0   # Conservative daily target for Rise/Fall
+  signal_frequency_multiplier: 2.0  # 2x more signals for Rise/Fall optimization
+
+  # Rise/Fall optimized settings
+  pinbar_duration_ticks: 1       # 1 minute for Rise/Fall contracts
+  pinbar_min_wick_ratio: 2.0     # Reduced wick ratio for more signals (2x instead of 3x)
+  
+  # DISABLED complex filtering for Rise/Fall simplicity
+  max_volatility_ratio: 1.0       # Max ATR/Price ratio (100%) - disabled
+  min_ema_spread: 0.0             # Min EMA spread (0%) - disabled
+  min_macd_momentum: 0.0          # Min MACD histogram for signals (0) - disabled
+  max_avg_price_change: 1.0       # Max average price change per tick (100%) - disabled
+
+  # SIMPLIFIED confirmation settings for Rise/Fall
+  macd_strength_threshold: 0.0    # No MACD requirement for Rise/Fall simplicity
+  ema_trend_threshold: 0.0        # No EMA trend requirement for Rise/Fall simplicity
+  momentum_threshold: 0.0          # No momentum requirement for Rise/Fall simplicity
+
+  # Market selection and rotation settings
+  market_rotation_enabled: true    # Enable automatic market switching based on performance
+  market_switch_threshold: 0.1     # Switch market if performance drops by 10% or more
+  primary_market: "R_100"          # Primary market for 1-5 minute Rise/Fall contracts
+  fallback_markets: ["R_75", "R_50"]  # Fallback markets if primary is unavailable
+  market_performance_window: 10    # Number of recent trades to evaluate for market switching
+  min_market_switch_interval: 300  # Minimum seconds between market switches (5 minutes)
+
+  # OPTIMIZED trade management for Rise/Fall
+  trade_cooldown_seconds: 0.5       # Minimal cooldown for faster trading (1 second)
+  signal_cooldown_seconds: 1     # Signal cooldown to prevent rapid signals (2 seconds)
+  max_concurrent_trades: 1        # Maximum concurrent trades (1 for binary options)
+  ultra_short_trade_threshold: 15 # Trades ≤ this many ticks are considered ultra-short (no early cancellation)
+
+trading:
+  contract_basis: stake
+  contract_duration: 2  # 1 minute for Rise/Fall contracts
+  contract_duration_unit: m  # Use minutes (interval unit)
+  currency: USD
+  max_stake: 10.0
+  min_stake: 10.0
+  symbol: R_100  # R_100 - Volatility 100 Index for MACD-based trading
+  
+  # Rise/Fall specific settings (no SL/TP for CALL/PUT contracts)
+  take_profit_pct: 0.20  # Expected profit percentage for binary options (20% payout)
+  stop_loss_pct: 0.80    # Risk percentage for binary options (80% of stake at risk)
+  payout_ratio: 0.8      # Configurable payout ratio for binary options (80% typical)
+  
+  # Tick-based SL/TP settings
+  reward_multiplier: 1.5  # Reward-to-risk ratio (1.5:1 by default)
+
+  # ATR-based risk management settings (for position sizing, not SL/TP execution)
+  atr_multiplier_risk: 1.0   # ATR multiplier for risk calculation (1.0x ATR)
+
+  # OPTIMIZED OTM barrier settings for Rise/Fall
+  otm_atr_multiplier: 0.3     # Reduced ATR multiplier for closer barriers (0.3x ATR)
+  otm_base_offset_pct: 0.002  # Reduced OTM offset for better odds (0.2%)
+  max_otm_probability: 0.15   # Reduced OTM probability for better win rate (15%)
+
+  # Rise/Fall contract optimization settings
+  early_closure_enabled: true          # Enable early contract closure
+  min_profit_threshold: 0.03           # 3% minimum profit for early closure (reduced)
+  max_loss_threshold: 0.10             # 10% maximum loss for early closure (reduced)
+  early_closure_check_interval: 1     # Check every 5 seconds for early closure (faster)
+
+  # NOTE: SL/TP settings below are for Multiplier contracts only (MULTUP/MULTDOWN)
+  # They are NOT used for CALL/PUT binary options contracts
+  atr_multiplier_sl: 1  # ATR multiplier for stop loss (1.5x ATR) - Multiplier only
+  atr_multiplier_tp: 1.5  # ATR multiplier for take profit (3.0x ATR) - Multiplier only
+  # Market-specific duration settings - optimized for 1-5 minute Rise/Fall contracts
+  symbol_durations:
+    # === SYNTHETIC INDICES (Best for 1-5 min Rise/Fall) ===
+    R_100: 1     # R_100 - Most balanced, perfect for 1-5 minute contracts
+    R_75: 1      # R_75 - High volatility, excellent for 1-minute scalping
+    R_50: 3      # R_50 - Smoother, better for 3-5 minute contracts
+    R_25: 2      # R_25 - Ultra-smooth, good for 1-2 minute precision trades
+    R_200: 1     # R_200 - Ultra-high volatility, use 1-minute only with caution
+
+    # === FOREX MAJORS (Good alternatives for longer timeframes) ===
+    frxEURUSD: 5    # EUR/USD - Best for 5+ minute contracts
+    frxGBPUSD: 5    # GBP/USD - Higher volatility, 5+ minutes recommended
+    frxUSDJPY: 5    # USD/JPY - 5+ minutes for better trends
+
+    # === COMMODITIES (For experienced traders, longer timeframes only) ===
+    frxXAUUSD: 10   # Gold - 10+ minutes to avoid news spikes
+    frxWTICOUSD: 15 # Crude Oil - 15+ minutes for trend stability
+
+    # === CRYPTOCURRENCIES (Very high risk, not recommended for short-term) ===
+    frxBTCUSD: 60   # Bitcoin - 60+ minutes only due to extreme volatility
+    frxETHUSD: 60   # Ethereum - 60+ minutes only
