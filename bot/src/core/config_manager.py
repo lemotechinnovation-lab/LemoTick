@@ -39,7 +39,19 @@ class ConfigManager:
     
     def _load_env_config(self):
         """Load configuration from environment variables"""
-        env_file = self.config_path / "credentials.env"
+        # Check for live account setting first
+        lemotick_live_account = os.getenv('LEMOTICK_LIVE_ACCOUNT', '').lower()
+        
+        # Determine which credentials file to use
+        if lemotick_live_account in ('true', '1', 'yes'):
+            env_file = self.config_path / "credentials.live.env"
+        else:
+            env_file = self.config_path / "credentials.demo.env"
+        
+        # Fallback to credentials.env if the preferred file doesn't exist
+        if not env_file.exists():
+            env_file = self.config_path / "credentials.env"
+        
         if env_file.exists():
             with open(env_file, 'r') as f:
                 for line in f:
@@ -49,13 +61,28 @@ class ConfigManager:
         
         # Load environment variables
         env_config = {
-            'deriv_token': os.getenv('DERIV_TOKEN'),
+            'deriv_token': os.getenv('DERIV_API_TOKEN'),
             'deriv_app_id': os.getenv('DERIV_APP_ID'),
             'backend_url': os.getenv('BACKEND_URL', 'http://localhost:5000'),
             'backend_api_key': os.getenv('BACKEND_API_KEY'),
             'database_url': os.getenv('DATABASE_URL'),
             'log_level': os.getenv('LOG_LEVEL', 'INFO')
         }
+        
+        # Load account mode settings from environment variables
+        lemotick_live_account = os.getenv('LEMOTICK_LIVE_ACCOUNT', '').lower()
+        if lemotick_live_account in ('true', '1', 'yes'):
+            # Override account mode settings when environment variable is present
+            if 'account_mode' not in self.config:
+                self.config['account_mode'] = {}
+            self.config['account_mode']['use_live_account'] = True
+            
+            # Also update the development settings for backward compatibility
+            if 'development' not in self.config:
+                self.config['development'] = {}
+            self.config['development']['demo_account'] = False
+            
+            print(f"IMPORTANT: Live account enabled via environment variable LEMOTICK_LIVE_ACCOUNT={lemotick_live_account}")
         
         # Filter out None values
         self.config.update({k: v for k, v in env_config.items() if v is not None})
@@ -75,3 +102,5 @@ class ConfigManager:
     def update(self, key: str, value: Any):
         """Update configuration value"""
         self.config[key] = value
+
+

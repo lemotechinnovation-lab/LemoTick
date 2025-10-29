@@ -6,7 +6,7 @@ Includes timestamp formatting, data validation, and common functions.
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def get_timestamp() -> int:
@@ -215,7 +215,7 @@ def exponential_backoff_delay(
     import random
     delay = base_delay * (2 ** attempt)
     delay = min(delay, max_delay)
-    # Add ±10% jitter to prevent thundering herd
+    # Add 10% jitter to prevent thundering herd
     return delay * random.uniform(0.9, 1.1)
 
 
@@ -314,15 +314,17 @@ def get_candle_color(open_price: float, close_price: float) -> str:
         return "doji"    # neutral
 
 
-def calculate_ticks_sl_tp(entry_price: float, tick_size: float, risk_percentage: float, reward_multiplier: float) -> tuple[float, float]:
+def calculate_ticks_sl_tp(entry_price: float, tick_size: float, risk_percentage: float, reward_multiplier: float, atr_value: Optional[float] = None) -> tuple[float, float]:
     """
     Converts price-based SL/TP into tick counts for Rise/Fall contracts.
+    Uses ATR for dynamic SL/TP when available.
     
     Args:
         entry_price: Entry price of trade
         tick_size: Minimum price movement per tick
         risk_percentage: Risk per trade (0.01 = 1%)
         reward_multiplier: Desired reward-to-risk ratio
+        atr_value: Average True Range value (if available)
     
     Returns:
         Tuple of (ticks_to_stop_loss, ticks_to_take_profit)
@@ -330,9 +332,43 @@ def calculate_ticks_sl_tp(entry_price: float, tick_size: float, risk_percentage:
     if tick_size <= 0:
         raise ValueError("Tick size must be positive")
     
-    risk_amount = entry_price * risk_percentage
-    ticks_to_sl = risk_amount / tick_size
-    ticks_to_tp = ticks_to_sl * reward_multiplier
+    # ATR-BASED DYNAMIC SL/TP CALCULATION
+    # When ATR is available, use it to set dynamic stop loss and take profit levels
+    # This adapts to market volatility automatically
+    if atr_value and atr_value > 0:
+        # Stop Loss = ATR  2
+        # Take Profit = ATR  4 (2:1 reward-to-risk ratio)
+        sl_distance = atr_value * 2.0
+        tp_distance = atr_value * 4.0
+        
+        # Convert price distances to tick counts
+        ticks_to_sl = sl_distance / tick_size
+        ticks_to_tp = tp_distance / tick_size
+        
+        # Log the ATR-based calculation
+        from infrastructure.logger import logger
+        logger.info(f"ATR-based SL/TP: ATR={atr_value:.6f}, SL={sl_distance:.6f} ({ticks_to_sl:.1f} ticks), TP={tp_distance:.6f} ({ticks_to_tp:.1f} ticks)")
+    else:
+        # FALLBACK: Using custom SL/TP percentages for binary options
+        # Take Profit: 40% of entry price - balanced profit target
+        # Stop Loss: 20% of entry price - tighter risk control
+        # Risk:Reward ratio of 1:2 favoring profit potential
+        
+        # Calculate SL/TP based on percentage of price
+        tp_percentage = 0.0040  # 0.40% of price (scaled down because we're measuring ticks)
+        sl_percentage = 0.0020  # 0.20% of price (half of TP)
+        
+        # Convert percentage movement to ticks
+        ticks_to_tp = (entry_price * tp_percentage) / tick_size
+        ticks_to_sl = (entry_price * sl_percentage) / tick_size
+        
+        # Log the percentage-based calculation
+        from infrastructure.logger import logger
+        logger.info(f"Percentage-based SL/TP: SL={sl_percentage*100:.2f}%, TP={tp_percentage*100:.2f}%")
+    
+    # Ensure minimum values
+    ticks_to_tp = max(ticks_to_tp, 80.0)  # Minimum 80 ticks (~0.40 points) for TP
+    ticks_to_sl = max(ticks_to_sl, 40.0)  # Minimum 40 ticks (~0.20 points) for SL
     
     return ticks_to_sl, ticks_to_tp
 
@@ -360,18 +396,21 @@ def calculate_tick_size_for_symbol(symbol: str) -> float:
     return tick_sizes.get(symbol, 0.005)  # Default to 0.005 if symbol not found
 
 
-def calculate_dynamic_ticks_sl_tp(entry_price: float, symbol: str, risk_percentage: float = 0.01, reward_multiplier: float = 1.5) -> tuple[float, float]:
+def calculate_dynamic_ticks_sl_tp(entry_price: float, symbol: str, risk_percentage: float = 0.01, reward_multiplier: float = 1.5, atr_value: Optional[float] = None) -> tuple[float, float]:
     """
     Calculate dynamic tick-based SL/TP for a given symbol and risk parameters.
+    Uses ATR when available for volatility-based stops.
     
     Args:
         entry_price: Entry price of trade
         symbol: Trading symbol
         risk_percentage: Risk per trade (default 1%)
         reward_multiplier: Desired reward-to-risk ratio (default 1.5:1)
+        atr_value: Average True Range value (if available)
         
     Returns:
         Tuple of (ticks_to_stop_loss, ticks_to_take_profit)
     """
     tick_size = calculate_tick_size_for_symbol(symbol)
-    return calculate_ticks_sl_tp(entry_price, tick_size, risk_percentage, reward_multiplier)
+    return calculate_ticks_sl_tp(entry_price, tick_size, risk_percentage, reward_multiplier, atr_value)
+

@@ -13,21 +13,37 @@ sys.path.append(str(Path(__file__).parent))
 
 from core.bot_engine import LemoTickBot
 from core.config_manager import ConfigManager
-from core.logger import setup_logging
+from infrastructure.logger import setup_logging
 from integrations.backend_client import BackendClient
 
 
 async def main():
     """Main entry point for the LemoTick trading bot"""
+    # Setup logging first
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
     try:
-        # Setup logging
-        setup_logging()
-        logger = logging.getLogger(__name__)
         logger.info("Starting LemoTick Bot...")
         
         # Load configuration
         config_manager = ConfigManager()
         config = config_manager.load_config()
+        
+        #  CRITICAL: Validate account configuration and get user confirmation
+        try:
+            from utils.account_validator import validate_account_before_start
+            logger.info("Validating account configuration...")
+            if not validate_account_before_start(config):
+                logger.error("Account validation failed")
+                sys.exit(1)
+            
+            logger.info(" Account configuration validated")
+        except ImportError as e:
+            logger.warning(f"Account validator not available: {e}")
+            logger.info("Proceeding without account validation")
+        
+        # Metrics server will be started by LemoTickBot
         
         # Initialize backend client for investor management integration
         backend_client = BackendClient(config.get('backend', {}))
@@ -45,3 +61,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+

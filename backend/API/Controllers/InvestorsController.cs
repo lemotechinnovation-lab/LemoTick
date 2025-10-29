@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using InvestorManagementSystem.Application.Commands.Investors;
+using InvestorManagementSystem.Application.Queries.Investors;
 using InvestorManagementSystem.Application.DTOs;
-using InvestorManagementSystem.Application.Interfaces;
-using InvestorManagementSystem.Core.Entities;
 
 namespace InvestorManagementSystem.API.Controllers;
 
@@ -9,12 +10,12 @@ namespace InvestorManagementSystem.API.Controllers;
 [Route("api/[controller]")]
 public class InvestorsController : ControllerBase
 {
-    private readonly IInvestorService _investorService;
+    private readonly IMediator _mediator;
     private readonly ILogger<InvestorsController> _logger;
 
-    public InvestorsController(IInvestorService investorService, ILogger<InvestorsController> logger)
+    public InvestorsController(IMediator mediator, ILogger<InvestorsController> logger)
     {
-        _investorService = investorService;
+        _mediator = mediator;
         _logger = logger;
     }
 
@@ -26,7 +27,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            var investors = await _investorService.GetAllInvestorsAsync();
+            var investors = await _mediator.Send(new GetAllInvestorsQuery());
             return Ok(investors);
         }
         catch (Exception ex)
@@ -44,7 +45,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            var investor = await _investorService.GetInvestorByIdAsync(id);
+            var investor = await _mediator.Send(new GetInvestorByIdQuery(id));
             if (investor == null)
                 return NotFound();
 
@@ -65,10 +66,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var investor = await _investorService.CreateInvestorAsync(createInvestorDto);
+            var investor = await _mediator.Send(new CreateInvestorCommand(createInvestorDto));
             return CreatedAtAction(nameof(GetInvestor), new { id = investor.Id }, investor);
         }
         catch (Exception ex)
@@ -86,10 +84,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var investor = await _investorService.UpdateInvestorAsync(id, updateInvestorDto);
+            var investor = await _mediator.Send(new UpdateInvestorCommand(id, updateInvestorDto));
             if (investor == null)
                 return NotFound();
 
@@ -110,7 +105,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            var result = await _investorService.DeleteInvestorAsync(id);
+            var result = await _mediator.Send(new DeleteInvestorCommand(id));
             if (!result)
                 return NotFound();
 
@@ -131,7 +126,7 @@ public class InvestorsController : ControllerBase
     {
         try
         {
-            var portfolios = await _investorService.GetInvestorPortfoliosAsync(id);
+            var portfolios = await _mediator.Send(new GetInvestorPortfoliosQuery(id));
             return Ok(portfolios);
         }
         catch (Exception ex)

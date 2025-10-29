@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "KF9RnKa+Gtg=",
+  "dgSpecHash": "SJ4JAGigKQ8=",
   "success": true,
-  "projectFilePath": "c:\\Users\\leonardm\\source\\innovations\\LemoTick\\backend\\Core\\InvestorManagementSystem.Core.csproj",
+  "projectFilePath": "C:\\Users\\leonardm\\source\\innovations\\LemoTick\\backend\\Core\\InvestorManagementSystem.Core.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\leonardm\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
   ],

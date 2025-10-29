@@ -325,3 +325,5 @@ def calculate_macd_pandas(prices: List[float], fast_period: int = 12, slow_perio
 if __name__ == "__main__":
     # Run demonstration
     demonstrate_macd_calculation()
+
+

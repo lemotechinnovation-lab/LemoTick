@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using InvestorManagementSystem.Application.Commands.Trades;
+using InvestorManagementSystem.Application.Queries.Trades;
 using InvestorManagementSystem.Application.DTOs;
-using InvestorManagementSystem.Application.Interfaces;
 
 namespace InvestorManagementSystem.API.Controllers;
 
@@ -8,12 +10,12 @@ namespace InvestorManagementSystem.API.Controllers;
 [Route("api/[controller]")]
 public class TradesController : ControllerBase
 {
-    private readonly ITradeService _tradeService;
+    private readonly IMediator _mediator;
     private readonly ILogger<TradesController> _logger;
 
-    public TradesController(ITradeService tradeService, ILogger<TradesController> logger)
+    public TradesController(IMediator mediator, ILogger<TradesController> logger)
     {
-        _tradeService = tradeService;
+        _mediator = mediator;
         _logger = logger;
     }
 
@@ -25,7 +27,7 @@ public class TradesController : ControllerBase
     {
         try
         {
-            var trades = await _tradeService.GetAllTradesAsync();
+            var trades = await _mediator.Send(new GetAllTradesQuery());
             return Ok(trades);
         }
         catch (Exception ex)
@@ -43,7 +45,7 @@ public class TradesController : ControllerBase
     {
         try
         {
-            var trade = await _tradeService.GetTradeByIdAsync(id);
+            var trade = await _mediator.Send(new GetTradeByIdQuery(id));
             if (trade == null)
                 return NotFound();
 
@@ -57,17 +59,14 @@ public class TradesController : ControllerBase
     }
 
     /// <summary>
-    /// Create new trade (from bot)
+    /// Create new trade
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<TradeDto>> CreateTrade([FromBody] CreateTradeDto createTradeDto)
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var trade = await _tradeService.CreateTradeAsync(createTradeDto);
+            var trade = await _mediator.Send(new CreateTradeCommand(createTradeDto));
             return CreatedAtAction(nameof(GetTrade), new { id = trade.Id }, trade);
         }
         catch (Exception ex)
@@ -78,17 +77,14 @@ public class TradesController : ControllerBase
     }
 
     /// <summary>
-    /// Update trade (from bot)
+    /// Update trade
     /// </summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<TradeDto>> UpdateTrade(Guid id, [FromBody] UpdateTradeDto updateTradeDto)
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var trade = await _tradeService.UpdateTradeAsync(id, updateTradeDto);
+            var trade = await _mediator.Send(new UpdateTradeCommand(id, updateTradeDto));
             if (trade == null)
                 return NotFound();
 
@@ -102,37 +98,19 @@ public class TradesController : ControllerBase
     }
 
     /// <summary>
-    /// Get trades by portfolio
+    /// Get trades by portfolio ID
     /// </summary>
     [HttpGet("portfolio/{portfolioId}")]
     public async Task<ActionResult<IEnumerable<TradeDto>>> GetTradesByPortfolio(Guid portfolioId)
     {
         try
         {
-            var trades = await _tradeService.GetTradesByPortfolioAsync(portfolioId);
+            var trades = await _mediator.Send(new GetTradesByPortfolioQuery(portfolioId));
             return Ok(trades);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving trades for portfolio {PortfolioId}", portfolioId);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Get active trades
-    /// </summary>
-    [HttpGet("active")]
-    public async Task<ActionResult<IEnumerable<TradeDto>>> GetActiveTrades()
-    {
-        try
-        {
-            var trades = await _tradeService.GetActiveTradesAsync();
-            return Ok(trades);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active trades");
             return StatusCode(500, "Internal server error");
         }
     }

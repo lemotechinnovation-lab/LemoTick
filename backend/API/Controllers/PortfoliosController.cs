@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using InvestorManagementSystem.Application.Commands.Portfolios;
+using InvestorManagementSystem.Application.Queries.Portfolios;
 using InvestorManagementSystem.Application.DTOs;
-using InvestorManagementSystem.Application.Interfaces;
 
 namespace InvestorManagementSystem.API.Controllers;
 
@@ -8,12 +10,12 @@ namespace InvestorManagementSystem.API.Controllers;
 [Route("api/[controller]")]
 public class PortfoliosController : ControllerBase
 {
-    private readonly IPortfolioService _portfolioService;
+    private readonly IMediator _mediator;
     private readonly ILogger<PortfoliosController> _logger;
 
-    public PortfoliosController(IPortfolioService portfolioService, ILogger<PortfoliosController> logger)
+    public PortfoliosController(IMediator mediator, ILogger<PortfoliosController> logger)
     {
-        _portfolioService = portfolioService;
+        _mediator = mediator;
         _logger = logger;
     }
 
@@ -25,7 +27,7 @@ public class PortfoliosController : ControllerBase
     {
         try
         {
-            var portfolios = await _portfolioService.GetAllPortfoliosAsync();
+            var portfolios = await _mediator.Send(new GetAllPortfoliosQuery());
             return Ok(portfolios);
         }
         catch (Exception ex)
@@ -43,7 +45,7 @@ public class PortfoliosController : ControllerBase
     {
         try
         {
-            var portfolio = await _portfolioService.GetPortfolioByIdAsync(id);
+            var portfolio = await _mediator.Send(new GetPortfolioByIdQuery(id));
             if (portfolio == null)
                 return NotFound();
 
@@ -64,10 +66,7 @@ public class PortfoliosController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var portfolio = await _portfolioService.CreatePortfolioAsync(createPortfolioDto);
+            var portfolio = await _mediator.Send(new CreatePortfolioCommand(createPortfolioDto));
             return CreatedAtAction(nameof(GetPortfolio), new { id = portfolio.Id }, portfolio);
         }
         catch (Exception ex)
@@ -85,10 +84,7 @@ public class PortfoliosController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var portfolio = await _portfolioService.UpdatePortfolioAsync(id, updatePortfolioDto);
+            var portfolio = await _mediator.Send(new UpdatePortfolioCommand(id, updatePortfolioDto));
             if (portfolio == null)
                 return NotFound();
 
@@ -97,72 +93,6 @@ public class PortfoliosController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating portfolio {PortfolioId}", id);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Get portfolio performance
-    /// </summary>
-    [HttpGet("{id}/performance")]
-    public async Task<ActionResult<PerformanceDto>> GetPortfolioPerformance(Guid id)
-    {
-        try
-        {
-            var performance = await _portfolioService.GetPortfolioPerformanceAsync(id);
-            if (performance == null)
-                return NotFound();
-
-            return Ok(performance);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving performance for portfolio {PortfolioId}", id);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Get portfolio risk limits
-    /// </summary>
-    [HttpGet("{id}/risk-limits")]
-    public async Task<ActionResult<RiskLimitsDto>> GetPortfolioRiskLimits(Guid id)
-    {
-        try
-        {
-            var riskLimits = await _portfolioService.GetPortfolioRiskLimitsAsync(id);
-            if (riskLimits == null)
-                return NotFound();
-
-            return Ok(riskLimits);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving risk limits for portfolio {PortfolioId}", id);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-
-    /// <summary>
-    /// Update portfolio risk limits
-    /// </summary>
-    [HttpPut("{id}/risk-limits")]
-    public async Task<ActionResult<RiskLimitsDto>> UpdatePortfolioRiskLimits(Guid id, [FromBody] RiskLimitsDto riskLimitsDto)
-    {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var riskLimits = await _portfolioService.UpdatePortfolioRiskLimitsAsync(id, riskLimitsDto);
-            if (riskLimits == null)
-                return NotFound();
-
-            return Ok(riskLimits);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating risk limits for portfolio {PortfolioId}", id);
             return StatusCode(500, "Internal server error");
         }
     }
