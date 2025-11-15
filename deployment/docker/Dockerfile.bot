@@ -1,0 +1,43 @@
+# LemoTick Bot Docker Deployment
+# Deploy using Docker containers for better isolation and management
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy bot files
+COPY bot/ /app/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    requests>=2.31.0 \
+    websocket-client>=1.6.0 \
+    numpy>=1.24.0 \
+    pandas>=2.0.0 \
+    python-dotenv>=1.0.0 \
+    pyyaml>=6.0
+
+# Set environment variables
+ENV PYTHONPATH=/app/src
+ENV NODE_ENV=production
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Expose port (if needed for API)
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python3 -c "import requests; requests.get('http://localhost:8080/health', timeout=5)" || exit 1
+
+# Start the bot
+CMD ["python3", "src/core/bot_engine.py"]

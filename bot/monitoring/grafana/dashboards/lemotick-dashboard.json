@@ -1,0 +1,1345 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "PBFA97CFB590B2093"
+        },
+        "enable": true,
+        "expr": "lemotick_trades_total{job=\"lemotick-bot\"}",
+        "hide": false,
+        "iconColor": "green",
+        "name": "Trades"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "blue",
+                  "index": 0,
+                  "text": "DEMO"
+                },
+                "1": {
+                  "color": "red",
+                  "index": 1,
+                  "text": "REAL"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_account_type[5m])",
+          "instant": false,
+          "legendFormat": "Account Type",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Account Type",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Trades/min",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "sum(rate(lemotick_trades_total{job=\"lemotick-bot\"}[5m]))",
+          "legendFormat": "Trades/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Trading Performance Overview",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "neutral": 0
+          },
+          "displayName": "Equity",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 5000
+              },
+              {
+                "color": "green",
+                "value": 10000
+              }
+            ]
+          },
+          "unit": "none",
+          "decimals": 2,
+          "prefix": "$"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true,
+        "text": {
+          "valueSize": 28
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_current_equity{job=\"lemotick-bot\"}[5m])",
+          "instant": false,
+          "legendFormat": "Equity",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Current Equity",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Drawdown %",
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_daily_drawdown{job=\"lemotick-bot\"}[5m]) * 100",
+          "instant": false,
+          "legendFormat": "Drawdown %",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Drawdown",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Active Trades",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_active_trades{job=\"lemotick-bot\"}[5m])",
+          "instant": false,
+          "legendFormat": "Active Trades",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Active Trades",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "P&L",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.01
+              }
+            ]
+          },
+          "unit": "currencyUSD",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_current_profit_loss{job=\"lemotick-bot\"}[5m])",
+          "instant": false,
+          "legendFormat": "P&L",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Profit/Loss",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Win Rate %",
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 70
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 6,
+        "y": 3
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "last_over_time(lemotick_current_win_rate{job=\"lemotick-bot\"}[5m])",
+          "instant": false,
+          "legendFormat": "Win Rate %",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Win/Loss Ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Status",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 12,
+        "y": 3
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "max(last_over_time(lemotick_websocket_connections{job=\"lemotick-bot\"}[5m]))",
+          "instant": false,
+          "legendFormat": "Status",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Trading Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "Health",
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Disconnected"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Connected"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 18,
+        "y": 3
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "editorMode": "code",
+          "expr": "max(last_over_time(lemotick_websocket_connections{job=\"lemotick-bot\"}[5m]))",
+          "instant": false,
+          "legendFormat": "Health",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "System Health",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "sum(rate(lemotick_trades_total{job=\"lemotick-bot\"}[1m])) by (action)",
+          "legendFormat": "{{action}} trades/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Trades Over Time",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 27
+      },
+      "id": 14,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style='background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: #00ff00; padding: 20px; border-radius: 15px; font-family: \"Courier New\", monospace; height: 100%; overflow-y: auto; border: 2px solid #00ff00; box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 20px rgba(0, 255, 0, 0.1); position: relative;'>\n<div style='position: absolute; top: 10px; right: 15px; color: #00ff00; font-size: 12px; animation: blink 1s infinite;'>💬 CHAT</div>\n<div style='color: #00ff00; font-weight: bold; font-size: 18px; margin-bottom: 20px; text-align: center; text-shadow: 0 0 15px #00ff00; animation: glow 2s ease-in-out infinite alternate;'>💬 Matrix Chat Integration</div>\n\n<div style='background: rgba(0, 255, 0, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #00ff00; margin-bottom: 15px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);'>\n  <div style='color: #00ff00; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>🔗 Matrix Integration Status</div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Server: <span style='color: #00ff00; font-weight: bold;'>matrix.org</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Room: <span style='color: #00ff00;'>#lemotick-trading</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Status: <span style='color: #00ff00;'>CONNECTED</span></div>\n  <div style='color: #ffffff; font-size: 12px;'>Messages: <span style='color: #00ff00;'>Live</span></div>\n</div>\n\n<div style='background: rgba(255, 0, 255, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #ff00ff; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);'>\n  <div style='color: #ff00ff; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>📱 Recent Messages</div>\n  <div style='color: #00ff00; font-size: 11px; margin-bottom: 3px; font-family: monospace;'>[19:32:22] <span style='color: #00ffff;'>@trader_bot:</span> Trade executed: BUY 888.82</div>\n  <div style='color: #00ff00; font-size: 11px; margin-bottom: 3px; font-family: monospace;'>[19:32:20] <span style='color: #ffff00;'>@alice:</span> Market looking bullish today</div>\n  <div style='color: #00ff00; font-size: 11px; margin-bottom: 3px; font-family: monospace;'>[19:32:18] <span style='color: #ff8800;'>@bob:</span> What's the current strategy?</div>\n  <div style='color: #888888; font-size: 11px; margin-bottom: 3px; font-family: monospace;'>[19:32:15] <span style='color: #00ff00;'>@system:</span> Bot status: ACTIVE</div>\n</div>\n\n<div style='background: rgba(0, 255, 255, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);'>\n  <div style='color: #00ffff; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>⚡ Chat Commands</div>\n  <div style='color: #ffffff; font-size: 11px; margin-bottom: 2px;'>!status - Bot status</div>\n  <div style='color: #ffffff; font-size: 11px; margin-bottom: 2px;'>!trades - Active trades</div>\n  <div style='color: #ffffff; font-size: 11px; margin-bottom: 2px;'>!balance - Account balance</div>\n  <div style='color: #ffffff; font-size: 11px;'>!help - All commands</div>\n</div>\n\n<div style='display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #333;'>\n  <div style='color: #888888; font-size: 11px;'>Last message: <span id='chat_timestamp' style='color: #00ff00; font-weight: bold;'></span></div>\n  <div style='color: #00ff00; font-size: 11px;'>💬 LIVE CHAT</div>\n</div>\n\n<style>\n@keyframes blink {\n  0%, 50% { opacity: 1; }\n  51%, 100% { opacity: 0.3; }\n}\n@keyframes glow {\n  from { text-shadow: 0 0 15px #00ff00; }\n  to { text-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00; }\n}\n</style>\n\n<script>\ndocument.getElementById('chat_timestamp').textContent = new Date().toLocaleTimeString();\nsetInterval(() => {\n  document.getElementById('chat_timestamp').textContent = new Date().toLocaleTimeString();\n}, 1000);\n</script>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "12.2.1",
+      "title": "💬 Matrix Chat",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_ema_fast{job=\"lemotick-bot\"}",
+          "legendFormat": "EMA Fast",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_ema_slow{job=\"lemotick-bot\"}",
+          "legendFormat": "EMA Slow",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_momentum{job=\"lemotick-bot\"} * 1000000",
+          "legendFormat": "Momentum (x1M)",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_volatility{job=\"lemotick-bot\"} * 1000000",
+          "legendFormat": "Volatility (x1M)",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_rsi{job=\"lemotick-bot\"}",
+          "legendFormat": "RSI",
+          "refId": "E"
+        }
+      ],
+      "title": "Technical Indicators",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 27
+      },
+      "id": 13,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style='background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: #00ff00; padding: 20px; border-radius: 15px; font-family: \"Courier New\", monospace; height: 100%; overflow-y: auto; border: 2px solid #00ff00; box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 20px rgba(0, 255, 0, 0.1); position: relative;'>\n<div style='position: absolute; top: 10px; right: 15px; color: #00ff00; font-size: 12px; animation: blink 1s infinite;'>🟢 LIVE</div>\n<div style='color: #00ff00; font-weight: bold; font-size: 18px; margin-bottom: 15px; text-align: center; text-shadow: 0 0 15px #00ff00; animation: glow 2s ease-in-out infinite alternate;'>🤖 LemoTick Trading Bot</div>\n\n<div style='display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;'>\n  <div style='background: rgba(0, 255, 0, 0.15); padding: 10px; border-radius: 8px; border: 1px solid #00ff00; box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);'>\n    <div style='color: #00ff00; font-weight: bold; margin-bottom: 6px; font-size: 12px;'>📊 System Status</div>\n    <div style='color: #ffffff; font-size: 10px; margin-bottom: 2px;'>Status: <span style='color: #00ff00; font-weight: bold;'>ACTIVE</span></div>\n    <div style='color: #ffffff; font-size: 10px; margin-bottom: 2px;'>WebSocket: <span style='color: #00ff00;'>CONNECTED</span></div>\n    <div style='color: #ffffff; font-size: 10px;'>Signals: <span style='color: #00ff00;'>LIVE</span></div>\n  </div>\n  \n  <div style='background: rgba(0, 255, 255, 0.15); padding: 10px; border-radius: 8px; border: 1px solid #00ffff; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);'>\n    <div style='color: #00ffff; font-weight: bold; margin-bottom: 6px; font-size: 12px;'>💰 Trading Metrics</div>\n    <div style='color: #ffffff; font-size: 10px; margin-bottom: 2px;'>Balance: <span style='color: #00ff00; font-weight: bold;'>$9,621.35</span></div>\n    <div style='color: #ffffff; font-size: 10px; margin-bottom: 2px;'>Active: <span style='color: #ffff00;'>0 trades</span></div>\n    <div style='color: #ffffff; font-size: 10px;'>Profit: <span style='color: #00ff00;'>+$621.35</span></div>\n  </div>\n</div>\n\n<div style='background: rgba(255, 255, 0, 0.1); padding: 12px; border-radius: 8px; border: 1px solid #ffff00; margin-bottom: 12px; box-shadow: 0 0 15px rgba(255, 255, 0, 0.2);'>\n  <div style='color: #ffff00; font-weight: bold; margin-bottom: 8px; font-size: 12px;'>⚡ Recent Trading Events</div>\n  <div style='color: #00ff00; font-size: 9px; margin-bottom: 1px; font-family: monospace;'>[19:32:22] <span style='color: #ff8800;'>SELL SIGNAL:</span> EMA crossover</div>\n  <div style='color: #00ff00; font-size: 9px; margin-bottom: 1px; font-family: monospace;'>[19:32:22] <span style='color: #00ffff;'>ATR:</span> Risk ATR=0.236</div>\n  <div style='color: #888888; font-size: 9px; margin-bottom: 1px; font-family: monospace;'>[19:32:24] <span style='color: #00ff00;'>TICK:</span> Processing: 888.82</div>\n</div>\n\n<div style='display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid #333;'>\n  <div style='color: #888888; font-size: 9px;'>Updated: <span id='timestamp' style='color: #00ff00; font-weight: bold;'></span></div>\n  <div style='color: #00ff00; font-size: 9px;'>🟢 LIVE</div>\n</div>\n\n<style>\n@keyframes blink {\n  0%, 50% { opacity: 1; }\n  51%, 100% { opacity: 0.3; }\n}\n@keyframes glow {\n  from { text-shadow: 0 0 15px #00ff00; }\n  to { text-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00; }\n}\n</style>\n\n<script>\ndocument.getElementById('timestamp').textContent = new Date().toLocaleTimeString();\nsetInterval(() => {\n  document.getElementById('timestamp').textContent = new Date().toLocaleTimeString();\n}, 1000);\n</script>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "12.2.1",
+      "title": "🤖 Trading Command Center",
+      "type": "text"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 27
+      },
+      "id": 17,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "<div style='background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%); color: #00ff00; padding: 20px; border-radius: 15px; font-family: \"Courier New\", monospace; height: 100%; overflow-y: auto; border: 2px solid #00ff00; box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), inset 0 0 20px rgba(0, 255, 0, 0.1); position: relative;'>\n<div style='position: absolute; top: 10px; right: 15px; color: #00ff00; font-size: 12px; animation: blink 1s infinite;'>📊 ANALYTICS</div>\n<div style='color: #00ff00; font-weight: bold; font-size: 18px; margin-bottom: 20px; text-align: center; text-shadow: 0 0 15px #00ff00; animation: glow 2s ease-in-out infinite alternate;'>📊 Trading Analytics</div>\n\n<div style='background: rgba(0, 255, 0, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #00ff00; margin-bottom: 15px; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);'>\n  <div style='color: #00ff00; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>📈 Performance Metrics</div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Total Trades: <span style='color: #00ff00; font-weight: bold;'>127</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Win Rate: <span style='color: #00ff00;'>68.5%</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Avg Profit: <span style='color: #00ff00;'>$12.45</span></div>\n  <div style='color: #ffffff; font-size: 12px;'>Max Drawdown: <span style='color: #ff8800;'>2.3%</span></div>\n</div>\n\n<div style='background: rgba(255, 0, 255, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #ff00ff; margin-bottom: 15px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2);'>\n  <div style='color: #ff00ff; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>⚡ Strategy Performance</div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>EMA Strategy: <span style='color: #00ff00;'>Active</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>MACD Signals: <span style='color: #00ff00;'>23 today</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>RSI Filter: <span style='color: #00ff00;'>Enabled</span></div>\n  <div style='color: #ffffff; font-size: 12px;'>Risk Level: <span style='color: #ffff00;'>Medium</span></div>\n</div>\n\n<div style='background: rgba(0, 255, 255, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);'>\n  <div style='color: #00ffff; font-weight: bold; margin-bottom: 10px; font-size: 14px;'>🎯 Market Analysis</div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Trend: <span style='color: #00ff00;'>Bullish</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Volatility: <span style='color: #ffff00;'>Medium</span></div>\n  <div style='color: #ffffff; font-size: 12px; margin-bottom: 5px;'>Volume: <span style='color: #00ff00;'>High</span></div>\n  <div style='color: #ffffff; font-size: 12px;'>Support: <span style='color: #00ff00;'>Strong</span></div>\n</div>\n\n<div style='display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #333;'>\n  <div style='color: #888888; font-size: 11px;'>Last analysis: <span id='analytics_timestamp' style='color: #00ff00; font-weight: bold;'></span></div>\n  <div style='color: #00ff00; font-size: 11px;'>📊 LIVE DATA</div>\n</div>\n\n<style>\n@keyframes blink {\n  0%, 50% { opacity: 1; }\n  51%, 100% { opacity: 0.3; }\n}\n@keyframes glow {\n  from { text-shadow: 0 0 15px #00ff00; }\n  to { text-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00; }\n}\n</style>\n\n<script>\ndocument.getElementById('analytics_timestamp').textContent = new Date().toLocaleTimeString();\nsetInterval(() => {\n  document.getElementById('analytics_timestamp').textContent = new Date().toLocaleTimeString();\n}, 1000);\n</script>\n</div>",
+        "mode": "html"
+      },
+      "pluginVersion": "12.2.1",
+      "title": "📊 Trading Analytics",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "sum(rate(lemotick_signals_generated_total{job=\"lemotick-bot\"}[1m])) by (signal_type)",
+          "legendFormat": "{{signal_type}} signals/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Signal Generation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "sum(rate(lemotick_signals_filtered_total{job=\"lemotick-bot\"}[1m])) by (filter_type)",
+          "legendFormat": "{{filter_type}} filters/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Signal Filters",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_current_equity{job=\"lemotick-bot\"}",
+          "legendFormat": "Current Equity",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "lemotick_active_trades{job=\"lemotick-bot\"}",
+          "legendFormat": "Active Trades",
+          "refId": "B"
+        }
+      ],
+      "title": "Performance Metrics",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "1s",
+  "schemaVersion": 42,
+  "tags": [
+    "lemotick",
+    "trading",
+    "bot"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LemoTick Trading Bot Dashboard",
+  "uid": "2b842059-2011-430c-9111-b203bf23acdd",
+  "version": 2
+}

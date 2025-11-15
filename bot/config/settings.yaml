@@ -1,0 +1,414 @@
+# LemoTick Trading Bot Configuration
+# Optimized for high win ratio with quality signals
+
+# Bot Settings
+bot:
+  name: "LemoTick"
+  version: "2.0"
+  debug: true
+  log_level: "INFO"
+
+  # Account Configuration - CONSERVATIVE SETTINGS
+  accounts:
+    demo:
+      min_stake: 1.0
+      max_stake: 999999  # REDUCED for conservative trading
+      initial_equity: 50.0
+      risk_per_trade: 0.03  # 2% risk per trade (CONSERVATIVE)
+    real:
+      min_stake: 1.0
+      max_stake: 50.0  # REDUCED for conservative trading (2% of $1000 = $20 max risk)
+      initial_equity: 1000.0
+      risk_per_trade: 0.03  # 2% risk per trade (CONSERVATIVE)
+
+# Trading Configuration
+trading:
+  # Primary trading symbol
+  symbol: "R_100"
+  
+  # Contract Duration (in minutes) - OPTIMIZED for binary options
+  contract_duration: 3 # REDUCED to 5 minutes for faster trades
+  
+  # Contract basis (stake = amount you want to risk, payout = amount you want to win)
+  contract_basis: "stake"
+
+  max_concurrent_trades_24_7: 999  # UNLIMITED - no trade limit
+  
+  # Symbol-specific durations - OPTIMIZED for binary options
+  symbol_durations:
+    R_100: 5  # 5 minutes for faster trades
+    R_75: 5
+    R_50: 5
+    R_25: 5
+    R_200: 5
+    frxEURUSD: 5
+    frxGBPUSD: 5
+    frxUSDJPY: 5
+    frxXAUUSD: 5
+    frxWTICOUSD: 5
+  
+  # Stake Configuration - Adjusted for 3% risk per trade (HIGH RISK)
+  base_stake: 1.0
+  max_stake: 25.0  # Increased for 5% risk management
+  min_stake: 1.0
+  stake_multiplier: 1.0
+  
+  # Risk Management - CONSERVATIVE SETTINGS
+  max_daily_loss: 20.0  # REDUCED to $20 daily loss limit
+  max_concurrent_trades: 999  # UNLIMITED - no trade limit
+  emergency_stop_loss: 50.0  # REDUCED to $50 emergency stop
+  risk_per_trade: 0.03  # 3% risk per trade (CONSERVATIVE)
+  
+  # Take Profit and Stop Loss
+  take_profit_pct: 0.0  # Keep TP disabled for candle-completion exits
+  stop_loss_pct: 0.20   # Enable 20% percentage-based stop loss (of stake)
+  reward_multiplier: 1.0  # No multiplier - rely on candle completion
+  fixed_take_profit: 0.0  # Ensure fixed TP disabled so percentage applies if set
+  fixed_stop_loss: 0.0    # Ensure fixed SL disabled so percentage applies
+  
+  # Early Closure Settings - enabled to support protective exits on CALL/PUT
+  early_closure_enabled: true
+  min_profit_threshold: 0.50
+  max_loss_threshold: 0.20
+  max_negative_ticks: 0      # DISABLED - no negative tick limits
+  negative_tick_check_interval: 0  # DISABLED - no negative tick checking
+  
+  # Dynamic Entry Spot Adjustment - LESS STRICT for more trades
+  dynamic_entry_adjustment: true  # Enable dynamic entry spot adjustment
+  profit_lock_threshold: 3  # REDUCED to lock profits after 3 ticks (was 5)
+  profit_lock_percentage: 0.3  # REDUCED to lock 30% of profits (was 50%)
+  profit_protection_enabled: true  # ENABLED for safer live trading
+  profit_protection_cooldown_seconds: 5  # 30-second cooldown after profit protection
+  early_closure_check_interval: 10  # Check every 10 seconds (not used when disabled)
+  
+  # CRITICAL: Candlestick timing integration
+  use_candlestick_timing: true
+  
+  # Reversal Settings - Control when positions can be reversed
+  reversal_enabled: true  # Enable signal reversal (close position and open opposite)
+  reversal_min_age_seconds: 120  # MINIMUM age before allowing reversal (120s = 2 minutes) - INCREASED to prevent quick reversals
+  reversal_max_age_seconds: 300  # MAXIMUM age for reversal (300s = 5 minutes) - INCREASED
+  reversal_min_profit: -2.0  # Only reverse if loss is less than 2% - MORE RESTRICTIVE to prevent reversals on small losses
+
+# Strategy Configuration - OPTIMIZED FOR HIGH WIN RATE
+strategy:
+  # Loss Reversal Logic - DISABLED (causes wrong signal generation)
+  loss_reversal_enabled: false  # DISABLED - prevents signal inversion
+  # Primary Strategy: Candlestick Patterns - OPTIMIZED FOR BINARY OPTIONS
+  candlestick_strategy:
+    enabled: true
+    min_pattern_confidence: 0.55  # 55% minimum confidence for patterns
+    require_trend_confirmation: false  # Relaxed for more opportunities
+    require_momentum_confirmation: false  # Relaxed for more opportunities
+    quality_threshold: 0.55  # 55% quality threshold
+    
+    # ✅ ENHANCED: Four-Category Pattern Detection - PRIMARY STRATEGY
+    candle_color_enabled: false  # DISABLED - use enhanced four-category pattern detection instead
+    candle_color_confidence: 0.80  # High confidence for simple color-based signals
+    
+    # ✅ DISABLED: Simple strategies - using enhanced four-category pattern detection
+    tick_momentum_enabled: false  # DISABLED - use enhanced four-category pattern detection instead
+    tick_momentum_lookback: 10  # Number of ticks to look back
+    tick_momentum_confidence: 0.70  # Confidence level for momentum signals
+    ticks_per_candle: 5  # 5 ticks = faster candle formation for responsive trading
+    
+    # EMA Configuration - OPTIMIZED
+    ema_fast_period: 8  # Optimized for 5-minute timeframe
+    ema_slow_period: 21  # Optimized for trend confirmation
+    ema_trend_threshold: 0.0001  # INCREASED threshold for stronger trends
+    
+    # RSI Configuration - OPTIMIZED
+    rsi_period: 14  # Standard RSI period
+    rsi_overbought: 70  # Standard overbought level
+    rsi_oversold: 30  # Standard oversold level
+    
+    # Pattern Detection - HIGH QUALITY PATTERNS ONLY
+    pattern_types:
+      - "hammer"        # Bullish reversal
+      - "engulfing"     # Strong reversal signal
+      - "morning_star"  # Bullish reversal
+      - "evening_star"  # Bearish reversal
+      - "doji"          # Indecision/reversal
+  
+  # Candlestick Strategy - ENABLED (Primary Strategy)
+  candlestick_strategy_enabled: true
+  candlestick_min_confidence: 0.55  # 55% minimum confidence
+  candlestick_require_trend: false  # Relaxed for more opportunities
+  candlestick_require_momentum: false  # Relaxed for more opportunities
+  candlestick_quality_threshold: 0.55  # 55% quality threshold
+  candlestick_ticks_per_candle: 5  # 5 ticks per candle
+  candlestick_close_after_candles: 2  # Close after 2 candles
+  
+  # Enable candlestick timing integration
+  use_candlestick_timing: true
+  
+  # ✅ ENHANCED: Fibonacci Retracements Configuration
+  fibonacci_enabled: true
+  fibonacci_confidence_boost: 0.15  # MODERATE boost when near Fibonacci levels
+  fibonacci_lookback_period: 50  # INCREASED for more reliable levels
+  fibonacci_levels:
+    retracements: [0.236, 0.382, 0.5, 0.618, 0.786]  # Key retracement levels
+    extensions: [1.272, 1.618, 2.0, 2.618]  # Extension levels
+  fibonacci_tolerance: 0.001  # REDUCED to 0.1% tolerance for precise levels
+  
+  # Secondary Strategy: Tick Patterns - DISABLED (use only enhanced pattern detection)
+  tick_pattern_strategy:
+    enabled: false  # DISABLED - use only enhanced four-category pattern detection
+    min_confidence: 0.75  # INCREASED to 75% for high quality patterns
+    pattern_types:
+      - "momentum_spike"      # Strong momentum continuation
+      - "reversal_pattern"    # High-probability reversals
+      - "continuation_pattern" # Trend continuation
+  
+  # Fallback Strategy: ROC (Rate of Change) - DISABLED (use only enhanced pattern detection)
+  roc_fallback_enabled: false  # DISABLED - use only enhanced four-category pattern detection
+  roc_fallback_strategy:
+    enabled: false  # DISABLED - use only enhanced four-category pattern detection
+    min_threshold: 0.03  # INCREASED threshold for stronger signals
+    period: 5  # INCREASED for more reliable signals
+    smoothing: 3  # INCREASED for smoother signals
+  
+  # EMA Strategy - DISABLED (redundant with candlestick)
+  exponential_ema_strategy: false
+  
+  # MACD Strategy - DISABLED (redundant with candlestick)
+  macd_strategy: false
+  
+  # Bollinger Bands Strategy - DISABLED (redundant with candlestick)
+  bollinger_bands_strategy: false
+  
+  # Mean Reversion Strategy - Bollinger Band reversions with trend confirmation
+  mean_reversion_strategy:
+    enabled: false  # DISABLED - use only enhanced pattern detection
+    bb_touch_threshold: 0.002  # Within 0.2% of band = "touch"
+    stoch_oversold: 20  # Stochastic < 20 = oversold
+    stoch_overbought: 80  # Stochastic > 80 = overbought
+    default_duration: 3  # 3-minute contracts for quick reversions
+    high_volatility_duration: 5  # 5 minutes in high volatility
+    ema_trend_confirmation: true  # Require EMA7/EMA15 trend confirmation
+    
+    # Position Management - Dynamic closure rules (APPLIES TO ALL STRATEGIES)
+    take_profit: 1.3  # Close position at $1.30 profit
+    stop_loss: -1  # Close position at -$1.00 loss
+    trend_reversal_closure: true  # Close if trend reverses (EMA7/EMA15 crossover)
+    grace_period_seconds: 10  # CRITICAL: Don't check TP/SL for first 10s (prevents false stop-loss on binary options)
+  
+  # Additional Strategy Settings
+  mean_reversion_enabled: false  # DISABLED - use only enhanced pattern detection
+  tick_pattern_enabled: false  # DISABLED - use only enhanced pattern detection  
+  pairs_trading_enabled: false  # DISABLED - use only enhanced pattern detection
+  multi_timeframe_enabled: false  # DISABLED - use only enhanced pattern detection
+
+# Risk Management - OPTIMIZED FOR HIGH WIN RATE & 24/7 OPERATION
+risk_management:
+  risk_per_trade: 0.03  # 2% risk per trade (CONSERVATIVE - recommended for live trading)
+  max_daily_drawdown: 0.30  # 30% daily max drawdown (more lenient for demo)
+  cooldown_seconds: 0.0  # DISABLED - no cooldown for 24/7 operation
+  max_concurrent_trades: 1  # REDUCED to 2 for better risk control
+  force_always_trade: true  # ENABLED to bypass risk controls for 24/7 operation
+  
+  # Cooldown Settings - FULLY DISABLED for true 24/7 trading
+  cooldown_enabled: false  # DISABLED for true 24/7 continuous operation
+  cooldown_exponential: false  # DISABLED - no exponential backoff
+  cooldown_multiplier: 1.0  # Linear cooldown (no multiplication)
+  max_cooldown: 0.0  # DISABLED - no cooldown at all
+  
+  # Dynamic Stop Loss - Exit when profit drops to zero
+  dynamic_stop_loss_enabled: false
+  dynamic_stop_loss_threshold: 0.0  # Exit when profit reaches zero
+  dynamic_stop_loss_check_interval: 5  # Check every 5 seconds
+  
+  # Win Rate Protection - ENABLED for quality control
+  win_rate_protection_enabled: true  # ENABLED to maintain high win rate
+  min_win_rate_threshold: 0.50  # INCREASED to 60% minimum win rate
+  min_trades_for_win_rate: 20   # INCREASED to 20 trades for reliable assessment
+  win_rate_check_interval: 10   # Check every 10 trades
+  win_rate_recovery_threshold: 0.65  # Recovery target 65%
+  
+  # Circuit Breaker - OPTIMIZED for binary options & 24/7 operation
+  circuit_breaker_enabled: false  # DISABLED for 24/7 continuous trading
+  circuit_breaker_losses: 10  # INCREASED to 10 consecutive losses before triggering (if enabled)
+  circuit_breaker_reset_hours: 1  # REDUCED to 1 hour auto-reset (was 6 hours)
+  circuit_breaker_manual_reset: false  # Allow automatic reset for 24/7 operation
+  
+  # Daily Limits - UNLIMITED TRADES (only loss limit active)
+  daily_loss_limit: 99999  # $20 daily loss limit (kept for protection)
+  daily_trade_limit: 99999  # UNLIMITED - no daily trade limit
+  
+  # Martingale Protection - DISABLED (dangerous for binary options)
+  martingale_protection: false  # DISABLED to prevent exponential losses
+  max_martingale_levels: 0  # No martingale levels
+  martingale_multiplier: 1.0  # No multiplier
+  
+  # Enhanced Risk Controls
+  equity_protection_enabled: true
+  max_equity_drawdown: 0.10  # 10% max equity drawdown
+  emergency_stop_loss: 50.0  # Emergency stop at $50 loss
+  
+  # Position Sizing
+  adaptive_position_sizing: true
+  min_position_size: 1.0
+  max_position_size: 10.0
+  volatility_adjustment: true
+  
+  # Quality Filters - OPTIMIZED for binary options
+  signal_quality_threshold: 0.55  # REDUCED to 55% for more trading opportunities
+  trend_confirmation_required: false  # DISABLED to allow more signals
+  momentum_confirmation_required: false  # DISABLED to allow more signals
+
+# Adaptive Trading - 24/7 CONTINUOUS OPERATION
+adaptive_trading:
+  # Cooldown Settings - MINIMIZED for 24/7 trading
+  trade_cooldown_seconds: 0  # NO cooldown between trades for maximum frequency
+  signal_cooldown_seconds: 0  # NO cooldown between signals for continuous operation
+  ultra_short_trade_threshold: 30  # REDUCED to 3 minutes for more opportunities
+  
+  # Market Selection - LESS STRICT
+  market_switch_threshold: 0.10  # LOWERED threshold for more market switches
+  market_performance_window: 10  # SHORTER window for faster assessment
+  min_market_switch_interval: 300  # REDUCED to 5 minutes between switches
+  
+  # Volatility Adaptive (disabled by user)
+  # volatility_adaptive_enabled: false
+  # low_volatility_threshold: 0.5
+  # high_volatility_threshold: 2.0
+  # low_volatility_multiplier: 0.5
+  # high_volatility_multiplier: 1.5
+
+# Technical Indicators
+indicators:
+  # EMA Settings
+  ema_short_period: 6
+  ema_medium_period: 18
+  ema_long_period: 50
+  
+  # Mean Reversion Strategy EMAs (for trend confirmation)
+  ema_7_period: 7   # Fast EMA for trend confirmation
+  ema_15_period: 15  # Slow EMA for trend confirmation
+  
+  # RSI Settings
+  rsi_period: 14
+  rsi_overbought: 70
+  rsi_oversold: 30
+  
+  # MACD Settings
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  
+  # ATR Settings
+  atr_period: 14
+  atr_multiplier: 2.0
+  
+  # Volatility Settings
+  volatility_window: 20  # Add missing volatility_window
+  
+  # Momentum Settings
+  momentum_threshold: 0.01  # Add missing momentum_threshold
+  
+  # Bollinger Bands
+  bb_period: 20
+  bb_std_dev: 2.0
+
+# Market Configuration
+markets:
+  # Primary Market
+  primary_symbol: "R_100"
+  
+  # Available Markets
+  available_symbols:
+    - "R_100"
+    - "R_75"
+    - "R_50"
+    - "R_25"
+    - "R_200"
+    - "frxEURUSD"
+    - "frxGBPUSD"
+    - "frxUSDJPY"
+    - "frxXAUUSD"
+    - "frxWTICOUSD"
+  
+  # Market Selection Criteria
+  min_volume: 1000
+  max_spread: 0.01
+  min_price: 0.1
+  max_price: 10000.0
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file: "logs/runtime.log"
+  max_size: "10MB"
+  backup_count: 5
+  format: "json"
+  
+  # Log Categories
+  categories:
+    trading: "INFO"
+    strategy: "DEBUG"
+    risk: "INFO"
+    metrics: "DEBUG"
+
+# Data Configuration
+data:
+  db_path: "data/bot_state.db"
+
+# Database Configuration
+database:
+  type: "sqlite"
+  path: "data/bot_state.db"
+  backup_interval: 3600  # 1 hour
+
+# Deriv API Configuration
+deriv:
+  app_id: "1089"
+  base_url: "wss://ws.derivws.com/websockets/v3"
+  ws_url: "wss://ws.derivws.com/websockets/v3"  # Add missing ws_url
+  timeout: 10  # Reduced from 30 to 10 seconds for faster API responses
+
+# API Configuration
+api:
+  # Prometheus Metrics
+  prometheus:
+    enabled: true
+    port: 8000
+    path: "/metrics"
+
+# Performance Monitoring
+monitoring:
+  # Metrics Collection
+  metrics_enabled: true
+  metrics_interval: 10  # seconds
+  
+  # Performance Tracking
+  track_latency: true
+  track_memory: true
+  track_cpu: true
+  
+  # Alerts
+  alerts_enabled: true
+  alert_thresholds:
+    high_loss: 20.0
+    low_win_rate: 0.40
+    high_latency: 1000  # ms
+
+# Account Mode Configuration
+account_mode:
+  use_live_account: false  # Set to true for live trading
+  require_explicit_confirmation: true  # Requires confirmation for live trading
+
+# Development Settings
+development:
+  # Testing
+  test_mode: false
+  paper_trading: false
+  
+  # Debugging
+  debug_signals: true
+  debug_indicators: true
+  debug_risk: true
+  
+  # Simulation
+  simulation_mode: false
+  simulation_start_date: "2024-01-01"
+  simulation_end_date: "2024-12-31"
