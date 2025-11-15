@@ -110,6 +110,13 @@ class StrategyEngine:
         # Backward compatibility with metrics code that uses ema_5 and ema_8
         self.ema_5 = self.ema_short  # Alias for backward compatibility
         self.ema_8 = self.ema_medium  # Alias for backward compatibility
+        
+        # EMAs for Mean Reversion Strategy trend confirmation
+        ema_7_period = config.get("indicators.ema_7_period", 7)
+        ema_15_period = config.get("indicators.ema_15_period", 15)
+        self.ema_7 = IncrementalEMA(period=ema_7_period)
+        self.ema_15 = IncrementalEMA(period=ema_15_period)
+        logger.info(f"Mean Reversion EMAs: EMA7={ema_7_period}, EMA15={ema_15_period}")
 
         # Additional indicators for filtering
         self.momentum = IncrementalMomentum(lookback=5)
@@ -151,8 +158,8 @@ class StrategyEngine:
 
         # Trade management parameters - HIGH FREQUENCY (1 trade at a time)
         self.trade_cooldown_seconds = config.get("adaptive_trading.trade_cooldown_seconds", 0)  # No cooldown
-        self.max_concurrent_trades = config.get("strategy.max_concurrent_trades", 1)  # Single trade
-        self.ultra_short_trade_threshold = config.get("strategy.ultra_short_trade_threshold", 180)
+        self.max_concurrent_trades = config.get("risk_management.max_concurrent_trades", 1)  # Read from risk_management config
+        self.ultra_short_trade_threshold = config.get("strategy.ultra_short_trade_threshold", 30)
 
         # EMA + Pin Bar parameters
         self.entry_offset = 0.0003  # 3-5 points entry offset (0.03%)
@@ -219,9 +226,11 @@ class StrategyEngine:
         if self.mean_reversion_enabled and MR_AVAILABLE and MeanReversionStrategy is not None:
             self.mean_reversion = MeanReversionStrategy(
                 bollinger_bands=self.bollinger_bands,
-                stochastic=self.stochastic
+                stochastic=self.stochastic,
+                ema7=self.ema_7,
+                ema15=self.ema_15
             )
-            logger.info("Mean Reversion Strategy initialized")
+            logger.info("Mean Reversion Strategy initialized with EMA7/EMA15 trend confirmation")
         else:
             self.mean_reversion = None
             if self.mean_reversion_enabled:
@@ -334,40 +343,130 @@ class StrategyEngine:
         try:
             indicators = {}
             
-            # Get EMA values - use get_value() method
-            ema_fast_val = self.ema_short.get_value() if hasattr(self.ema_short, 'get_value') else None
-            if ema_fast_val is not None:
-                indicators['ema_fast'] = ema_fast_val
+            # Get EMA values - use get_value() method with defensive checks
+            try:
+                ema_fast_val_raw = self.ema_short.get_value() if hasattr(self.ema_short, 'get_value') else None
+                if isinstance(ema_fast_val_raw, tuple):
+                    ema_fast_val = float(ema_fast_val_raw[0]) if len(ema_fast_val_raw) > 0 else 0.0
+                    logger.warning(f"EMA fast get_value() returned tuple, using first element: {ema_fast_val}")
+                elif ema_fast_val_raw is not None:
+                    ema_fast_val = float(ema_fast_val_raw)
+                else:
+                    ema_fast_val = None
+                if ema_fast_val is not None:
+                    indicators['ema_fast'] = ema_fast_val
+            except Exception as e:
+                logger.warning(f"Error getting EMA fast value: {e}")
                 
-            ema_slow_val = self.ema_medium.get_value() if hasattr(self.ema_medium, 'get_value') else None
-            if ema_slow_val is not None:
-                indicators['ema_slow'] = ema_slow_val
+            try:
+                ema_slow_val_raw = self.ema_medium.get_value() if hasattr(self.ema_medium, 'get_value') else None
+                if isinstance(ema_slow_val_raw, tuple):
+                    ema_slow_val = float(ema_slow_val_raw[0]) if len(ema_slow_val_raw) > 0 else 0.0
+                    logger.warning(f"EMA slow get_value() returned tuple, using first element: {ema_slow_val}")
+                elif ema_slow_val_raw is not None:
+                    ema_slow_val = float(ema_slow_val_raw)
+                else:
+                    ema_slow_val = None
+                if ema_slow_val is not None:
+                    indicators['ema_slow'] = ema_slow_val
+            except Exception as e:
+                logger.warning(f"Error getting EMA slow value: {e}")
             
-            # Get momentum value
+            # Get momentum value with defensive checks
             if hasattr(self.momentum, 'get_value'):
-                mom_val = self.momentum.get_value()
-                if mom_val is not None:
-                    indicators['momentum'] = mom_val
+                try:
+                    mom_val_raw = self.momentum.get_value()
+                    if isinstance(mom_val_raw, tuple):
+                        mom_val = float(mom_val_raw[0]) if len(mom_val_raw) > 0 else 0.0
+                        logger.warning(f"Momentum get_value() returned tuple, using first element: {mom_val}")
+                    elif mom_val_raw is not None:
+                        mom_val = float(mom_val_raw)
+                    else:
+                        mom_val = None
+                    if mom_val is not None:
+                        indicators['momentum'] = mom_val
+                except Exception as e:
+                    logger.warning(f"Error getting momentum value: {e}")
             
-            # Get volatility value
+            # Get volatility value with defensive checks
             if hasattr(self.volatility, 'get_value'):
-                vol_val = self.volatility.get_value()
-                if vol_val is not None:
-                    indicators['volatility'] = vol_val
+                try:
+                    vol_val_raw = self.volatility.get_value()
+                    if isinstance(vol_val_raw, tuple):
+                        vol_val = float(vol_val_raw[0]) if len(vol_val_raw) > 0 else 0.0
+                        logger.warning(f"Volatility get_value() returned tuple, using first element: {vol_val}")
+                    elif vol_val_raw is not None:
+                        vol_val = float(vol_val_raw)
+                    else:
+                        vol_val = None
+                    if vol_val is not None:
+                        indicators['volatility'] = vol_val
+                except Exception as e:
+                    logger.warning(f"Error getting volatility value: {e}")
             
-            # Get RSI value (using stochastic as proxy)
-            if hasattr(self.stochastic, 'get_value'):
-                rsi_val = self.stochastic.get_value()
-                if rsi_val is not None:
+            # Get RSI value - use actual RSI indicator, not stochastic
+            if hasattr(self.rsi, 'get_value'):
+                try:
+                    rsi_val_raw = self.rsi.get_value()
+                    # Ensure RSI is a single float value, not a tuple
+                    if isinstance(rsi_val_raw, tuple):
+                        rsi_val = float(rsi_val_raw[0]) if len(rsi_val_raw) > 0 else 50.0
+                        logger.warning(f"RSI get_value() returned tuple, using first element: {rsi_val}")
+                    elif rsi_val_raw is not None:
+                        rsi_val = float(rsi_val_raw)
+                    else:
+                        rsi_val = 50.0  # Default neutral RSI
                     indicators['rsi'] = rsi_val
+                except Exception as e:
+                    logger.warning(f"Error getting RSI value: {e}, using default 50.0")
+                    indicators['rsi'] = 50.0
             
-            # Get MACD values
-            if hasattr(self.macd, 'macd_line') and self.macd.macd_line is not None:
-                indicators['macd_line'] = self.macd.macd_line
-            if hasattr(self.macd, 'signal_line') and self.macd.signal_line is not None:
-                indicators['macd_signal'] = self.macd.signal_line
-            if hasattr(self.macd, 'histogram') and self.macd.histogram is not None:
-                indicators['macd_histogram'] = self.macd.histogram
+            # Get MACD values with defensive checks
+            try:
+                if hasattr(self.macd, 'macd_line') and self.macd.macd_line is not None:
+                    macd_line_val = self.macd.macd_line
+                    if isinstance(macd_line_val, tuple):
+                        macd_line_val = float(macd_line_val[0]) if len(macd_line_val) > 0 else 0.0
+                        logger.warning(f"MACD line attribute is a tuple, using first element: {macd_line_val}")
+                    indicators['macd_line'] = float(macd_line_val)
+            except Exception as e:
+                logger.warning(f"Error getting MACD line value: {e}")
+                
+            try:
+                if hasattr(self.macd, 'signal_line') and self.macd.signal_line is not None:
+                    macd_signal_val = self.macd.signal_line
+                    if isinstance(macd_signal_val, tuple):
+                        macd_signal_val = float(macd_signal_val[0]) if len(macd_signal_val) > 0 else 0.0
+                        logger.warning(f"MACD signal attribute is a tuple, using first element: {macd_signal_val}")
+                    indicators['macd_signal'] = float(macd_signal_val)
+            except Exception as e:
+                logger.warning(f"Error getting MACD signal value: {e}")
+                
+            try:
+                if hasattr(self.macd, 'histogram') and self.macd.histogram is not None:
+                    macd_hist_val = self.macd.histogram
+                    if isinstance(macd_hist_val, tuple):
+                        macd_hist_val = float(macd_hist_val[0]) if len(macd_hist_val) > 0 else 0.0
+                        logger.warning(f"MACD histogram attribute is a tuple, using first element: {macd_hist_val}")
+                    indicators['macd_histogram'] = float(macd_hist_val)
+            except Exception as e:
+                logger.warning(f"Error getting MACD histogram value: {e}")
+            
+            # Get ATR value with defensive checks
+            if hasattr(self.atr, 'get_value'):
+                try:
+                    atr_val_raw = self.atr.get_value()
+                    if isinstance(atr_val_raw, tuple):
+                        atr_val = float(atr_val_raw[0]) if len(atr_val_raw) > 0 else 0.0
+                        logger.warning(f"ATR get_value() returned tuple, using first element: {atr_val}")
+                    elif atr_val_raw is not None:
+                        atr_val = float(atr_val_raw)
+                    else:
+                        atr_val = None
+                    if atr_val is not None:
+                        indicators['atr'] = atr_val
+                except Exception as e:
+                    logger.warning(f"Error getting ATR value: {e}")
             
             return indicators
             
@@ -480,21 +579,6 @@ class StrategyEngine:
             logger.error(f"Error in daily reset: {e}")
 
 
-
-    def get_trades_to_cancel(self, min_ticks_before_check: int = 7) -> list:
-        """
-        DISABLED: EMA validation logic that was causing early trade closures.
-        
-        This method previously checked EMA conditions after 7 ticks and cancelled trades
-        if EMA conditions changed, which interfered with candlestick timing logic.
-        
-        Now returns empty list to allow candlestick timing to work properly.
-        """
-        # DISABLED: EMA validation logic that was causing early closures
-        # This was interfering with the candlestick timing strategy
-        logger.debug("EMA validation disabled - allowing candlestick timing to control trade closure")
-        return []
-
     def cancel_trades(self, trades_to_cancel: list) -> None:
         """
         Cancel trades that no longer meet EMA conditions.
@@ -544,10 +628,18 @@ class StrategyEngine:
 
         return False  # No active trades
 
-    def register_executed_trade(self, signal: str, entry_time: int, entry_tick: int, duration: int, barrier: float = 0, trade_id: Optional[str] = None) -> None:
+    def register_executed_trade(
+        self,
+        signal: str,
+        entry_time: int,
+        entry_tick: int,
+        duration: int,
+        barrier: float = 0,
+        trade_id: Optional[str] = None
+    ) -> None:
         """
         Register an executed trade in the active_trades list.
-
+    
         Args:
             signal: Trading signal (BUY/SELL)
             entry_time: Timestamp when trade was executed
@@ -556,18 +648,15 @@ class StrategyEngine:
             barrier: Barrier price for the trade (for early closure logic)
             trade_id: Trade identifier for closing trades
         """
-        # Store current EMA values for monitoring (handle case where EMAs might be None)
-        current_ema_fast = self.ema_5.get_value()
-        current_ema_slow = self.ema_8.get_value()
-
-        # Handle None values (EMAs not initialized yet)
-        if current_ema_fast is None or current_ema_slow is None:
-            current_ema_bullish = None
-            current_ema_bearish = None
-        else:
-            current_ema_bullish = current_ema_fast > current_ema_slow
-            current_ema_bearish = current_ema_fast < current_ema_slow
-
+        # Fetch current EMA values safely
+        current_ema_fast = getattr(self.ema_5, "get_value", lambda: None)()
+        current_ema_slow = getattr(self.ema_8, "get_value", lambda: None)()
+    
+        # Determine initial trend flags
+        original_ema_bullish = current_ema_fast is not None and current_ema_slow is not None and current_ema_fast > current_ema_slow
+        original_ema_bearish = current_ema_fast is not None and current_ema_slow is not None and current_ema_fast < current_ema_slow
+    
+        # Append trade to active trades
         self.active_trades.append({
             "signal": signal,
             "entry_time": entry_time,
@@ -576,11 +665,14 @@ class StrategyEngine:
             "duration": duration,
             "barrier": barrier,
             "trade_id": trade_id or "",
-            "original_ema_bullish": current_ema_bullish,
-            "original_ema_bearish": current_ema_bearish,
+            "original_ema_bullish": original_ema_bullish,
+            "original_ema_bearish": original_ema_bearish,
             "ema_fast_value": current_ema_fast,
             "ema_slow_value": current_ema_slow
         })
+    
+        logger.info(f"Registered executed trade {trade_id or 'N/A'}: {signal} at tick {entry_tick}, duration {duration} min, EMA bullish={original_ema_bullish}, EMA bearish={original_ema_bearish}")
+
 
     def cleanup_expired_trades(self) -> None:
         """
@@ -634,8 +726,20 @@ class StrategyEngine:
         Returns:
             Tuple of (risk_amount, reward_target) - for position sizing, not execution
         """
-        # Get current ATR value for volatility-based risk calculation
-        atr_value = self.atr.get_value()
+        # Get current ATR value for volatility-based risk calculation with defensive checks
+        try:
+            atr_value_raw = self.atr.get_value()
+            # Ensure ATR is a single float value, not a tuple
+            if isinstance(atr_value_raw, tuple):
+                atr_value = float(atr_value_raw[0]) if len(atr_value_raw) > 0 else None
+                logger.warning(f"ATR get_value() returned tuple in calculate_risk_reward, using first element: {atr_value}")
+            elif atr_value_raw is not None:
+                atr_value = float(atr_value_raw)
+            else:
+                atr_value = None
+        except Exception as e:
+            logger.error(f"Error getting ATR value in calculate_risk_reward: {e}", exc_info=True)
+            atr_value = None
 
         if atr_value is None or atr_value <= 0:
             # Fallback to percentage-based risk calculation
@@ -688,6 +792,7 @@ class StrategyEngine:
         Returns:
             Generated trading signal
         """
+        logger.debug(f"STRATEGY ENGINE UPDATE: Called with price={price}, timestamp={timestamp}")
         try:
             # Increment tick counter
             self.tick_count += 1
@@ -722,8 +827,8 @@ class StrategyEngine:
                 logger.debug(f"Signal cooldown active: {time_since_last_signal:.1f}s < {self.signal_cooldown_seconds}s required ({remaining_cooldown:.1f}s remaining)")
                 return SignalType.HOLD, 1, None
 
-        # Note: Cooldown check moved to trade execution phase, not signal generation
-        # This allows the strategy to generate signals but prevents rapid trade execution
+            # Note: Cooldown check moved to trade execution phase, not signal generation
+            # This allows the strategy to generate signals but prevents rapid trade execution
 
             # Update price history for pin bar detection (last 20 prices)
             self.price_history.append(price)
@@ -740,12 +845,40 @@ class StrategyEngine:
             # ===================================================================
             
             # ALWAYS UPDATE: 6 EMA and 18 EMA (needed for candlestick trend confirmation)
-            ema_short_val = self.ema_short.update(price)
-            ema_medium_val = self.ema_medium.update(price)
+            # Add defensive checks for tuple returns
+            try:
+                ema_short_raw = self.ema_short.update(price)
+                if isinstance(ema_short_raw, tuple):
+                    ema_short_val = float(ema_short_raw[0]) if len(ema_short_raw) > 0 else price
+                    logger.warning(f"EMA short update() returned tuple, using first element: {ema_short_val}")
+                else:
+                    ema_short_val = float(ema_short_raw) if ema_short_raw is not None else price
+            except Exception as e:
+                logger.error(f"Error updating EMA short: {e}", exc_info=True)
+                ema_short_val = price  # Fallback to current price
+            
+            try:
+                ema_medium_raw = self.ema_medium.update(price)
+                if isinstance(ema_medium_raw, tuple):
+                    ema_medium_val = float(ema_medium_raw[0]) if len(ema_medium_raw) > 0 else price
+                    logger.warning(f"EMA medium update() returned tuple, using first element: {ema_medium_val}")
+                else:
+                    ema_medium_val = float(ema_medium_raw) if ema_medium_raw is not None else price
+            except Exception as e:
+                logger.error(f"Error updating EMA medium: {e}", exc_info=True)
+                ema_medium_val = price  # Fallback to current price
             
             # Update backward compatibility aliases
             self.ema_5 = self.ema_short
             self.ema_8 = self.ema_medium
+            
+            # Update EMA7 and EMA15 for Mean Reversion Strategy
+            if self.mean_reversion_enabled:
+                try:
+                    self.ema_7.update(price)
+                    self.ema_15.update(price)
+                except Exception as e:
+                    logger.error(f"Error updating EMA7/EMA15: {e}", exc_info=True)
             
             # MINIMAL INDICATOR MODE: Skip heavy indicators when using candlestick + tick patterns
             if (self.candlestick_enabled or self.tick_pattern_enabled) and not self.mean_reversion_enabled and not self.pairs_trading_enabled:
@@ -762,19 +895,82 @@ class StrategyEngine:
                     logger.debug("Minimal mode: Using ONLY 6/18 EMA")
             else:
                 # Heavy strategies enabled: Update all indicators
-                ema_long_val = self.ema_long.update(price)
-                momentum_val = self.momentum.update(price)
-            rsi_val = self.rsi.update(price)
-            macd_line, macd_signal_line, macd_histogram = self.macd.update(price)
-
-                # Update ATR
-            if len(self.price_history) >= 2:
-                prev_price = self.price_history[-2]
-                high = max(price, prev_price)
-                low = min(price, prev_price)
-                atr_val = self.atr.update(high, low, price)
-            else:
-                atr_val = self.atr.update(price, price, price)
+                # Add defensive checks for tuple returns
+                try:
+                    ema_long_raw = self.ema_long.update(price)
+                    if isinstance(ema_long_raw, tuple):
+                        ema_long_val = float(ema_long_raw[0]) if len(ema_long_raw) > 0 else price
+                        logger.warning(f"EMA long update() returned tuple, using first element: {ema_long_val}")
+                    else:
+                        ema_long_val = float(ema_long_raw) if ema_long_raw is not None else price
+                except Exception as e:
+                    logger.error(f"Error updating EMA long: {e}", exc_info=True)
+                    ema_long_val = price  # Fallback to current price
+                
+                try:
+                    momentum_raw = self.momentum.update(price)
+                    if isinstance(momentum_raw, tuple):
+                        momentum_val = float(momentum_raw[0]) if len(momentum_raw) > 0 else 0.0
+                        logger.warning(f"Momentum update() returned tuple, using first element: {momentum_val}")
+                    else:
+                        momentum_val = float(momentum_raw) if momentum_raw is not None else 0.0
+                except Exception as e:
+                    logger.error(f"Error updating momentum: {e}", exc_info=True)
+                    momentum_val = 0.0  # Neutral fallback
+                
+                # Update RSI with defensive checks for tuple returns
+                try:
+                    rsi_val_raw = self.rsi.update(price)
+                    if isinstance(rsi_val_raw, tuple):
+                        rsi_val = float(rsi_val_raw[0]) if len(rsi_val_raw) > 0 else 50.0
+                        logger.warning(f"RSI update() returned tuple, using first element: {rsi_val}")
+                    else:
+                        rsi_val = float(rsi_val_raw) if rsi_val_raw is not None else 50.0
+                except Exception as e:
+                    logger.error(f"Error updating RSI: {e}", exc_info=True)
+                    rsi_val = 50.0  # Neutral fallback
+                
+                # Update MACD with defensive checks
+                try:
+                    macd_result = self.macd.update(price)
+                    if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                        macd_line = float(macd_result[0])
+                        macd_signal_line = float(macd_result[1])
+                        macd_histogram = float(macd_result[2])
+                    elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                        # Handle unexpected tuple length
+                        macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                        macd_signal_line = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                        macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                        logger.warning(f"MACD update() returned unexpected tuple length {len(macd_result)}, using available values")
+                    else:
+                        logger.error(f"MACD update() returned unexpected type: {type(macd_result)}")
+                        macd_line, macd_signal_line, macd_histogram = 0.0, 0.0, 0.0
+                except Exception as e:
+                    logger.error(f"Error updating MACD: {e}", exc_info=True)
+                    macd_line, macd_signal_line, macd_histogram = 0.0, 0.0, 0.0
+                
+                # Update ATR with defensive checks
+                try:
+                    if len(self.price_history) >= 2:
+                        prev_price = self.price_history[-2]
+                        high = max(price, prev_price)
+                        low = min(price, prev_price)
+                        atr_val_raw = self.atr.update(high, low, price)
+                    else:
+                        atr_val_raw = self.atr.update(price, price, price)
+                    
+                    # Ensure ATR is a single float value, not a tuple
+                    if isinstance(atr_val_raw, tuple):
+                        atr_val = float(atr_val_raw[0]) if len(atr_val_raw) > 0 else 0.0
+                        logger.warning(f"ATR update() returned tuple, using first element: {atr_val}")
+                    elif atr_val_raw is not None:
+                        atr_val = float(atr_val_raw)
+                    else:
+                        atr_val = 0.0
+                except Exception as e:
+                    logger.error(f"Error updating ATR: {e}", exc_info=True)
+                    atr_val = 0.0
                 
                 if self.tick_count > 10:
                     logger.debug(f"All indicators updated: MACD={macd_histogram:.6f}, RSI={rsi_val:.1f}, ATR={atr_val:.6f}")
@@ -788,7 +984,9 @@ class StrategyEngine:
                     logger.debug(f"ROC updated: {roc_val:.3f}%")
 
             #  NEW: HFT Strategy Cascade (Priority Order)
+            logger.debug(f"STRATEGY ENGINE: Calling _generate_hft_signal_cascade for price {price}")
             signal, duration, metadata = self._generate_hft_signal_cascade(price, timestamp, macd_histogram)
+            logger.debug(f"STRATEGY ENGINE: _generate_hft_signal_cascade returned signal={signal}, duration={duration}")
 
             # Apply profit guarantee logic
             signal = self._apply_profit_guarantee_logic(signal)
@@ -827,7 +1025,27 @@ class StrategyEngine:
             self.last_signal = signal
             stake = config.get('trading.stake', 10.0)  # Retrieve from config
             multiplier = config.get('trading.multiplier', 50)  # Retrieve from config
-            macd_line, macd_signal, macd_histogram = self.macd.get_value()
+            
+            # Get MACD values with defensive checks for tuple returns
+            try:
+                macd_result = self.macd.get_value()
+                if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                    macd_line = float(macd_result[0])
+                    macd_signal = float(macd_result[1])
+                    macd_histogram = float(macd_result[2])
+                elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                    # Handle unexpected tuple length
+                    macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                    macd_signal = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                    macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                    logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)}, using available values")
+                else:
+                    logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)}")
+                    macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+            except Exception as e:
+                logger.error(f"Error getting MACD values: {e}", exc_info=True)
+                macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+            
             risk_amount, reward_target = self.calculate_risk_reward(stake, multiplier, macd_histogram, price)
             # Store risk/reward for position sizing
             self.current_risk_reward = {'risk': risk_amount, 'reward': reward_target}  # Store internally
@@ -862,10 +1080,22 @@ class StrategyEngine:
         """
         # Check if adaptive duration is enabled
         if not config.get("strategy.volatility_adaptive_enabled", False):
-            return config.get("trading.contract_duration", 5)  # Return fixed duration
+            return config.get("trading.contract_duration", 3)  # Return fixed duration
         
-        # Get ATR for volatility measurement
-        atr_value = self.atr.get_value()
+        # Get ATR for volatility measurement with defensive checks
+        try:
+            atr_value_raw = self.atr.get_value()
+            # Ensure ATR is a single float value, not a tuple
+            if isinstance(atr_value_raw, tuple):
+                atr_value = float(atr_value_raw[0]) if len(atr_value_raw) > 0 else None
+                logger.warning(f"ATR get_value() returned tuple in get_adaptive_duration, using first element: {atr_value}")
+            elif atr_value_raw is not None:
+                atr_value = float(atr_value_raw)
+            else:
+                atr_value = None
+        except Exception as e:
+            logger.error(f"Error getting ATR value in get_adaptive_duration: {e}", exc_info=True)
+            atr_value = None
         
         if atr_value is None or atr_value <= 0:
             logger.debug("ATR not available, using default 5-minute contracts")
@@ -989,8 +1219,21 @@ class StrategyEngine:
         Returns:
             Tuple of (conditions_ok, reason)
         """
-        # Check for extreme volatility (DISABLED for testing)
-        atr_value = self.atr.get_value()
+        # Check for extreme volatility (DISABLED for testing) with defensive checks
+        try:
+            atr_value_raw = self.atr.get_value()
+            # Ensure ATR is a single float value, not a tuple
+            if isinstance(atr_value_raw, tuple):
+                atr_value = float(atr_value_raw[0]) if len(atr_value_raw) > 0 else None
+                logger.warning(f"ATR get_value() returned tuple in _check_market_conditions, using first element: {atr_value}")
+            elif atr_value_raw is not None:
+                atr_value = float(atr_value_raw)
+            else:
+                atr_value = None
+        except Exception as e:
+            logger.error(f"Error getting ATR value in _check_market_conditions: {e}", exc_info=True)
+            atr_value = None
+            
         if atr_value and atr_value > 0:
             volatility_ratio = atr_value / price
             max_volatility_ratio = config.get('strategy.max_volatility_ratio', 1.0)  # 100% - disabled
@@ -1023,172 +1266,105 @@ class StrategyEngine:
 
         return True, "Market conditions OK"
 
-    def _generate_hft_signal_cascade(self, price: float, timestamp: int, macd_histogram: float) -> tuple[SignalType, int, dict]:
+    def _generate_hft_signal_cascade(
+        self, price: float, timestamp: int, macd_histogram: float
+    ) -> tuple[SignalType, int, dict]:
         """
-         ENHANCED FOUR-CATEGORY PATTERN DETECTION CASCADE 
-        
-        ENHANCED PATTERN DETECTION:
-        1. NEUTRAL PATTERNS - Signal market indecision (HOLD - no trade)
-        2. BULLISH PATTERNS - Signal upward movement (BUY signals)
-        3. BEARISH PATTERNS - Signal downward movement (SELL signals)
-        4. COMPLEX PATTERNS - Multi-candle patterns (BUY/SELL based on pattern)
-        
-        PATTERN PROCESSING:
-        - NEUTRAL patterns: Always processed (market indecision)
-        - BUY/SELL patterns: Quality threshold applied (75% minimum)
-        - Fibonacci confluence: Additional confidence boosting
-        - Enhanced Doji detection: Multiple Doji types for indecision
-        
-        SIGNAL TYPES:
-        - HOLD: Market indecision, no trading
-        - BUY: Bullish patterns with sufficient quality
-        - SELL: Bearish patterns with sufficient quality
-        
-        Args:
-            price: Current price
-            timestamp: Current timestamp
-            macd_histogram: MACD histogram for ML features
-            
-        Returns:
-            Tuple of (signal, duration, metadata)
+        Enhanced Four-Category Candlestick Pattern Detection Cascade.
+        Returns a trading signal based on candlestick patterns and confirmations.
+
+        Signal types: HOLD, BUY, SELL
         """
-        signal = SignalType.HOLD
+
+        signal: SignalType = SignalType.HOLD
         duration = 1
         metadata = {"strategy": "none", "reason": "no signals"}
-        
-        # ===================================================================
-        # PRIORITY 1: CANDLESTICK PATTERN STRATEGY (Highest Priority)
-        # ===================================================================
+
+        # ------------------------------------------------------------
+        # Priority 1: Candlestick Pattern Strategy (Highest Priority)
+        # ------------------------------------------------------------
+        logger.debug(f"CANDLESTICK CASCADE DEBUG: enabled={self.candlestick_enabled}, strategy={self.candlestick_strategy is not None}")
         if self.candlestick_enabled and self.candlestick_strategy:
-            logger.debug(f"CANDLESTICK: Strategy enabled, updating tick: {price}")
-            # Update candlestick strategy with current price tick
+            logger.debug(f"CANDLESTICK: Updating tick {price}")
             candle_complete = self.candlestick_strategy.update_tick(price)
-            
+
             if candle_complete:
                 logger.info(f"CANDLESTICK: Candle completed! Active trades: {len(self.active_trades)}")
-                # CRITICAL: Only check for signals if no active trades
-                if len(self.active_trades) == 0:
-                    # Candle just completed, check for pattern
+                max_concurrent = config.get("trading.max_concurrent_trades", 1)
+
+                if len(self.active_trades) < max_concurrent:
                     pattern_signal = self.candlestick_strategy.get_signal()
                 else:
-                    logger.debug(f"CANDLESTICK: Skipping signal generation - {len(self.active_trades)} active trade(s)")
+                    logger.debug("Skipping signal: max concurrent trades reached")
                     pattern_signal = None
-                
+
                 if pattern_signal:
                     min_quality = config.get("strategy.candlestick_quality_threshold", 0.75)
+
+                    # DEBUG: Log signal details for troubleshooting
+                    signal_type = pattern_signal.get('type', 'UNKNOWN')
+                    quality_score = pattern_signal.get('quality_score', 0)
+                    logger.info(f"CANDLESTICK SIGNAL RECEIVED: type={signal_type}, quality={quality_score}, min_quality={min_quality}, pattern={pattern_signal.get('pattern', 'N/A')}")
+
+                    # Get signal type and validate
+                    sig_type = pattern_signal.get('type', 'HOLD').upper()
+                    quality = pattern_signal.get('quality_score', 0)
                     
-                    # Handle NEUTRAL patterns (HOLD) - always process regardless of quality threshold
-                    if pattern_signal['type'] == "HOLD":
-                        logger.info(f"NEUTRAL PATTERN: {pattern_signal['pattern']} -> {pattern_signal['type']}")
-                        logger.info(f"   Confidence: {pattern_signal['confidence']:.0%}, Quality: {pattern_signal['quality_score']:.0%}")
+                    logger.info(f"CANDLESTICK SIGNAL PROCESSING: type={sig_type}, quality={quality:.2f}, min_required={min_quality:.2f}")
+                    
+                    # -------------------
+                    # BUY/SELL Patterns - Process FIRST
+                    # -------------------
+                    if sig_type in ['BUY', 'SELL'] and quality >= min_quality:
+                        logger.info(f"✅ CANDLESTICK PATTERN APPROVED: {pattern_signal['pattern']} -> {sig_type}")
+                        logger.info(f"   Confidence: {pattern_signal['confidence']:.0%}, Quality: {quality:.0%}")
                         logger.info(f"   EMA Trend: {pattern_signal['metadata']['ema_trend']}, RSI: {pattern_signal['metadata']['rsi_value']:.1f}")
+
+                        # Set signal type
+                        signal = SignalType.BUY if sig_type == "BUY" else SignalType.SELL
+                        duration = pattern_signal.get("duration", 3)
                         
-                        # NEUTRAL PATTERN - Market indecision, do not trade
-                        signal = SignalType.HOLD
-                        logger.info(f"NEUTRAL PATTERN: {pattern_signal['pattern']} - Market indecision, no trade")
-                        
-                        duration = pattern_signal['duration']
+                        # Build metadata
                         metadata = {
                             "strategy": "candlestick_pattern",
-                            "pattern": pattern_signal['pattern'],
-                            "pattern_type": pattern_signal['pattern_type'],
-                            "confidence": pattern_signal['confidence'],
-                            "quality_score": pattern_signal['quality_score'],
-                            "ema_trend": pattern_signal['metadata']['ema_trend'],
-                            "rsi_value": pattern_signal['metadata']['rsi_value'],
-                            "reason": f"Neutral Pattern: {pattern_signal['pattern']} - Market indecision",
-                            "signal_type": pattern_signal['type'],
+                            "pattern": pattern_signal["pattern"],
+                            "pattern_type": pattern_signal.get("pattern_type", "unknown"),
+                            "confidence": pattern_signal["confidence"],
+                            "quality_score": quality,
+                            "ema_trend": pattern_signal["metadata"]["ema_trend"],
+                            "rsi_value": pattern_signal["metadata"]["rsi_value"],
+                            "reason": f"Trading Pattern: {pattern_signal['pattern']} -> {sig_type}",
+                            "signal_type": sig_type,
                             "trade_start_candle": pattern_signal.get("trade_start_candle", 0),
                             "expected_close_candle": pattern_signal.get("expected_close_candle", 0),
                             "close_after_candles": pattern_signal.get("close_after_candles", 2),
                             "signal_data": pattern_signal
                         }
-                    
-                    # Handle BUY/SELL patterns - apply quality threshold
-                    elif pattern_signal['quality_score'] >= min_quality:
-                        logger.info(f"CANDLESTICK PATTERN: {pattern_signal['pattern']} -> {pattern_signal['type']}")
-                        logger.info(f"   Confidence: {pattern_signal['confidence']:.0%}, Quality: {pattern_signal['quality_score']:.0%}")
-                        logger.info(f"   EMA Trend: {pattern_signal['metadata']['ema_trend']}, RSI: {pattern_signal['metadata']['rsi_value']:.1f}")
                         
-                        if pattern_signal['type'] == "BUY":
-                            signal = SignalType.BUY
-                        elif pattern_signal['type'] == "SELL":
-                            signal = SignalType.SELL
-                        
-                        duration = pattern_signal['duration']
-                        metadata = {
-                            "strategy": "candlestick_pattern",
-                            "pattern": pattern_signal['pattern'],
-                            "pattern_type": pattern_signal['pattern_type'],
-                            "confidence": pattern_signal['confidence'],
-                            "quality_score": pattern_signal['quality_score'],
-                            "ema_trend": pattern_signal['metadata']['ema_trend'],
-                            "rsi_value": pattern_signal['metadata']['rsi_value'],
-                            "reason": f"Trading Pattern: {pattern_signal['pattern']} -> {pattern_signal['type']}",
-                            "signal_type": pattern_signal['type'],  # Track signal type for debugging
-                            # CRITICAL: Add timing information for trade executor
-                            "trade_start_candle": pattern_signal.get("trade_start_candle", 0),
-                            "expected_close_candle": pattern_signal.get("expected_close_candle", 0),
-                            "close_after_candles": pattern_signal.get("close_after_candles", 2),
-                            "signal_data": pattern_signal  # Store full signal data for trade executor
-                        }
-                        
-                        logger.info(f" STRATEGY ENGINE DEBUG: pattern_signal keys={list(pattern_signal.keys())}")
-                        logger.info(f" STRATEGY ENGINE DEBUG: timing data - start: {pattern_signal.get('trade_start_candle', 'MISSING')}, close: {pattern_signal.get('expected_close_candle', 'MISSING')}")
-                        logger.info(f" STRATEGY ENGINE DEBUG: metadata keys={list(metadata.keys())}")
-                        
-                        # RETURN IMMEDIATELY - Candlestick patterns have highest priority
+                        logger.info(f"🚀 RETURNING {sig_type} SIGNAL - Duration: {duration}min, Pattern: {pattern_signal['pattern']}")
                         return signal, duration, metadata
+                    
+                    # -------------------
+                    # Neutral/HOLD Patterns
+                    # -------------------
+                    elif sig_type == "HOLD":
+                        logger.debug(f"Neutral pattern detected: {pattern_signal.get('pattern', 'N/A')} - skipping trade")
+                        # Don't return, let it fall through to HOLD at end
                     else:
-                        logger.debug(f"Candlestick pattern filtered: quality {pattern_signal['quality_score']:.0%} < {min_quality:.0%}")
+                        # Signal was filtered out
+                        if quality < min_quality:
+                            logger.warning(f"❌ Pattern '{pattern_signal.get('pattern', 'N/A')}' filtered: quality={quality:.2f} < {min_quality:.2f}")
+                        else:
+                            logger.warning(f"❌ Pattern '{pattern_signal.get('pattern', 'N/A')}' filtered: invalid type '{sig_type}'")
+
         else:
-            logger.debug(f"CANDLESTICK: Strategy disabled or not available - enabled: {self.candlestick_enabled}, strategy: {self.candlestick_strategy is not None}")
-        
-        # ===================================================================
-        # PRIORITY 2: TICK PATTERN RECOGNITION (DISABLED - Use Only Enhanced Pattern Detection)
-        # ===================================================================
-        # DISABLED: Rely only on Enhanced Four-Category Pattern Detection
-        # if self.tick_pattern_enabled and self.tick_pattern_recognizer:
-        #     # Tick patterns disabled - use only candlestick patterns
-        pass
-        
-        # ===================================================================
-        # PRIORITY 3: MEAN REVERSION (DISABLED - Use Only Enhanced Pattern Detection)
-        # ===================================================================
-        # DISABLED: Rely only on Enhanced Four-Category Pattern Detection
-        # if self.mean_reversion_enabled and self.mean_reversion:
-        #     # Mean reversion disabled - use only candlestick patterns
-        pass
-        
-        # ===================================================================
-        # PRIORITY 4: STATISTICAL ARBITRAGE (DISABLED - Use Only Enhanced Pattern Detection)
-        # ===================================================================
-        # DISABLED: Rely only on Enhanced Four-Category Pattern Detection
-        # if self.pairs_trading_enabled and self.stat_arb:
-        #     # Statistical arbitrage disabled - use only candlestick patterns
-        pass
-        
-        # ===================================================================
-        # PRIORITY 5: ORIGINAL TRIPLE EMA STRATEGY (DISABLED - Use Only Enhanced Pattern Detection)
-        # ===================================================================
-        # DISABLED: Rely only on Enhanced Four-Category Pattern Detection
-        # ema_signal, ema_duration = self._generate_triple_ema_signal(price, timestamp)
-        pass
-        
-        # ===================================================================
-        # PRIORITY 6: ROC (RATE OF CHANGE) FALLBACK (DISABLED - Use Only Enhanced Pattern Detection)
-        # ===================================================================
-        # DISABLED: Rely only on Enhanced Four-Category Pattern Detection
-        # if self.roc_fallback_enabled and self.roc:
-        #     # ROC fallback disabled - use only candlestick patterns
-        pass
-        
-        # ===================================================================
-        # NO SIGNALS GENERATED - Enhanced Four-Category Pattern Detection Only
-        # ===================================================================
-        # Only Enhanced Four-Category Pattern Detection is active
-        # All other strategies have been disabled
+            logger.debug(f"CANDLESTICK: Disabled or unavailable (enabled={self.candlestick_enabled})")
+
+        # ------------------------------------------------------------
+        # Other strategies are disabled (HFT uses candlestick only)
+        # ------------------------------------------------------------
         return SignalType.HOLD, 1, metadata
+
 
     def _generate_triple_ema_signal(self, price: float, timestamp: int) -> tuple[SignalType, int]:
         """
@@ -1284,8 +1460,25 @@ class StrategyEngine:
             if self.uptrend_count >= trend_persistence - 1 or self.downtrend_count >= trend_persistence - 1:
                 logger.info(f"Uptrend count: {self.uptrend_count}, Downtrend count: {self.downtrend_count}, Required: {trend_persistence}")
             
-            # Get MACD values for confirmation
-            macd_line, macd_signal_line, macd_histogram = self.macd.get_value()
+            # Get MACD values for confirmation with defensive checks
+            try:
+                macd_result = self.macd.get_value()
+                if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                    macd_line = float(macd_result[0])
+                    macd_signal_line = float(macd_result[1])
+                    macd_histogram = float(macd_result[2])
+                elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                    # Handle unexpected tuple length
+                    macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                    macd_signal_line = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                    macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                    logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)} in _generate_hft_signal_cascade, using available values")
+                else:
+                    logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)} in _generate_hft_signal_cascade")
+                    macd_line, macd_signal_line, macd_histogram = 0.0, 0.0, 0.0
+            except Exception as e:
+                logger.error(f"Error getting MACD values in _generate_hft_signal_cascade: {e}", exc_info=True)
+                macd_line, macd_signal_line, macd_histogram = 0.0, 0.0, 0.0
             macd_histogram_threshold = config.get('strategy.macd_histogram_threshold', 0.00008)
             
             # Log MACD status only periodically or when trends are confirmed (optimization)
@@ -1396,7 +1589,19 @@ class StrategyEngine:
             
             #  NEW: RSI Filter (for overbought/oversold detection)
             if signal != SignalType.HOLD and config.get('strategy.rsi_filter', False):
-                rsi_current = self.rsi.get_value()
+                try:
+                    rsi_val_raw = self.rsi.get_value()
+                    # Ensure RSI is a single float value, not a tuple
+                    if isinstance(rsi_val_raw, tuple):
+                        rsi_current = float(rsi_val_raw[0]) if len(rsi_val_raw) > 0 else 50.0
+                        logger.warning(f"RSI get_value() returned tuple in RSI filter, using first element: {rsi_current}")
+                    elif rsi_val_raw is not None:
+                        rsi_current = float(rsi_val_raw)
+                    else:
+                        rsi_current = 50.0  # Default neutral RSI
+                except Exception as e:
+                    logger.error(f"Error getting RSI value in RSI filter: {e}", exc_info=True)
+                    rsi_current = 50.0  # Default neutral RSI
                 # Don't buy when overbought, don't sell when oversold
                 if signal == SignalType.BUY and rsi_current > self.rsi_overbought:
                     logger.info(f" BUY Signal FILTERED: RSI overbought ({rsi_current:.1f} > {self.rsi_overbought})")
@@ -1409,7 +1614,19 @@ class StrategyEngine:
             
             #  NEW: Trend Exhaustion Filter (avoid late entries)
             if signal != SignalType.HOLD and config.get('strategy.trend_exhaustion_filter', False):
-                rsi_current = self.rsi.get_value()
+                try:
+                    rsi_val_raw = self.rsi.get_value()
+                    # Ensure RSI is a single float value, not a tuple
+                    if isinstance(rsi_val_raw, tuple):
+                        rsi_current = float(rsi_val_raw[0]) if len(rsi_val_raw) > 0 else 50.0
+                        logger.warning(f"RSI get_value() returned tuple in trend exhaustion filter, using first element: {rsi_current}")
+                    elif rsi_val_raw is not None:
+                        rsi_current = float(rsi_val_raw)
+                    else:
+                        rsi_current = 50.0  # Default neutral RSI
+                except Exception as e:
+                    logger.error(f"Error getting RSI value in trend exhaustion filter: {e}", exc_info=True)
+                    rsi_current = 50.0  # Default neutral RSI
                 
                 # Detect exhausted downtrend: Don't SELL after strong down move when RSI < 40
                 if signal == SignalType.SELL and rsi_current and rsi_current < 40:
@@ -1488,8 +1705,25 @@ class StrategyEngine:
                 logger.debug("MACD fallback signals disabled")
                 return SignalType.HOLD, 1
             
-            # Get MACD values
-            macd_line, macd_signal, macd_histogram = self.macd.get_value()
+            # Get MACD values with defensive checks
+            try:
+                macd_result = self.macd.get_value()
+                if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                    macd_line = float(macd_result[0])
+                    macd_signal = float(macd_result[1])
+                    macd_histogram = float(macd_result[2])
+                elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                    # Handle unexpected tuple length
+                    macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                    macd_signal = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                    macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                    logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)} in _generate_macd_fallback_signal, using available values")
+                else:
+                    logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)} in _generate_macd_fallback_signal")
+                    macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+            except Exception as e:
+                logger.error(f"Error getting MACD values in _generate_macd_fallback_signal: {e}", exc_info=True)
+                macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
             
             # Check if MACD is ready
             if not self.macd.is_ready():
@@ -1542,8 +1776,25 @@ class StrategyEngine:
         """
         logger.info(f"Generating complex EMA + Pin Bar signal for price: {price}, EMA: {ema_fast}/{ema_slow}")
 
-        # Check market conditions first
-        macd_line, macd_signal, macd_histogram = self.macd.get_value()
+        # Check market conditions first with defensive checks
+        try:
+            macd_result = self.macd.get_value()
+            if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                macd_line = float(macd_result[0])
+                macd_signal = float(macd_result[1])
+                macd_histogram = float(macd_result[2])
+            elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                # Handle unexpected tuple length
+                macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                macd_signal = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)} in _generate_complex_signal (first call), using available values")
+            else:
+                logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)} in _generate_complex_signal (first call)")
+                macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+        except Exception as e:
+            logger.error(f"Error getting MACD values in _generate_complex_signal (first call): {e}", exc_info=True)
+            macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
         conditions_ok, reason = self._check_market_conditions(price, ema_fast, ema_slow, macd_histogram)
 
         if not conditions_ok:
@@ -1565,8 +1816,25 @@ class StrategyEngine:
         # Debug logging for EMA values
         logger.info(f"EMA Analysis: Fast={ema_fast:.6f}, Slow={ema_slow:.6f}, Bullish={ema_bullish}, Bearish={ema_bearish}")
 
-        # Get MACD values (already updated in main update loop)
-        macd_line, macd_signal, macd_histogram = self.macd.get_value()
+        # Get MACD values (already updated in main update loop) with defensive checks
+        try:
+            macd_result = self.macd.get_value()
+            if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                macd_line = float(macd_result[0])
+                macd_signal = float(macd_result[1])
+                macd_histogram = float(macd_result[2])
+            elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                # Handle unexpected tuple length
+                macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                macd_signal = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)} in _generate_complex_signal (second call), using available values")
+            else:
+                logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)} in _generate_complex_signal (second call)")
+                macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+        except Exception as e:
+            logger.error(f"Error getting MACD values in _generate_complex_signal (second call): {e}", exc_info=True)
+            macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
 
         # Debug logging for MACD values
         logger.info(f"MACD Analysis: Line={macd_line:.6f}, Signal={macd_signal:.6f}, Hist={macd_histogram:.6f}, Ready={self.macd.is_ready()}")
@@ -2141,19 +2409,8 @@ class StrategyEngine:
             Contract duration in seconds
         """
         symbol_durations = config.get("trading.symbol_durations", {})
-        return symbol_durations.get(symbol, config.get("trading.contract_duration", 15))
+        return symbol_durations.get(symbol, config.get("trading.contract_duration", 3))
 
-    def _is_inverted_symbol(self, symbol: str) -> bool:
-        """
-        Check if symbol uses inverted logic.
-        
-        Args:
-            symbol: Symbol to check
-            
-        Returns:
-            True if symbol uses inverted logic
-        """
-        return symbol in ["R_100", "R_75", "R_50", "R_25", "R_200"]
 
     def _log_signal_details(
         self,
@@ -2177,7 +2434,25 @@ class StrategyEngine:
         Returns:
             Dictionary of indicator values
         """
-        macd_line, macd_signal, macd_histogram = self.macd.get_value()
+        # Get MACD values with defensive checks
+        try:
+            macd_result = self.macd.get_value()
+            if isinstance(macd_result, tuple) and len(macd_result) >= 3:
+                macd_line = float(macd_result[0])
+                macd_signal = float(macd_result[1])
+                macd_histogram = float(macd_result[2])
+            elif isinstance(macd_result, tuple) and len(macd_result) > 0:
+                # Handle unexpected tuple length
+                macd_line = float(macd_result[0]) if len(macd_result) > 0 else 0.0
+                macd_signal = float(macd_result[1]) if len(macd_result) > 1 else 0.0
+                macd_histogram = float(macd_result[2]) if len(macd_result) > 2 else 0.0
+                logger.warning(f"MACD get_value() returned unexpected tuple length {len(macd_result)} in get_indicator_values, using available values")
+            else:
+                logger.error(f"MACD get_value() returned unexpected type: {type(macd_result)} in get_indicator_values")
+                macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
+        except Exception as e:
+            logger.error(f"Error getting MACD values in get_indicator_values: {e}", exc_info=True)
+            macd_line, macd_signal, macd_histogram = 0.0, 0.0, 0.0
         
         # Ensure ema_5 and ema_8 exist for backward compatibility
         if not hasattr(self, 'ema_5') and hasattr(self, 'ema_short'):

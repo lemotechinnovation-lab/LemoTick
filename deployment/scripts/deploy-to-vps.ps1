@@ -6,7 +6,7 @@
 # ================================================================================
 
 param(
-    [Parameter(Position=0)]
+    [Parameter(Position = 0)]
     [ValidateSet("deploy", "start", "stop", "restart", "status", "logs", "update", "health")]
     [string]$Action = "deploy"
 )
@@ -21,6 +21,11 @@ $BOT_HOME = "/opt/lemotick"
 $BOT_LOG_DIR = "/var/log/lemotick"
 $SERVICE_FILE = "/etc/systemd/system/lemotick-bot.service"
 $SSH_KEY = "$env:USERPROFILE\.ssh\lemotick_vps_key"
+
+# Project paths
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$PROJECT_ROOT = (Get-Item $SCRIPT_DIR).Parent.Parent.FullName
+$BOT_SOURCE_DIR = Join-Path $PROJECT_ROOT "bot"
 
 # Colors for output
 function Write-ColorOutput {
@@ -60,7 +65,8 @@ function Test-SSHConnection {
         if ($LASTEXITCODE -eq 0) {
             Write-Log "SSH connection verified"
             return $true
-        } else {
+        }
+        else {
             Write-Error "Cannot connect to VPS at $VPS_HOST"
             Write-Error "Please ensure:"
             Write-Error "1. SSH key is configured"
@@ -140,7 +146,7 @@ function Deploy-BotCode {
     
     try {
         # Copy bot files to temp directory
-        Copy-Item -Path "bot\*" -Destination $tempDir -Recurse -Force
+        Copy-Item -Path "$BOT_SOURCE_DIR\*" -Destination $tempDir -Recurse -Force
         
         # Remove unnecessary files
         Get-ChildItem -Path $tempDir -Recurse -Name "__pycache__" | ForEach-Object { Remove-Item -Path (Join-Path $tempDir $_) -Recurse -Force -ErrorAction SilentlyContinue }
@@ -157,7 +163,8 @@ function Deploy-BotCode {
             # Set ownership on VPS
             ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "chown -R ${BOT_USER}:${BOT_USER} ${BOT_HOME}"
             Write-Log "Bot code deployed successfully"
-        } else {
+        }
+        else {
             Write-Error "Failed to upload bot files to VPS"
             exit 1
         }
@@ -245,7 +252,8 @@ EOF"
         ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl daemon-reload"
         ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl enable '$BOT_NAME'"
         Write-Log "Systemd service created and enabled"
-    } else {
+    }
+    else {
         Write-Error "Failed to create systemd service"
         exit 1
     }
@@ -306,7 +314,8 @@ function Start-BotService {
     $result = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl is-active --quiet '${BOT_NAME}'"
     if ($LASTEXITCODE -eq 0) {
         Write-Log "Bot started successfully on VPS"
-    } else {
+    }
+    else {
         Write-Error "Failed to start bot on VPS"
         ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl status '${BOT_NAME}'"
         exit 1
@@ -322,7 +331,8 @@ function Stop-BotService {
     $result = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl is-active --quiet '${BOT_NAME}'"
     if ($LASTEXITCODE -ne 0) {
         Write-Log "Bot stopped successfully on VPS"
-    } else {
+    }
+    else {
         Write-Error "Failed to stop bot on VPS"
         exit 1
     }
@@ -337,7 +347,8 @@ function Restart-BotService {
     $result = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl is-active --quiet '${BOT_NAME}'"
     if ($LASTEXITCODE -eq 0) {
         Write-Log "Bot restarted successfully on VPS"
-    } else {
+    }
+    else {
         Write-Error "Failed to restart bot on VPS"
         ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl status '${BOT_NAME}'"
         exit 1
@@ -389,7 +400,8 @@ function Update-Bot {
     $result = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl is-active --quiet '${BOT_NAME}'"
     if ($LASTEXITCODE -eq 0) {
         Write-Log "Bot updated and restarted successfully on VPS"
-    } else {
+    }
+    else {
         Write-Error "Failed to restart bot after update on VPS"
         ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl status '${BOT_NAME}'"
         exit 1
@@ -403,7 +415,8 @@ function Test-BotHealth {
     $result = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "systemctl is-active --quiet '${BOT_NAME}'"
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Service: Running" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "❌ Service: Not running" -ForegroundColor Red
         return
     }
@@ -412,7 +425,8 @@ function Test-BotHealth {
     $memoryUsage = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "ps -o pid,ppid,cmd,%mem,%cpu --sort=-%mem -C python3.9 | head -2 | tail -1 | awk '{print `$4}'"
     if ([double]$memoryUsage -lt 80) {
         Write-Host "✅ Memory: ${memoryUsage}% (OK)" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "⚠️ Memory: ${memoryUsage}% (High)" -ForegroundColor Yellow
     }
     
@@ -420,7 +434,8 @@ function Test-BotHealth {
     $diskUsage = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "df / | tail -1 | awk '{print `$5}' | sed 's/%//'"
     if ([int]$diskUsage -lt 85) {
         Write-Host "✅ Disk: ${diskUsage}% (OK)" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "⚠️ Disk: ${diskUsage}% (High)" -ForegroundColor Yellow
     }
     
@@ -428,7 +443,8 @@ function Test-BotHealth {
     $errorCount = ssh -i "$SSH_KEY" "$VPS_USER@$VPS_HOST" "journalctl -u '${BOT_NAME}' --since '1 hour ago' | grep -i error | wc -l"
     if ([int]$errorCount -eq 0) {
         Write-Host "✅ Errors: None in last hour" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "⚠️ Errors: $errorCount in last hour" -ForegroundColor Yellow
     }
     

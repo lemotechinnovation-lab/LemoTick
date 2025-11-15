@@ -20,8 +20,5 @@
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
-    },
-    "yaml.schemas": {
-        "https://json.schemastore.org/yamllint.json": "config/settings.yaml"
     }
 }

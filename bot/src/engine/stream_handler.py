@@ -38,7 +38,7 @@ class StreamHandler:
         self.is_connected = False
         self.is_running = False
         self.reconnect_attempts = 0
-        self.max_reconnect_attempts = 10
+        self.max_reconnect_attempts = None  # None = unlimited reconnection attempts (run non-stop)
         self.reconnect_delay = 1.0
         self.last_ping_time = 0
         self.ping_interval = 30  # seconds
@@ -191,17 +191,17 @@ class StreamHandler:
         self.is_running = True
         self._stop_event.clear()
 
+        # Try initial connection, but don't stop if it fails - message processing will keep retrying
         if not self.connect():
-            logger.error("Failed to establish initial connection")
-            return
+            logger.warning("Failed to establish initial connection - will retry indefinitely in message processing loop")
 
-        # Start message processing thread
+        # Start message processing thread (will keep retrying connection if initial connection failed)
         self._process_thread = threading.Thread(
             target=self._process_messages, daemon=True
         )
         self._process_thread.start()
 
-        logger.info("Stream handler started")
+        logger.info("Stream handler started (will keep reconnecting indefinitely if connection lost)")
 
     def stop(self) -> None:
         """Stop the stream handler."""
@@ -242,28 +242,35 @@ class StreamHandler:
                 time.sleep(1)
 
     def _attempt_reconnect(self) -> None:
-        """Attempt to reconnect to WebSocket."""
-        if self.reconnect_attempts >= self.max_reconnect_attempts:
-            logger.error("Max reconnection attempts reached. Stopping stream handler.")
-            self.stop()
-            return
+        """Attempt to reconnect to WebSocket. Never gives up - runs non-stop."""
+        # Never stop - keep reconnecting indefinitely for non-stop trading
+        if self.max_reconnect_attempts is not None and self.reconnect_attempts >= self.max_reconnect_attempts:
+            logger.error("Max reconnection attempts reached. However, will continue reconnecting for non-stop trading.")
+            # Reset attempts to continue indefinitely
+            self.reconnect_attempts = 0
 
         self.reconnect_attempts += 1
         delay = min(self.reconnect_delay * (2**self.reconnect_attempts), 60)
 
-        logger.info(
-            f"Attempting to reconnect ({self.reconnect_attempts}/{self.max_reconnect_attempts}) in {delay}s"
-        )
+        if self.max_reconnect_attempts is None:
+            logger.info(
+                f"Attempting to reconnect (attempt #{self.reconnect_attempts}, unlimited) in {delay}s"
+            )
+        else:
+            logger.info(
+                f"Attempting to reconnect ({self.reconnect_attempts}/{self.max_reconnect_attempts}) in {delay}s"
+            )
         time.sleep(delay)
 
         if self.connect():
             logger.info("Reconnection successful")
+            self.reconnect_attempts = 0  # Reset on successful connection
             try:
                 self.metrics.record_websocket_reconnect()
             except Exception:
                 pass
         else:
-            logger.warning(f"Reconnection attempt {self.reconnect_attempts} failed")
+            logger.warning(f"Reconnection attempt {self.reconnect_attempts} failed - will retry indefinitely")
 
     def _receive_message(self, timeout: float = 1.0) -> Optional[Dict[str, Any]]:
         """
@@ -328,7 +335,13 @@ class StreamHandler:
                         with self._tick_lock:
                             self._latest_tick = price
                         logger.info(f"Processing tick: {price} for strategy analysis")
-                        self.on_tick_callback(price, epoch or int(time.time()))
+                        timestamp = epoch or int(time.time())
+                        logger.debug(f"[STREAM] Calling on_tick_callback with price={price}, timestamp={timestamp}")
+                        try:
+                            self.on_tick_callback(price, timestamp)
+                            logger.debug(f"[STREAM] on_tick_callback completed successfully")
+                        except Exception as callback_error:
+                            logger.error(f"[STREAM] Error in on_tick_callback: {callback_error}", exc_info=True)
                     except (ValueError, TypeError) as e:
                         logger.warning(f"Invalid tick data: {e}")
 
@@ -358,14 +371,22 @@ class StreamHandler:
                             self._on_sell_error(error_data)
                         except Exception as e:
                             logger.warning(f"Sell error callback error: {e}")
+                elif error_data.get("code") == "InvalidSellContractProposal":
+                    logger.warning(f"Sell contract proposal invalid: {error_data.get('message', 'Unknown reason')}")
+                    # Forward to trade executor to mark contract as non-resellable
+                    if self._on_sell_error:
+                        try:
+                            self._on_sell_error(error_data)
+                        except Exception as e:
+                            logger.warning(f"Sell error callback error: {e}")
 
             # Handle proposal responses (for trade execution)
             elif "proposal" in message:
                 # Forward proposal responses to executor if registered
-                logger.debug("Received proposal response")
+                logger.info(f"📊 Received proposal response")
                 if self._on_proposal:
                     try:
-                        self._on_proposal(message.get("proposal", {}))
+                        self._on_proposal(message)  # Pass full message to check for errors
                     except Exception as e:
                         logger.warning(f"Proposal callback error: {e}")
 
@@ -456,16 +477,5 @@ class StreamHandler:
         with self._tick_lock:
             return self._latest_tick
 
-    def _is_inverted_symbol(self, symbol: str) -> bool:
-        """
-        Check if symbol uses inverted logic.
-        
-        Args:
-            symbol: Symbol to check
-            
-        Returns:
-            True if symbol uses inverted logic
-        """
-        return symbol in ["R_100", "R_75", "R_50", "R_25", "R_200"]
 
 

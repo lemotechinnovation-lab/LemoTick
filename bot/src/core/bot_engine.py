@@ -5,6 +5,7 @@ Main orchestrator for the trading bot with investor management integration
 
 import asyncio
 import logging
+import time
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -14,717 +15,669 @@ from engine.trade_executor import TradeExecutor
 from engine.risk_manager import RiskManager
 from engine.strategy_engine import StrategyEngine
 from integrations.backend_client import BackendClient
-from infrastructure.metrics import start_metrics_server
+from infrastructure.metrics import start_metrics_server, get_metrics
+from strategies.position_manager import MeanReversionPositionManager
 
 
 class LemoTickBot:
     """
-    Main bot engine that orchestrates all trading activities
-    with integration to the investor management system
+    Main bot engine orchestrating trading activities
+    with investor management integration
     """
-    
+
     def __init__(self, config: Dict[str, Any], backend_client: BackendClient):
         self.config = config
         self.backend_client = backend_client
         self.logger = logging.getLogger(__name__)
-        
-        # Start Prometheus metrics server
+        self.is_running = False
+        self.start_time = None
+
+        # Initialize metrics
         self.logger.info("Starting Prometheus metrics server...")
         metrics = None
         try:
-            # Get account type from config
-            # Check if config is a dictionary (from ConfigManager) or the legacy Config class
-            if isinstance(self.config, dict):
-                # Use dict-style access for ConfigManager's dictionary
-                is_demo = self.config.get('development', {}).get('demo_account', True)
-                account_type = "DEMO" if is_demo else "REAL"
+            # Determine account type
+            if isinstance(config, dict):
+                is_demo = config.get('development', {}).get('demo_account', True)
             else:
-                # Use attribute access for the legacy Config class
                 from infrastructure.config import config as global_config
                 is_demo = global_config.is_demo_account()
-                account_type = "DEMO" if is_demo else "REAL"
-            
+            account_type = "DEMO" if is_demo else "REAL"
+
             # Start metrics server
             result, metrics = start_metrics_server()
-            
-            # Update account type in metrics
             if metrics:
                 metrics.update_account_type(is_demo)
                 self.logger.info(f"Metrics initialized for {account_type} account")
-                
-            if result:
-                self.logger.info(f"Prometheus metrics server started successfully for {account_type} account")
-            else:
-                self.logger.warning("Failed to start Prometheus metrics server")
+            self.logger.info(f"Prometheus metrics server {'started successfully' if result else 'failed to start'} for {account_type} account")
         except Exception as e:
             self.logger.error(f"Error starting metrics server: {e}")
             metrics = None
-        
-        # Initialize core components with metrics
-        self.risk_manager = RiskManager(metrics=metrics if metrics else None)
+
+        self.metrics = get_metrics()
+
+        # Initialize core components
+        self.risk_manager = RiskManager(metrics=metrics)
         self.strategy_engine = StrategyEngine()
-        
-        # Initialize stream handler with tick callback
         self.stream_handler = StreamHandler(self._on_tick_received)
-        
-        # Initialize trade executor with stream handler and risk manager
         self.trade_executor = TradeExecutor(self.stream_handler, self.strategy_engine, None, self.risk_manager)
-        
-        # CRITICAL: Connect candlestick strategy to trade executor for timing integration
-        self.logger.info(f" DEBUG: Checking candlestick strategy connection...")
-        self.logger.info(f" DEBUG: hasattr(self.strategy_engine, 'candlestick_strategy') = {hasattr(self.strategy_engine, 'candlestick_strategy')}")
-        if hasattr(self.strategy_engine, 'candlestick_strategy'):
-            self.logger.info(f" DEBUG: self.strategy_engine.candlestick_strategy = {self.strategy_engine.candlestick_strategy}")
-            if self.strategy_engine.candlestick_strategy:
-                self.trade_executor.set_candlestick_strategy(self.strategy_engine.candlestick_strategy)
-                # Set current symbol for inverted logic detection
-                current_symbol = config.get("trading", {}).get("symbol", "R_100")
-                self.strategy_engine.candlestick_strategy.set_current_symbol(current_symbol)
-                self.logger.info(f" Candlestick strategy connected to trade executor for timing integration")
-                self.logger.info(f" Current symbol set to: {current_symbol}")
-            else:
-                self.logger.warning(" DEBUG: candlestick_strategy is None")
-        else:
-            self.logger.warning(" DEBUG: strategy_engine does not have candlestick_strategy attribute")
-        
-        # Set stream handler reference in trade executor for balance updates
         self.trade_executor.stream_handler = self.stream_handler
         
-        #  NEW: Set up reversal callback for trade executor
-        self.logger.info("Reversal strategy disabled - using enhanced pattern detection only")
-        
-        # Initialize metrics
-        from infrastructure.metrics import get_metrics
-        self.metrics = get_metrics()
-        
-        # Bot state
-        self.is_running = False
-        self.start_time = None
-        
-    def _check_market_fallback_requests(self) -> None:
-        """Check for pending market fallback requests from trade executor."""
-        try:
-            if hasattr(self.trade_executor, 'get_pending_market_fallback'):
-                fallback_request = self.trade_executor.get_pending_market_fallback()
-                if fallback_request:
-                    from_symbol = fallback_request.get("from_symbol", "unknown")
-                    to_symbol = fallback_request.get("to_symbol", "R_100")
-                    error_type = fallback_request.get("error_type", "unknown")
-                    
-                    self.logger.warning(f" PROCESSING MARKET FALLBACK: {from_symbol} -> {to_symbol} (Reason: {error_type})")
-                    
-                    # Execute the market switch
-                    success = self.switch_trading_symbol(to_symbol)
-                    if success:
-                        self.logger.info(f" MARKET FALLBACK SUCCESS: Switched to {to_symbol}")
-                    else:
-                        self.logger.error(f" MARKET FALLBACK FAILED: Could not switch to {to_symbol}")
-                        
-        except Exception as e:
-            self.logger.error(f"Error checking market fallback requests: {e}")
+        # Initialize position manager for mean reversion strategy
+        self.position_manager = MeanReversionPositionManager(
+            ema7=self.strategy_engine.ema_7,
+            ema15=self.strategy_engine.ema_15
+        )
+
+        self.logger.info(f"Reversal strategy disabled - using enhanced pattern detection only")
+        self.logger.debug(f"DEBUG: hasattr(strategy_engine, 'candlestick_strategy') = {hasattr(self.strategy_engine, 'candlestick_strategy')}")
 
     def _update_metrics(self):
-        """Update metrics with current bot state"""
-        self.logger.debug("_update_metrics called")
+        """Update all bot metrics"""
         try:
-            # Update equity - use actual Deriv balance for display, not risk manager's configured equity
-            # Priority: stream_handler.account_balance > trade_executor.current_balance > risk_manager.current_equity
-            if hasattr(self.stream_handler, 'account_balance') and self.stream_handler.account_balance and self.stream_handler.account_balance > 0:
-                self.metrics.update_equity(self.stream_handler.account_balance)
-            elif hasattr(self.trade_executor, 'current_balance') and self.trade_executor.current_balance > 0:
-                self.metrics.update_equity(self.trade_executor.current_balance)
-            elif hasattr(self.risk_manager, 'current_equity') and self.risk_manager.current_equity:
-                self.metrics.update_equity(float(self.risk_manager.current_equity))
-            
-            # Update drawdown (using risk manager's drawdown calculation)
+            # Drawdown - Add defensive checks for tuples
             if hasattr(self.risk_manager, 'current_equity') and hasattr(self.risk_manager, 'peak_equity'):
-                peak = self.risk_manager.peak_equity
-                current = self.risk_manager.current_equity
-                if peak and current and peak > 0:
-                    drawdown = (peak - current) / peak
-                    self.metrics.update_drawdown(drawdown)
-            
-            # CRITICAL: Update active trades count on EVERY tick for instant updates
-            # Count ALL contracts in active_contracts (they're still active until sell response arrives)
+                try:
+                    peak_raw = self.risk_manager.peak_equity
+                    current_raw = self.risk_manager.current_equity
+                    
+                    # Ensure equity values are numeric (not tuples)
+                    if isinstance(peak_raw, tuple):
+                        peak = float(peak_raw[0]) if len(peak_raw) > 0 else 0.0
+                        self.logger.warning(f"peak_equity is a tuple, using first element: {peak}")
+                    else:
+                        peak = float(peak_raw) if peak_raw is not None else 0.0
+                    
+                    if isinstance(current_raw, tuple):
+                        current = float(current_raw[0]) if len(current_raw) > 0 else 0.0
+                        self.logger.warning(f"current_equity is a tuple, using first element: {current}")
+                    else:
+                        current = float(current_raw) if current_raw is not None else 0.0
+                    
+                    if peak > 0:
+                        drawdown = (peak - current) / peak
+                        # Ensure drawdown is a single float value, not a tuple
+                        if isinstance(drawdown, tuple):
+                            drawdown = float(drawdown[0]) if len(drawdown) > 0 else 0.0
+                            self.logger.warning(f"drawdown calculated as tuple, using first element: {drawdown}")
+                        self.metrics.update_drawdown(drawdown)
+                except Exception as e:
+                    self.logger.error(f"Error calculating drawdown: {e}", exc_info=True)
+
+            # Active trades
             if hasattr(self.trade_executor, 'active_contracts'):
                 active_count = len(self.trade_executor.active_contracts)
-                # Force update active_trades metric on EVERY tick for real-time display
                 self.metrics.update_active_trades(active_count)
-                # Log only when count changes
-                if not hasattr(self, '_last_active_count') or self._last_active_count != active_count:
-                    self.logger.info(f" Active Trades Updated: {active_count}")
+                if getattr(self, '_last_active_count', None) != active_count:
+                    self.logger.info(f"Active Trades Updated: {active_count}")
                     self._last_active_count = active_count
-                self.logger.debug(f" Active trades metric updated: {active_count}")
-            
-            # Update profit/loss metrics from risk manager (ALWAYS update, even if zero)
-            if hasattr(self.risk_manager, 'total_profit'):
-                current_profit = self.risk_manager.total_profit
-                # Update profit/loss metrics
-                if hasattr(self.metrics, 'update_profit_loss'):
-                    self.metrics.update_profit_loss(current_profit)
-                    # Only log when value changes or every 100 ticks
-                    if not hasattr(self, '_last_profit_logged') or abs(current_profit - getattr(self, '_last_profit_logged', 0)) > 0.01:
-                        self.logger.info(f" Profit/Loss Updated: ${current_profit:.2f}")
-                        self._last_profit_logged = current_profit
-                else:
-                    self.logger.warning("update_profit_loss method not found on metrics")
-            else:
-                self.logger.warning("total_profit not found on risk manager - setting to 0")
-                # Set to 0 if no profit data available
-                if hasattr(self.metrics, 'update_profit_loss'):
-                    self.metrics.update_profit_loss(0.0)
-            
-            # Update win/loss ratio from risk manager (ALWAYS update, even if zero)
-            if hasattr(self.risk_manager, 'total_wins') and hasattr(self.risk_manager, 'total_losses'):
-                total_trades = self.risk_manager.total_wins + self.risk_manager.total_losses
-                if total_trades > 0:
-                    win_rate = (self.risk_manager.total_wins / total_trades) * 100
+
+            # Profit/Loss - Calculate from equity difference (risk_manager.total_profit is never updated)
+            if hasattr(self.risk_manager, 'current_equity') and hasattr(self.risk_manager, 'initial_equity'):
+                try:
+                    current_equity_raw = self.risk_manager.current_equity
+                    initial_equity_raw = self.risk_manager.initial_equity
+                    
+                    # Ensure equity values are numeric (not tuples)
+                    if isinstance(current_equity_raw, tuple):
+                        current_equity = float(current_equity_raw[0]) if len(current_equity_raw) > 0 else 0.0
+                        self.logger.warning(f"current_equity is a tuple, using first element: {current_equity}")
+                    else:
+                        current_equity = float(current_equity_raw) if current_equity_raw is not None else 0.0
+                    
+                    if isinstance(initial_equity_raw, tuple):
+                        initial_equity = float(initial_equity_raw[0]) if len(initial_equity_raw) > 0 else 0.0
+                        self.logger.warning(f"initial_equity is a tuple, using first element: {initial_equity}")
+                    else:
+                        initial_equity = float(initial_equity_raw) if initial_equity_raw is not None else 0.0
+                    
+                    # Calculate total profit as difference between current and initial equity
+                    current_profit = current_equity - initial_equity
+                    
+                    if hasattr(self.metrics, 'update_profit_loss'):
+                        self.metrics.update_profit_loss(current_profit)
+                        if abs(current_profit - getattr(self, '_last_profit_logged', 0)) > 0.01:
+                            self.logger.info(f"Profit/Loss Updated: ${current_profit:.2f}")
+                            self._last_profit_logged = current_profit
+                except Exception as e:
+                    self.logger.error(f"Error calculating profit/loss: {e}", exc_info=True)
+
+            # Win/Loss ratio - Read from strategy_engine where these values are actually updated
+            if hasattr(self.strategy_engine, 'total_wins') and hasattr(self.strategy_engine, 'total_losses'):
+                try:
+                    wins_raw = self.strategy_engine.total_wins
+                    losses_raw = self.strategy_engine.total_losses
+                    
+                    # Ensure wins and losses are numeric (not tuples)
+                    if isinstance(wins_raw, tuple):
+                        wins = int(wins_raw[0]) if len(wins_raw) > 0 else 0
+                        self.logger.warning(f"strategy_engine.total_wins is a tuple, using first element: {wins}")
+                    else:
+                        wins = int(wins_raw) if wins_raw is not None else 0
+                    
+                    if isinstance(losses_raw, tuple):
+                        losses = int(losses_raw[0]) if len(losses_raw) > 0 else 0
+                        self.logger.warning(f"strategy_engine.total_losses is a tuple, using first element: {losses}")
+                    else:
+                        losses = int(losses_raw) if losses_raw is not None else 0
+                    
+                    total = wins + losses
+                    win_rate = float((wins / total) * 100 if total > 0 else 0)
+                    
+                    # Ensure win_rate is a single float value, not a tuple
+                    if isinstance(win_rate, tuple):
+                        win_rate = float(win_rate[0]) if len(win_rate) > 0 else 0.0
+                        self.logger.warning(f"win_rate calculated as tuple, using first element: {win_rate}")
+                    
                     if hasattr(self.metrics, 'update_win_rate'):
                         self.metrics.update_win_rate(win_rate)
-                        # Only log when value changes
-                        if not hasattr(self, '_last_winrate_logged') or abs(win_rate - getattr(self, '_last_winrate_logged', 0)) > 0.1:
-                            self.logger.info(f" Win Rate Updated: {win_rate:.1f}% ({self.risk_manager.total_wins}W/{self.risk_manager.total_losses}L)")
+                        if abs(win_rate - getattr(self, '_last_winrate_logged', 0)) > 0.1:
+                            self.logger.info(f"Win Rate Updated: {win_rate:.1f}% ({wins}W/{losses}L)")
                             self._last_winrate_logged = win_rate
-                else:
-                    # No trades completed yet - show 0%
-                    if hasattr(self.metrics, 'update_win_rate'):
-                        self.metrics.update_win_rate(0.0)
-                        if not hasattr(self, '_no_trades_logged') or not self._no_trades_logged:
-                            self.logger.info(" No completed trades yet - Win Rate: 0%")
-                            self._no_trades_logged = True
-            else:
-                self.logger.warning("total_wins or total_losses not found on risk manager")
-                # Set to 0 if no trade data available
-                if hasattr(self.metrics, 'update_win_rate'):
-                    self.metrics.update_win_rate(0.0)
-            
-            # Update technical indicators from strategy engine
+                except Exception as e:
+                    self.logger.error(f"Error calculating win rate: {e}", exc_info=True)
+
+            # Technical indicators - Add defensive checks for tuples in indicator values
             if hasattr(self.strategy_engine, 'get_indicators'):
                 try:
                     indicators = self.strategy_engine.get_indicators()
                     if indicators:
-                        self.metrics.update_indicators(indicators)
+                        # Ensure all indicator values are numeric (not tuples)
+                        clean_indicators = {}
+                        for key, value in indicators.items():
+                            if isinstance(value, tuple):
+                                clean_value = float(value[0]) if len(value) > 0 else 0.0
+                                self.logger.warning(f"Indicator {key} is a tuple, using first element: {clean_value}")
+                                clean_indicators[key] = clean_value
+                            elif value is not None:
+                                try:
+                                    clean_indicators[key] = float(value)
+                                except (ValueError, TypeError):
+                                    self.logger.warning(f"Indicator {key} cannot be converted to float: {value}")
+                                    clean_indicators[key] = 0.0
+                            else:
+                                clean_indicators[key] = 0.0
+                        if clean_indicators:
+                            self.metrics.update_indicators(clean_indicators)
                 except Exception as e:
-                    self.logger.debug(f"Could not get indicators: {e}")
-            
+                    self.logger.error(f"Error updating indicators: {e}", exc_info=True)
+
         except Exception as e:
-            self.logger.error(f"Error updating metrics: {e}")
-        
+            self.logger.error(f"Error updating metrics: {e}", exc_info=True)
+
     def _on_tick_received(self, price: float, timestamp: int):
-        """Handle incoming tick data from the stream handler"""
+        """Handle incoming tick data"""
         try:
-            import time
+            self.logger.debug(f"[TICK] _on_tick_received called with price={price}, timestamp={timestamp}")
             start_time = time.time()
-            
-            self.logger.debug(f"Processing tick: {price} at {timestamp}")
-            
-            # Update metrics with current state
-            self.logger.debug("Calling _update_metrics from _on_tick_received")
             self._update_metrics()
-            
-            # Check for market fallback requests
-            self._check_market_fallback_requests()
-            
-            # First, check for active trades and monitor them for early closure
             self._monitor_active_trades(price, timestamp)
-            
-            # Process tick through strategy engine
+
+            # Strategy signal
             result = self.strategy_engine.update(price, timestamp)
-            
-            # Handle different return formats gracefully
             if not result or len(result) < 2:
-                self.logger.error(f"Unexpected return format from strategy engine: {result}")
+                self.logger.error(f"❌ Unexpected return format from strategy engine: {result}")
                 return
-                
+            
+            # Unpack result, defaulting metadata to None if not provided
             if len(result) == 3:
                 signal_type, duration, metadata = result  # type: ignore
             elif len(result) == 2:
                 signal_type, duration = result  # type: ignore
                 metadata = None
             else:
-                self.logger.error(f"Unexpected return format from strategy engine: {result}")
+                self.logger.error(f"❌ Unexpected return format from strategy engine: {result}")
                 return
-            
-            # Check if we have a trading signal
+
             if signal_type.value != "HOLD":
-                self.logger.info(f"Trading signal generated: {signal_type.value} with duration {duration}")
+                self.logger.info(f"🎯 TRADING SIGNAL RECEIVED: {signal_type.value}, duration {duration}min")
+                pattern = metadata.get('pattern', 'N/A') if metadata else 'N/A'
+                quality = metadata.get('quality_score', 0) if metadata else 0
+                self.logger.info(f"   Pattern: {pattern}")
+                self.logger.info(f"   Quality: {quality:.2f}")
                 
-                # Record signal generation
                 self.metrics.record_signal(signal_type.value)
-                
-                #  NEW: Check for reversal opportunity (signal opposite to current position)
                 reversal_triggered = self._check_and_execute_reversal(signal_type.value, price, timestamp)
-                
                 if not reversal_triggered:
-                    # Execute normal trade based on signal (no reversal)
+                    self.logger.info(f"🔄 Executing {signal_type.value} trade (no reversal triggered)")
                     if signal_type.value == "BUY":
                         self._execute_buy_trade(price, timestamp, metadata)
                     elif signal_type.value == "SELL":
                         self._execute_sell_trade(price, timestamp, metadata)
+                else:
+                    self.logger.info(f"🔄 Reversal triggered, skipping normal trade execution")
             else:
-                # Record filtered signal (HOLD means signal was filtered out)
+                self.logger.debug(f"Signal is HOLD, skipping trade execution")
                 self.metrics.record_filtered_signal("strategy_filter")
-            
-            # Record tick processing time
-            processing_time = time.time() - start_time
-            self.metrics.record_tick_processing_time(processing_time)
-                    
+
+            self.metrics.record_tick_processing_time(time.time() - start_time)
+
         except Exception as e:
-            self.logger.error(f"Error processing tick: {e}")
-    
+            self.logger.error(f"[TICK] Error processing tick: {e}", exc_info=True)
+
     def _monitor_active_trades(self, price: float, timestamp: int):
-        """Monitor active trades for early closure at TP/SL levels"""
+        """Monitor active trades for TP/SL - APPLIES TO ALL STRATEGIES"""
         try:
-            # First, check for expired contracts that should have completed
-            self.trade_executor._check_expired_contracts()
+            # 🧹 PERIODIC CLEANUP: Remove stale contracts that have been in transitional states for too long
+            current_time = time.time()
+            stale_contracts = []
             
-            # Create a copy of the items to avoid dictionary changed size during iteration
-            active_contracts_copy = list(self.trade_executor.active_contracts.items())
-            
-            # Check all active contracts for early closure
-            for contract_id, contract_data in active_contracts_copy:
-                try:
-                    # Check if contract should be closed early
-                    self.logger.debug(f" DEBUG: Checking early closure for contract {contract_id}")
-                    should_close, reason = self.trade_executor.should_close_early(contract_data)
-                    self.logger.debug(f" DEBUG: Early closure result for {contract_id}: should_close={should_close}, reason={reason}")
-                    
-                    if should_close:
-                        self.logger.info(f"Early closure triggered for contract {contract_id}: {reason}")
-                        # Close the contract early
-                        self._close_contract_early(contract_id, price, timestamp, reason)
-                        
-                except Exception as e:
-                    self.logger.error(f"Error monitoring contract {contract_id}: {e}")
-                    
-        except Exception as e:
-            self.logger.error(f"Error monitoring active trades: {e}")
-    
-    def _close_contract_early(self, contract_id: str, price: float, timestamp: int, reason: str):
-        """Close a contract early due to TP/SL trigger - keeps contract until sell response arrives"""
-        try:
-            # Send sell request to close the contract
-            sell_request = {
-                "sell": contract_id,
-                "price": 0  # Market close
-            }
-            
-            # Send the sell request through stream handler
-            self.stream_handler.send_message(sell_request)
-            
-            self.logger.info(f" Early closure request sent for contract {contract_id} at price {price}: {reason}")
-            
-            #  CRITICAL FIX: DO NOT remove contract from active_contracts here!
-            # The contract MUST stay in active_contracts so that handle_sell_response can:
-            # 1. Find the contract
-            # 2. Update the risk_manager with actual P&L
-            # 3. Update metrics with profit/loss
-            # The contract will be removed in handle_sell_response AFTER updating risk manager
-            if contract_id in self.trade_executor.active_contracts:
-                # Mark as closing but KEEP in active_contracts
-                self.trade_executor.active_contracts[contract_id]["status"] = "closing_early"
-                self.trade_executor.active_contracts[contract_id]["early_close_reason"] = reason
-                self.logger.info(f" Contract {contract_id} marked as CLOSING EARLY (waiting for sell response)")
-            else:
-                self.logger.warning(f"  Contract {contract_id} not found in active_contracts")
+            for trade_id, trade_data in list(self.trade_executor.active_contracts.items()):
+                status = trade_data.get("status")
+                contract_id = trade_data.get("contract_id")
+                trade_timestamp = trade_data.get("timestamp", current_time)
                 
-        except Exception as e:
-            self.logger.error(f" Error closing contract {contract_id} early: {e}")
-    
-    def _check_and_execute_reversal(self, new_signal: str, price: float, timestamp: int) -> bool:
-        """
-        Check if current position should be reversed based on new signal.
-        
-        Args:
-            new_signal: New signal direction ("BUY" or "SELL")
-            price: Current price
-            timestamp: Current timestamp
+                # 🔥 FIX: Check for invalid/future timestamps (age would be negative)
+                if trade_timestamp > current_time + 10:  # More than 10 seconds in future
+                    stale_contracts.append((trade_id, status or "no_status", f"invalid future timestamp ({trade_timestamp} > {current_time})"))
+                    continue
+                
+                trade_age = current_time - trade_timestamp
+                
+                # Safeguard: if age is still negative (shouldn't happen), treat as invalid
+                if trade_age < 0:
+                    self.logger.error(f"🚨 Contract {contract_id or trade_id} has negative age {trade_age:.1f}s - removing")
+                    stale_contracts.append((trade_id, status or "no_status", f"negative age {trade_age:.1f}s"))
+                    continue
+                
+                # Remove trades without a contract_id that are >10 seconds old (never got buy confirmation)
+                if not contract_id and trade_age > 10:
+                    stale_contracts.append((trade_id, status or "no_status", f"no contract_id for {trade_age:.0f}s"))
+                    continue
+                
+                # Remove contracts that have been "closed" or "sold" for >5 seconds (should have been removed by _on_contract_update)
+                if status in ["closed", "sold"]:
+                    closed_at = trade_data.get("closed_at", 0)
+                    if current_time - closed_at > 5:
+                        stale_contracts.append((trade_id, status, f"{status} for >5s"))
+                
+                # Remove contracts stuck in "closing_early" for >30 seconds (API likely failed to close)
+                elif status in ["closing_early", "closing", "force_closing"]:
+                    close_requested_at = trade_data.get("close_requested_at", trade_timestamp)
+                    if current_time - close_requested_at > 30:
+                        stale_contracts.append((trade_id, status, "stuck closing for >30s"))
+                
+                # 🔥 NEW: Remove "open" contracts that have been open for >5 minutes (3min contract + 2min buffer)
+                # This catches contracts that expired naturally but didn't send a closure update
+                elif status == "open" and trade_age > 300:  # 5 minutes
+                    stale_contracts.append((trade_id, status, f"expired (open for {trade_age:.0f}s > 300s)"))
             
-        Returns:
-            True if reversal was executed, False otherwise
-        """
+            # Remove stale contracts
+            for trade_id, status, reason in stale_contracts:
+                contract_id = self.trade_executor.active_contracts[trade_id].get("contract_id", "unknown")
+                self.logger.warning(f"🧹 Cleaning up stale contract: {contract_id} ({status}) - {reason}")
+                self.trade_executor.active_contracts.pop(trade_id, None)
+            
+            if stale_contracts:
+                self.logger.info(f"📊 Active contracts after cleanup: {len(self.trade_executor.active_contracts)}")
+            
+            # First pass: Add ALL positions to monitoring and check individual closure conditions
+            for trade_id, trade_data in list(self.trade_executor.active_contracts.items()):
+                contract_id = trade_data.get("contract_id")
+                if not contract_id:
+                    continue
+                
+                # Skip if contract is already closing or closed
+                status = trade_data.get("status")
+                if status in ["closing", "closing_early", "force_closing", "closed", "sold"]:
+                    continue
+                
+                # Skip if contract is marked as non-resellable (will expire naturally)
+                if trade_data.get("non_resellable", False):
+                    continue
+                
+                # Get strategy info (for logging)
+                signal_data = trade_data.get("signal_data", {})
+                strategy_source = signal_data.get("strategy", "unknown")
+                
+                # ✅ MONITOR ALL TRADES (not just mean_reversion)
+                # Add to position manager if not already monitored
+                if not self.position_manager.get_position_info(contract_id):
+                    signal_type = trade_data.get("signal_type", "")
+                    entry_price = trade_data.get("entry_price", 0)
+                    stake = trade_data.get("stake", 0)
+                    
+                    if signal_type and entry_price > 0:
+                        self.position_manager.add_position(
+                            contract_id=contract_id,
+                            signal_type=signal_type,
+                            entry_price=entry_price,
+                            stake=stake,
+                            metadata=signal_data
+                        )
+                        self.logger.info(f"📊 Monitoring {strategy_source} position: {contract_id} ({signal_type})")
+                
+                # Get current profit (if available from contract updates)
+                current_profit = trade_data.get("profit")
+                
+                # Check if individual position should be closed (TP/SL/Trend Reversal)
+                should_close, reason = self.position_manager.check_position(
+                    contract_id=contract_id,
+                    current_price=price,
+                    current_profit=current_profit
+                )
+                
+                if should_close:
+                    self.logger.info(f"🔔 Closing {strategy_source} position: {contract_id} - {reason}")
+                    self._close_contract_early(contract_id, price, timestamp, reason)
+                    self.position_manager.mark_closed(contract_id, reason)
+            
+            # Second pass: Check for multi-position closure scenarios
+            # (e.g., if one position is losing and winning position is only covering it)
+            if self.position_manager.get_active_positions_count() >= 2:
+                positions_to_close = self.position_manager.check_multi_position_closure(
+                    self.trade_executor.active_contracts
+                )
+                
+                if positions_to_close:
+                    self.logger.warning(f"🔔🔔 Multi-position closure triggered: {len(positions_to_close)} positions")
+                    for contract_id, reason in positions_to_close:
+                        self.logger.info(f"   Closing {contract_id}: {reason}")
+                        self._close_contract_early(contract_id, price, timestamp, reason)
+                        self.position_manager.mark_closed(contract_id, reason)
+            
+            # Cleanup old positions from monitoring
+            self.position_manager.cleanup_old_positions(max_age_seconds=300)
+            
+        except Exception as e:
+            self.logger.error(f"Error monitoring active trades: {e}", exc_info=True)
+
+    def _close_contract_early(self, contract_id: str, price: float, timestamp: int, reason: str):
+        """Close a contract early without removing from active_contracts"""
+        try:
+            # Send sell request to Deriv API
+            self.stream_handler.send_message({"sell": contract_id, "price": 0})
+            
+            # 🔥 CRITICAL FIX: active_contracts is keyed by trade_id, not contract_id
+            # Find the trade_id that corresponds to this contract_id
+            trade_found = False
+            for trade_id, trade_data in self.trade_executor.active_contracts.items():
+                if trade_data.get("contract_id") == contract_id:
+                    trade_data["status"] = "closing_early"
+                    trade_data["early_close_reason"] = reason
+                    trade_data["close_requested_at"] = time.time()
+                    self.logger.info(f"✅ Contract {contract_id} marked CLOSING EARLY (trade_id: {trade_id})")
+                    trade_found = True
+                    break
+            
+            if not trade_found:
+                self.logger.warning(f"⚠️ Contract {contract_id} not found in active_contracts")
+        except Exception as e:
+            self.logger.error(f"💥 Error closing contract {contract_id} early: {e}")
+
+    def _check_and_execute_reversal(self, new_signal: str, price: float, timestamp: int) -> bool:
+        """Check and execute a reversal trade if conditions met"""
         try:
             from infrastructure.config import config as global_config
-            
-            # Check if reversal strategy is enabled
             if not global_config.get("trading.reversal_strategy_enabled", False):
                 return False
-            
-            # Check if we have an active trade
-            if len(self.trade_executor.active_contracts) == 0:
-                return False  # No active trade to reverse
-            
-            # Get reversal configuration
-            reversal_min_profit = global_config.get("trading.reversal_min_profit", -10.0)  # -10% default
-            reversal_max_age = global_config.get("trading.reversal_max_age_seconds", 180)  # 3 minutes default
-            
-            # Check all active contracts for reversal opportunity
-            for contract_id, contract_data in list(self.trade_executor.active_contracts.items()):
-                # Skip contracts that are already closing
-                status = contract_data.get("status", "")
-                if status in ["closing", "closing_early", "force_closing", "closed"]:
+
+            for contract_id, contract in self.trade_executor.active_contracts.items():
+                if contract.get("status") in ["closing", "closing_early", "force_closing", "closed"]:
+                    continue
+                contract_signal = contract.get("signal_type")
+                if contract_signal == new_signal:
                     continue
                 
-                # Get contract direction
-                contract_signal = contract_data.get("signal_type", "")
+                # Check position age - must be between min and max age
+                age = timestamp - contract.get("timestamp", timestamp)
+                min_age = global_config.get("trading.reversal_min_age_seconds", 60)
+                max_age = global_config.get("trading.reversal_max_age_seconds", 180)
                 
-                # Check if signal is opposite to current position
-                is_opposite = (
-                    (contract_signal == "BUY" and new_signal == "SELL") or
-                    (contract_signal == "SELL" and new_signal == "BUY")
-                )
-                
-                if not is_opposite:
-                    continue  # Signal is same direction, no reversal needed
-                
-                # Check contract age
-                contract_age = timestamp - contract_data.get("timestamp", timestamp)
-                if contract_age > reversal_max_age:
-                    self.logger.info(f" Contract {contract_id} too old for reversal ({contract_age:.0f}s > {reversal_max_age}s)")
+                # Skip if position is too young (prevent immediate reversals)
+                if age < min_age:
+                    self.logger.debug(f"⏳ Reversal skipped: Position too young ({age}s < {min_age}s minimum)")
                     continue
                 
-                # Calculate current profit/loss percentage
-                entry_price = contract_data.get("entry_price", price)
-                stake = contract_data.get("stake", 0)
-                
-                # Get current contract value (estimated)
-                # For binary options, we approximate based on price movement
-                if contract_signal == "BUY":
-                    price_change_pct = ((price - entry_price) / entry_price) * 100 if entry_price > 0 else 0
-                else:  # SELL
-                    price_change_pct = ((entry_price - price) / entry_price) * 100 if entry_price > 0 else 0
-                
-                # Estimated profit % (rough approximation for binary options)
-                estimated_profit_pct = price_change_pct * 0.8  # Binary options typically have ~80% payout
-                
-                # Check if profit is above minimum threshold
-                if estimated_profit_pct < reversal_min_profit:
-                    self.logger.info(f" Contract {contract_id} profit too low for reversal ({estimated_profit_pct:.1f}% < {reversal_min_profit:.1f}%)")
+                # Skip if position is too old (no longer relevant to reverse)
+                if age > max_age:
+                    self.logger.debug(f"⏰ Reversal skipped: Position too old ({age}s > {max_age}s maximum)")
                     continue
+
+                # Check profit threshold - only reverse if loss is within acceptable range
+                entry_price = contract.get("entry_price", price)
+                stake = contract.get("stake", 0)
+                price_change = ((price - entry_price)/entry_price*100) if contract_signal=="BUY" else ((entry_price - price)/entry_price*100)
+                est_profit = price_change * 0.8
+                min_profit_threshold = global_config.get("trading.reversal_min_profit", -10.0)
                 
-                # All conditions met - execute reversal!
-                self.logger.info(f" REVERSAL TRIGGERED! Closing {contract_signal} position to open {new_signal} position")
-                self.logger.info(f"   Contract age: {contract_age:.0f}s, Estimated profit: {estimated_profit_pct:.1f}%")
-                
-                # Register pending reversal in trade executor
-                self.logger.info("Reversal strategy disabled - using enhanced pattern detection only")
-                
-                # Close the current position
-                self._close_contract_early(
-                    contract_id, 
-                    price, 
-                    timestamp, 
-                    f"Reversal: {contract_signal}->{new_signal}"
-                )
-                
-                self.logger.info(f" Reversal initiated - will open {new_signal} position after current position closes")
-                
-                return True  # Reversal triggered
-            
-            return False  # No reversal conditions met
-            
-        except Exception as e:
-            self.logger.error(f"Error checking reversal: {e}")
+                if est_profit < min_profit_threshold:
+                    self.logger.debug(f"💸 Reversal skipped: Loss too large ({est_profit:.1f}% < {min_profit_threshold:.1f}%)")
+                    continue
+
+                self.logger.info(f"REVERSAL TRIGGERED: {contract_signal}->{new_signal} | Age={age}s | Profit≈{est_profit:.1f}%")
+                self._close_contract_early(contract_id, price, timestamp, f"Reversal {contract_signal}->{new_signal}")
+                time.sleep(1.5)
+                self.trade_executor.place_trade(stake=stake, duration=3,
+                                                signal_data={"source": "reversal", "reversed_from": contract_signal},
+                                                signal_type=new_signal)
+                return True
             return False
-    
-    def _execute_reversal_trade(self, signal_type: str, price: float, timestamp: int):
-        """
-        Execute a reversal trade (callback from trade executor).
-        
-        Args:
-            signal_type: Signal type ("BUY" or "SELL")
-            price: Current price
-            timestamp: Current timestamp
-        """
-        try:
-            self.logger.info(f" Executing reversal trade: {signal_type} at {price}")
-            
-            if signal_type == "BUY":
-                self._execute_buy_trade(price, timestamp)
-            elif signal_type == "SELL":
-                self._execute_sell_trade(price, timestamp)
-            else:
-                self.logger.error(f"Invalid signal type for reversal: {signal_type}")
-                
         except Exception as e:
-            self.logger.error(f"Error executing reversal trade: {e}")
-            import traceback
-            self.logger.error(traceback.format_exc())
-    
+            self.logger.error(f"Error during reversal check: {e}", exc_info=True)
+            return False
+
     def _execute_buy_trade(self, price: float, timestamp: int, metadata: Optional[Dict] = None):
         """Execute a buy trade"""
         try:
-            import time
-            start_time = time.time()
+            self.logger.info(f"[TRADE] BUY trade execution started at price={price}, timestamp={timestamp}")
             
-            # CRITICAL CHECK #1: Quick check for active trades (optimized)
-            # Count only non-closing active contracts
-            real_active_count = sum(1 for td in self.trade_executor.active_contracts.values() 
-                                   if td.get("status", "") not in ["closing", "closing_early", "force_closing", "closed"])
+            # Clean up invalid contracts before counting
+            invalid_keys = [k for k, v in self.trade_executor.active_contracts.items() 
+                           if not v.get("contract_id") or not str(v.get("contract_id")).isdigit()]
+            for key in invalid_keys:
+                self.logger.warning(f"[TRADE] 🧹 Removing invalid contract: {key}")
+                del self.trade_executor.active_contracts[key]
             
-            if real_active_count >= 2:  # Allow up to 2 concurrent trades for faster execution
-                return  # Silent return for speed (detailed check done in trade_executor)
-            
-            # CRITICAL CHECK #2: Verify with risk manager
+            real_active_count = sum(1 for td in self.trade_executor.active_contracts.values()
+                                    if td.get("status") not in ["pending", "closing", "closing_early", "force_closing", "closed"])
+            max_trades = self.config.get("risk_management.max_concurrent_trades", 1)
+            if real_active_count >= max_trades:
+                self.logger.warning(f"[TRADE] BUY trade rejected: Max active trades reached ({real_active_count}/{max_trades})")
+                # Log which contracts are currently active for debugging
+                for trade_id, td in self.trade_executor.active_contracts.items():
+                    contract_id = td.get("contract_id", "pending")
+                    status = td.get("status", "unknown")
+                    age = time.time() - td.get("timestamp", time.time())
+                    self.logger.warning(f"  Active contract: {contract_id} | Status: {status} | Age: {age:.0f}s")
+                return
+
             can_trade, reason = self.risk_manager.can_trade()
             if not can_trade:
-                # Use debug level for circuit breaker to reduce log noise
-                if "Circuit breaker" in reason:
-                    self.logger.debug(f" Risk manager rejected BUY trade: {reason}")
-                else:
-                    self.logger.warning(f" Risk manager rejected BUY trade: {reason}")
+                self.logger.warning(f"[TRADE] BUY trade rejected by risk manager: {reason}")
+                return
+
+            # 🎯 EMA PRICE POSITION FILTER: For UPTREND (BUY), price must be ABOVE both EMAs
+            self.logger.info(f"[EMA FILTER] Starting BUY EMA filter check at price={price:.5f}")
+            
+            # Check which strategy is active and use its EMAs
+            ema_fast_val = None
+            ema_slow_val = None
+            
+            if hasattr(self.strategy_engine, 'candlestick_strategy') and self.strategy_engine.candlestick_strategy:
+                # Use candlestick strategy EMAs (ema_fast/ema_slow)
+                self.logger.info(f"[EMA FILTER] Using candlestick strategy EMAs")
+                ema_fast_val = self.strategy_engine.candlestick_strategy.ema_fast.get_value() if self.strategy_engine.candlestick_strategy.ema_fast else None
+                ema_slow_val = self.strategy_engine.candlestick_strategy.ema_slow.get_value() if self.strategy_engine.candlestick_strategy.ema_slow else None
+                self.logger.info(f"[EMA FILTER] Candlestick EMAs: fast={ema_fast_val}, slow={ema_slow_val}")
+            elif self.strategy_engine.ema_7 and self.strategy_engine.ema_15:
+                # Use mean reversion EMAs (ema_7/ema_15)
+                self.logger.info(f"[EMA FILTER] Using mean reversion EMAs")
+                ema_fast_val = self.strategy_engine.ema_7.get_value() if self.strategy_engine.ema_7 else None
+                ema_slow_val = self.strategy_engine.ema_15.get_value() if self.strategy_engine.ema_15 else None
+                self.logger.info(f"[EMA FILTER] Mean reversion EMAs: ema7={ema_fast_val}, ema15={ema_slow_val}")
+            else:
+                self.logger.error(f"[EMA FILTER] No EMAs found! candlestick_strategy={hasattr(self.strategy_engine, 'candlestick_strategy')}, ema_7={hasattr(self.strategy_engine, 'ema_7')}")
+            
+            if ema_fast_val is None or ema_slow_val is None:
+                self.logger.warning(f"❌ [EMA FILTER] BUY REJECTED: EMAs not initialized yet (fast={ema_fast_val}, slow={ema_slow_val})")
                 return
             
-            # Get stake amount from risk manager (using default parameters)
+            # Check trend direction first (ema_fast > ema_slow for uptrend)
+            if ema_fast_val <= ema_slow_val:
+                self.logger.warning(f"❌ [EMA FILTER] BUY REJECTED: NOT in uptrend (EMA_fast={ema_fast_val:.5f} <= EMA_slow={ema_slow_val:.5f})")
+                return
+            
+            # Check price position (price must be above both EMAs for uptrend entry)
+            if price <= ema_fast_val or price <= ema_slow_val:
+                self.logger.warning(f"❌ [EMA FILTER] BUY REJECTED: Price={price:.5f} not above both EMAs (EMA_fast={ema_fast_val:.5f}, EMA_slow={ema_slow_val:.5f})")
+                return
+            
+            self.logger.info(f"✅ [EMA FILTER] BUY APPROVED: Price={price:.5f} > EMA_fast={ema_fast_val:.5f} > EMA_slow={ema_slow_val:.5f}")
+
             stake = self.risk_manager.calculate_stake()
-            
-            if stake > 0:
-                self.logger.info(f"Executing BUY trade: stake={stake}, price={price}")
+            if stake <= 0:
+                self.logger.warning(f"[TRADE] BUY trade rejected: Stake={stake} (must be > 0)")
+                return
+
+            self.logger.info(f"[TRADE] BUY trade checks passed: stake={stake}, can_trade=True")
+            signal_data = metadata.get("signal_data") if metadata else None
+            trade_id = self.trade_executor.place_trade(stake=stake, signal_data=signal_data, signal_type="BUY")
+            if trade_id:
+                self.logger.info(f"[TRADE] ✅ BUY trade placed successfully: {trade_id}")
+                self.metrics.record_trade("BUY", "placed", 0.0)
                 
-                # Extract signal data from metadata if available
-                signal_data = None
-                self.logger.info(f" DEBUG: metadata={metadata}")
-                if metadata and metadata.get("signal_data"):
-                    signal_data = metadata["signal_data"]
-                    self.logger.info(f" TIMING DATA: Start candle: {signal_data.get('trade_start_candle', 0)}, Expected close: {signal_data.get('expected_close_candle', 0)}")
-                else:
-                    self.logger.warning(f" NO SIGNAL DATA: metadata={metadata}")
-                
-                # Place the trade through trade executor
-                trade_id = self.trade_executor.place_trade(
-                    signal_type="BUY",
-                    stake=stake,
-                    entry_price=price,
-                    signal_data=signal_data
-                )
-                if trade_id:
-                    self.logger.info(f"BUY trade placed successfully: {trade_id}")
-                    # Record trade metrics
-                    self.metrics.record_trade("BUY", "placed", 0.0)
-                else:
-                    self.logger.warning("Failed to place BUY trade")
+                # Register position with position manager if from mean reversion strategy
+                if metadata and metadata.get("strategy") == "mean_reversion":
+                    # Note: contract_id not available yet, will be added when confirmed
+                    self.logger.info(f"[POSITION] Mean reversion BUY position initiated: {trade_id}")
             else:
-                self.logger.debug("Risk manager rejected BUY trade (stake=0)")
-            
-            # Record trade execution time
-            execution_time = time.time() - start_time
-            self.metrics.record_trade_execution_time(execution_time)
-            
+                self.logger.error(f"[TRADE] ❌ Failed to place BUY trade - place_trade returned None")
+
         except Exception as e:
-            self.logger.error(f"Error executing BUY trade: {e}")
-    
+            self.logger.error(f"[TRADE] Error executing BUY trade: {e}", exc_info=True)
+
     def _execute_sell_trade(self, price: float, timestamp: int, metadata: Optional[Dict] = None):
         """Execute a sell trade"""
         try:
-            import time
-            start_time = time.time()
+            self.logger.info(f"[TRADE] SELL trade execution started at price={price}, timestamp={timestamp}")
             
-            # CRITICAL CHECK #1: Quick check for active trades (optimized)
-            # Count only non-closing active contracts
-            real_active_count = sum(1 for td in self.trade_executor.active_contracts.values() 
-                                   if td.get("status", "") not in ["closing", "closing_early", "force_closing", "closed"])
+            # Clean up invalid contracts before counting
+            invalid_keys = [k for k, v in self.trade_executor.active_contracts.items() 
+                           if not v.get("contract_id") or not str(v.get("contract_id")).isdigit()]
+            for key in invalid_keys:
+                self.logger.warning(f"[TRADE] 🧹 Removing invalid contract: {key}")
+                del self.trade_executor.active_contracts[key]
             
-            if real_active_count >= 2:  # Allow up to 2 concurrent trades for faster execution
-                return  # Silent return for speed (detailed check done in trade_executor)
-            
-            # CRITICAL CHECK #2: Verify with risk manager
+            real_active_count = sum(1 for td in self.trade_executor.active_contracts.values()
+                                    if td.get("status") not in ["pending", "closing", "closing_early", "force_closing", "closed"])
+            max_trades = self.config.get("risk_management.max_concurrent_trades", 1)
+            if real_active_count >= max_trades:
+                self.logger.warning(f"[TRADE] SELL trade rejected: Max active trades reached ({real_active_count}/{max_trades})")
+                # Log which contracts are currently active for debugging
+                for trade_id, td in self.trade_executor.active_contracts.items():
+                    contract_id = td.get("contract_id", "pending")
+                    status = td.get("status", "unknown")
+                    age = time.time() - td.get("timestamp", time.time())
+                    self.logger.warning(f"  Active contract: {contract_id} | Status: {status} | Age: {age:.0f}s")
+                return
+
             can_trade, reason = self.risk_manager.can_trade()
             if not can_trade:
-                # Use debug level for circuit breaker to reduce log noise
-                if "Circuit breaker" in reason:
-                    self.logger.debug(f" Risk manager rejected SELL trade: {reason}")
-                else:
-                    self.logger.warning(f" Risk manager rejected SELL trade: {reason}")
+                self.logger.warning(f"[TRADE] SELL trade rejected by risk manager: {reason}")
                 return
-                
-            # Get stake amount from risk manager (using default parameters)
-            stake = self.risk_manager.calculate_stake()
+
+            # 🎯 EMA PRICE POSITION FILTER: For DOWNTREND (SELL), price must be BELOW both EMAs
+            self.logger.info(f"[EMA FILTER] Starting SELL EMA filter check at price={price:.5f}")
             
-            if stake > 0:
-                self.logger.info(f"Executing SELL trade: stake={stake}, price={price}")
-                
-                # Extract signal data from metadata if available
-                signal_data = None
-                self.logger.info(f" DEBUG: metadata={metadata}")
-                if metadata and metadata.get("signal_data"):
-                    signal_data = metadata["signal_data"]
-                    self.logger.info(f" TIMING DATA: Start candle: {signal_data.get('trade_start_candle', 0)}, Expected close: {signal_data.get('expected_close_candle', 0)}")
-                else:
-                    self.logger.warning(f" NO SIGNAL DATA: metadata={metadata}")
-                
-                # Place the trade through trade executor
-                trade_id = self.trade_executor.place_trade(
-                    signal_type="SELL",
-                    stake=stake,
-                    entry_price=price,
-                    signal_data=signal_data
-                )
-                if trade_id:
-                    self.logger.info(f"SELL trade placed successfully: {trade_id}")
-                    # Record trade metrics
-                    self.metrics.record_trade("SELL", "placed", 0.0)
-                else:
-                    self.logger.warning("Failed to place SELL trade")
+            # Check which strategy is active and use its EMAs
+            ema_fast_val = None
+            ema_slow_val = None
+            
+            if hasattr(self.strategy_engine, 'candlestick_strategy') and self.strategy_engine.candlestick_strategy:
+                # Use candlestick strategy EMAs (ema_fast/ema_slow)
+                self.logger.info(f"[EMA FILTER] Using candlestick strategy EMAs")
+                ema_fast_val = self.strategy_engine.candlestick_strategy.ema_fast.get_value() if self.strategy_engine.candlestick_strategy.ema_fast else None
+                ema_slow_val = self.strategy_engine.candlestick_strategy.ema_slow.get_value() if self.strategy_engine.candlestick_strategy.ema_slow else None
+                self.logger.info(f"[EMA FILTER] Candlestick EMAs: fast={ema_fast_val}, slow={ema_slow_val}")
+            elif self.strategy_engine.ema_7 and self.strategy_engine.ema_15:
+                # Use mean reversion EMAs (ema_7/ema_15)
+                self.logger.info(f"[EMA FILTER] Using mean reversion EMAs")
+                ema_fast_val = self.strategy_engine.ema_7.get_value() if self.strategy_engine.ema_7 else None
+                ema_slow_val = self.strategy_engine.ema_15.get_value() if self.strategy_engine.ema_15 else None
+                self.logger.info(f"[EMA FILTER] Mean reversion EMAs: ema7={ema_fast_val}, ema15={ema_slow_val}")
             else:
-                self.logger.debug("Risk manager rejected SELL trade (stake=0)")
+                self.logger.error(f"[EMA FILTER] No EMAs found! candlestick_strategy={hasattr(self.strategy_engine, 'candlestick_strategy')}, ema_7={hasattr(self.strategy_engine, 'ema_7')}")
             
-            # Record trade execution time
-            execution_time = time.time() - start_time
-            self.metrics.record_trade_execution_time(execution_time)
+            if ema_fast_val is None or ema_slow_val is None:
+                self.logger.warning(f"❌ [EMA FILTER] SELL REJECTED: EMAs not initialized yet (fast={ema_fast_val}, slow={ema_slow_val})")
+                return
             
-        except Exception as e:
-            self.logger.error(f"Error executing SELL trade: {e}")
-    
-    def switch_trading_symbol(self, new_symbol: str):
-        """Switch the trading symbol to a different market."""
-        try:
-            current_symbol = self.config.get('trading', {}).get('symbol', 'R_100')
+            # Check trend direction first (ema_fast < ema_slow for downtrend)
+            if ema_fast_val >= ema_slow_val:
+                self.logger.warning(f"❌ [EMA FILTER] SELL REJECTED: NOT in downtrend (EMA_fast={ema_fast_val:.5f} >= EMA_slow={ema_slow_val:.5f})")
+                return
             
-            if new_symbol == current_symbol:
-                self.logger.info(f" Already trading {new_symbol}, no switch needed")
-                return True
+            # Check price position (price must be below both EMAs for downtrend entry)
+            if price >= ema_fast_val or price >= ema_slow_val:
+                self.logger.warning(f"❌ [EMA FILTER] SELL REJECTED: Price={price:.5f} not below both EMAs (EMA_fast={ema_fast_val:.5f}, EMA_slow={ema_slow_val:.5f})")
+                return
             
-            self.logger.warning(f" MARKET SWITCH: Switching from {current_symbol} to {new_symbol}")
-            
-            # Update configuration
-            if 'trading' not in self.config:
-                self.config['trading'] = {}
-            self.config['trading']['symbol'] = new_symbol
-            
-            # Update stream handler to subscribe to new symbol
-            if hasattr(self, 'stream_handler') and self.stream_handler:
-                self.logger.info(f" Updating stream handler to {new_symbol}")
+            self.logger.info(f"✅ [EMA FILTER] SELL APPROVED: Price={price:.5f} < EMA_fast={ema_fast_val:.5f} < EMA_slow={ema_slow_val:.5f}")
+
+            stake = self.risk_manager.calculate_stake()
+            if stake <= 0:
+                self.logger.warning(f"[TRADE] SELL trade rejected: Stake={stake} (must be > 0)")
+                return
+
+            self.logger.info(f"[TRADE] SELL trade checks passed: stake={stake}, can_trade=True")
+            signal_data = metadata.get("signal_data") if metadata else None
+            trade_id = self.trade_executor.place_trade(stake=stake, signal_data=signal_data, signal_type="SELL")
+            if trade_id:
+                self.logger.info(f"[TRADE] ✅ SELL trade placed successfully: {trade_id}")
+                self.metrics.record_trade("SELL", "placed", 0.0)
                 
-                # Send forget_all to unsubscribe from current symbol
-                self.stream_handler.send_message({"forget_all": ["ticks"]})
-                
-                # Subscribe to new symbol
-                subscribe_payload = {
-                    "ticks": new_symbol,
-                    "subscribe": 1
-                }
-                
-                if self.stream_handler.send_message(subscribe_payload):
-                    self.logger.info(f" Successfully subscribed to {new_symbol}")
-                else:
-                    self.logger.error(f" Failed to subscribe to {new_symbol}")
-                    return False
-            
-            # Update strategy engine if it has market awareness
-            if hasattr(self, 'strategy_engine') and hasattr(self.strategy_engine, 'candlestick_strategy'):
-                if self.strategy_engine.candlestick_strategy and hasattr(self.strategy_engine.candlestick_strategy, 'get_current_market'):
-                    current_market = self.strategy_engine.candlestick_strategy.get_current_market()
-                    self.logger.info(f" Strategy engine current market: {current_market}")
-            
-            self.logger.info(f" MARKET SWITCH: Successfully switched to {new_symbol}")
-            return True
-            
+                # Register position with position manager if from mean reversion strategy
+                if metadata and metadata.get("strategy") == "mean_reversion":
+                    # Note: contract_id not available yet, will be added when confirmed
+                    self.logger.info(f"[POSITION] Mean reversion SELL position initiated: {trade_id}")
+            else:
+                self.logger.error(f"[TRADE] ❌ Failed to place SELL trade - place_trade returned None")
+
         except Exception as e:
-            self.logger.error(f" MARKET SWITCH: Failed to switch to {new_symbol}: {e}")
-            return False
-    
-    def get_market_fallback_status(self) -> dict:
-        """Get the current market fallback status."""
-        try:
-            if hasattr(self, 'strategy_engine') and hasattr(self.strategy_engine, 'candlestick_strategy'):
-                if self.strategy_engine.candlestick_strategy and hasattr(self.strategy_engine.candlestick_strategy, 'get_market_performance_summary'):
-                    return self.strategy_engine.candlestick_strategy.get_market_performance_summary()
-            
-            return {"error": "Market fallback not available"}
-        except Exception as e:
-            self.logger.error(f"Error getting market fallback status: {e}")
-            return {"error": str(e)}
-        
+            self.logger.error(f"[TRADE] Error executing SELL trade: {e}", exc_info=True)
+
     async def start(self):
-        """Start the bot and all its components"""
+        """Start the bot and all components"""
         try:
             self.logger.info("Initializing LemoTick Bot...")
-            
-            # Initialize backend connection
             await self.backend_client.connect()
-            
-            # Start core components
             self.stream_handler.start()
-            # RiskManager and TradeExecutor don't need async start
-            
             self.is_running = True
             self.start_time = datetime.now()
-            
-            self.logger.info("LemoTick Bot started successfully")
-            
-            # Keep the bot running
+            self.logger.info("LemoTick Bot started")
             while self.is_running:
                 await asyncio.sleep(1)
-                
         except Exception as e:
             self.logger.error(f"Error starting bot: {e}")
             await self.stop()
             raise
-    
+
     async def stop(self):
-        """Stop the bot and all its components"""
-        try:
-            self.logger.info("Stopping LemoTick Bot...")
-            
-            self.is_running = False
-            
-            # Stop components in reverse order
-            if hasattr(self, 'trade_executor'):
-                if hasattr(self.trade_executor, 'stop') and callable(getattr(self.trade_executor, 'stop', None)):
-                    try:
-                        await self.trade_executor.stop()  # type: ignore
-                    except Exception:
-                        pass  # Ignore if stop is not async
-            
-            if hasattr(self, 'risk_manager'):
-                if hasattr(self.risk_manager, 'stop') and callable(getattr(self.risk_manager, 'stop', None)):
-                    try:
-                        await self.risk_manager.stop()  # type: ignore
-                    except Exception:
-                        pass  # Ignore if stop is not async
-                
-            if hasattr(self, 'stream_handler') and hasattr(self.stream_handler, 'stop'):
-                self.stream_handler.stop()
-            
-            if hasattr(self, 'backend_client'):
-                await self.backend_client.disconnect()
-            
-            self.logger.info("LemoTick Bot stopped")
-            
-        except Exception as e:
-            self.logger.error(f"Error stopping bot: {e}")
-    
+        """Stop the bot and all components"""
+        self.logger.info("Stopping LemoTick Bot...")
+        self.is_running = False
+        for comp in [self.trade_executor, self.risk_manager]:
+            if hasattr(comp, 'stop') and callable(comp.stop):
+                try: await comp.stop()  # type: ignore
+                except Exception: pass
+        if hasattr(self.stream_handler, 'stop'): self.stream_handler.stop()
+        if hasattr(self.backend_client, 'disconnect'): await self.backend_client.disconnect()
+        self.logger.info("LemoTick Bot stopped")
+
     async def get_status(self) -> Dict[str, Any]:
-        """Get current bot status for investor dashboard"""
-        stream_status = None
-        risk_status = None
-        trade_status = None
-        
-        if hasattr(self, 'stream_handler') and hasattr(self.stream_handler, 'get_status'):
-            try:
-                stream_status = await self.stream_handler.get_status()  # type: ignore
-            except Exception:
-                stream_status = {"status": "unavailable"}
-        
-        if hasattr(self, 'risk_manager') and hasattr(self.risk_manager, 'get_status'):
-            try:
-                risk_status = await self.risk_manager.get_status()  # type: ignore
-            except Exception:
-                risk_status = {"status": "unavailable"}
-        
-        if hasattr(self, 'trade_executor') and hasattr(self.trade_executor, 'get_status'):
-            try:
-                trade_status = await self.trade_executor.get_status()  # type: ignore
-            except Exception:
-                trade_status = {"status": "unavailable"}
-        
+        """Get bot status for dashboard"""
+        async def _safe_status(comp):
+            if hasattr(comp, 'get_status'):
+                try: return await comp.get_status()  # type: ignore
+                except Exception: return {"status": "unavailable"}
+            return {"status": "unknown"}
+
         return {
             "is_running": self.is_running,
             "start_time": self.start_time.isoformat() if self.start_time else None,
             "uptime": (datetime.now() - self.start_time).total_seconds() if self.start_time else 0,
-            "stream_status": stream_status,
-            "risk_status": risk_status,
-            "trade_status": trade_status
+            "stream_status": await _safe_status(self.stream_handler),
+            "risk_status": await _safe_status(self.risk_manager),
+            "trade_status": await _safe_status(self.trade_executor),
         }
-
-

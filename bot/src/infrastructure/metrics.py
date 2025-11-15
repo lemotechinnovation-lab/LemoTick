@@ -335,20 +335,32 @@ class LemoTickMetrics:
     def update_profit_loss(self, profit_loss: float):
         """Update profit/loss metric - called frequently to keep Grafana updated"""
         try:
-            self.current_profit_loss.set(float(profit_loss))
+            # Ensure profit_loss is a single numeric value, not a tuple
+            if isinstance(profit_loss, tuple):
+                profit_loss_value = float(profit_loss[0]) if len(profit_loss) > 0 else 0.0
+                logger.warning(f"profit_loss is a tuple, using first element: {profit_loss_value}")
+            else:
+                profit_loss_value = float(profit_loss)
+            
+            self.current_profit_loss.set(profit_loss_value)
             # Verify the value was set
             current_value = self.current_profit_loss._value.get()
-            if current_value != profit_loss:
-                logger.warning(f"Profit/Loss metric value mismatch: set={profit_loss}, actual={current_value}")
-            logger.debug(f"Profit/Loss metric set: ${profit_loss:.2f} (verified: ${current_value:.2f})")
+            if current_value != profit_loss_value:
+                logger.warning(f"Profit/Loss metric value mismatch: set={profit_loss_value}, actual={current_value}")
+            logger.debug(f"Profit/Loss metric set: ${profit_loss_value:.2f} (verified: ${current_value:.2f})")
         except Exception as e:
             logger.error(f"Error updating profit/loss metric: {e}", exc_info=True)
 
     def update_win_rate(self, win_rate: float):
         """Update win rate metric - called frequently to keep Grafana updated"""
         try:
-            # Convert to float and ensure it's a valid number
-            win_rate_float = float(win_rate)
+            # Ensure win_rate is a single numeric value, not a tuple
+            if isinstance(win_rate, tuple):
+                win_rate_float = float(win_rate[0]) if len(win_rate) > 0 else 0.0
+                logger.warning(f"win_rate is a tuple, using first element: {win_rate_float}")
+            else:
+                # Convert to float and ensure it's a valid number
+                win_rate_float = float(win_rate)
             
             # Set the metric value - CRITICAL for dashboard visibility
             self.current_win_rate.set(win_rate_float)

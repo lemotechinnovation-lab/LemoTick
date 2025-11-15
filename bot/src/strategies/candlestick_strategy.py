@@ -69,7 +69,22 @@ class CandlestickStrategy:
                  rsi_oversold: float = 30,
                  tick_momentum_enabled: bool = True,
                  tick_momentum_lookback: int = 10,
-                 tick_momentum_confidence: float = 0.70):
+                 tick_momentum_confidence: float = 0.70,
+                 max_candles: int = 200):  # ✅ Added this
+        self.min_pattern_confidence = min_pattern_confidence
+        self.require_trend_confirmation = require_trend_confirmation
+        self.require_momentum_confirmation = require_momentum_confirmation
+        self.ema_fast_period = ema_fast_period
+        self.ema_slow_period = ema_slow_period
+        self.rsi_period = rsi_period
+        self.rsi_overbought = rsi_overbought
+        self.rsi_oversold = rsi_oversold
+        self.tick_momentum_enabled = tick_momentum_enabled
+        self.tick_momentum_lookback = tick_momentum_lookback
+        self.tick_momentum_confidence = tick_momentum_confidence
+        self.max_candles = max_candles  # ✅ Fix applied
+        self.levels: list[dict] = [] 
+
         """
         Initialize candlestick strategy.
         
@@ -105,9 +120,9 @@ class CandlestickStrategy:
         self.market_fallback_confidence = config.get("strategy.market_fallback_confidence", 0.60)
         self.available_markets = config.get("markets.available_symbols", ["R_100", "R_75", "R_50", "R_25", "R_200"])
         self.current_market_index = 0  # Start with R_100
-        self.market_switch_threshold = config.get("adaptive_trading.market_switch_threshold", 0.15)
-        self.market_performance_window = config.get("adaptive_trading.market_performance_window", 20)
-        self.min_market_switch_interval = config.get("adaptive_trading.min_market_switch_interval", 600)
+        self.market_switch_threshold = config.get("adaptive_trading.market_switch_threshold", 0.5)
+        self.market_performance_window = config.get("adaptive_trading.market_performance_window", 10)
+        self.min_market_switch_interval = config.get("adaptive_trading.min_market_switch_interval", 30)
         
         # Market performance tracking
         self.market_performance = {market: [] for market in self.available_markets}
@@ -116,7 +131,7 @@ class CandlestickStrategy:
         self.max_trend_mismatches = 5  # Switch market after 5 consecutive trend mismatches
         self.pending_market_switch = None  # Store pending market switch requests
         
-        # Current trading symbol for inverted logic detection
+        # Current trading symbol
         self.current_symbol = "R_100"  # Default symbol, will be updated by bot engine
         
         # Technical indicators for confirmation
@@ -147,12 +162,12 @@ class CandlestickStrategy:
         # 2. Place trade -> wait for 2 more candles to fully form
         # 3. Close trade -> wait for next candle to fully form
         # 4. Repeat cycle
-        self.candle_buffer = deque(maxlen=3)  # Store last 3 completed candles
+        self.candle_buffer = deque(maxlen=max_candles)  # Store candles with max limit
         self.min_candles_for_signal = 1  # Only need 1 candle to decide direction
         self.trade_phase = "waiting_for_direction"  # waiting_for_direction, trade_active, waiting_for_close
         
         # Configurable close timing (default: 2 candles = 10 minutes for 5-min candles)
-        self.close_after_candles = config.get("strategy.candlestick_close_after_candles", 2)
+        self.close_after_candles = config.get("strategy.candlestick_close_after_candles", 1)
         
         # CRITICAL: Trade timing tracking for "close after second candlestick" logic
         self.active_trades = {}  # trade_id -> trade_data
@@ -165,8 +180,10 @@ class CandlestickStrategy:
         self.reversal_wick_ratio = 0.8  # SIGNIFICANTLY REDUCED for more signals
         
         # Enhanced quality thresholds (AGGRESSIVE)
-        self.min_body_size_pips = 0.15  # SIGNIFICANTLY REDUCED for more signals
-        self.min_total_range_pips = 0.25  # SIGNIFICANTLY REDUCED for more signals
+        self.min_body_size_pips = 0.0001  # SIGNIFICANTLY REDUCED for more signals
+        self.min_total_range_pips = 0.0003  # SIGNIFICANTLY REDUCED for more signals
+
+        self.trade_duration = config.get("trading.contract_duration", 3);
         
         # Performance tracking
         self.signals_generated = 0
@@ -188,21 +205,9 @@ class CandlestickStrategy:
         logger.info(f"  RSI: {rsi_period} period, {rsi_oversold}/{rsi_overbought} levels")
         logger.info(f"  CRITICAL: Fixed logic - 1 candle to decide, 2 candles to close")
 
-    def _is_inverted_symbol(self, symbol: str) -> bool:
-        """
-        Check if symbol uses inverted logic.
-        
-        Args:
-            symbol: Symbol to check
-            
-        Returns:
-            True if symbol uses inverted logic
-        """
-        return symbol in ["R_100", "R_75", "R_50", "R_25", "R_200"]
-
     def set_current_symbol(self, symbol: str) -> None:
         """
-        Set the current trading symbol for inverted logic detection.
+        Set the current trading symbol.
         
         Args:
             symbol: Current trading symbol (e.g., "R_100", "R_75", etc.)
@@ -213,218 +218,331 @@ class CandlestickStrategy:
     def update_tick(self, price: float) -> Optional[bool]:
         """
         Update strategy with new tick price (builds candles).
-        
+    
         Args:
             price: Current tick price
-            
+    
         Returns:
             True if candle completed, False otherwise
         """
         self.price_history.append(price)
-        
-        # Initialize current candle if needed
+    
+        # Initialize or reset current candle
         if self.current_candle is None:
-            self.current_candle = {
-                "open": price,
-                "high": price,
-                "low": price,
-                "close": price
-            }
-            self.candle_tick_count = 1
+            self._start_new_candle(price)
             return False
-        
+    
         # Update current candle
         self.current_candle["high"] = max(self.current_candle["high"], price)
         self.current_candle["low"] = min(self.current_candle["low"], price)
         self.current_candle["close"] = price
         self.candle_tick_count += 1
-        
+    
         # Check if candle is complete
         if self.candle_tick_count >= self.ticks_per_candle:
-            # Complete candle
-            logger.info(f"CANDLE COMPLETED: Tick {self.candle_tick_count}/{self.ticks_per_candle} reached!")
-            logger.info(f"CANDLE DATA: O:{self.current_candle['open']:.4f} H:{self.current_candle['high']:.4f} L:{self.current_candle['low']:.4f} C:{self.current_candle['close']:.4f}")
-            self._complete_candle()
-            
-            # Reset for next candle
-            self.current_candle = {
-                "open": price,
-                "high": price,
-                "low": price,
-                "close": price
-            }
-            self.candle_tick_count = 1
-            
-            return True
-        
-        return False
+            logger.info(f"CANDLE COMPLETED: Tick {self.candle_tick_count}/{self.ticks_per_candle}")
+            logger.info(
+                f"CANDLE DATA: O:{self.current_candle['open']:.4f} "
+                f"H:{self.current_candle['high']:.4f} "
+                f"L:{self.current_candle['low']:.4f} "
+                f"C:{self.current_candle['close']:.4f}"
+            )
     
-    def update_candle(self, 
-                     open: float, 
-                     high: float, 
-                     low: float, 
-                     close: float) -> None:
-        """
-        Update strategy with completed candle (alternative to tick updates).
-        
-        Args:
-            open: Opening price
-            high: Highest price
-            low: Lowest price
-            close: Closing price
-        """
-        # Add to pattern detector
-        self.pattern_detector.add_candle(open, high, low, close)
-        
-        # CRITICAL: Add to candle buffer for signal generation
-        completed_candle = {
-            "open": open,
-            "high": high,
-            "low": low,
-            "close": close
+            self._complete_candle()
+            self._start_new_candle(price)
+            return True
+    
+        return False
+
+
+    def _start_new_candle(self, price: float) -> None:
+        """Helper to initialize or reset a new candle."""
+        self.current_candle = {
+            "open": price,
+            "high": price,
+            "low": price,
+            "close": price
         }
-        self.candle_buffer.append(completed_candle)
-        
-        # DEBUG: Log candle addition to buffer
-        logger.info(f"CANDLE BUFFER DEBUG: Added candle O:{open:.4f} H:{high:.4f} L:{low:.4f} C:{close:.4f} to buffer. Buffer size: {len(self.candle_buffer)}")
-        
-        # CRITICAL: Increment total candles processed counter
+        self.candle_tick_count = 1
+
+    
+    def update_candle(self, open: float, high: float, low: float, close: float) -> None:
+        """Update strategy with completed candle (alternative to tick updates)."""
+        self.pattern_detector.add_candle(open, high, low, close)
+    
+        completed_candle = {"open": open, "high": high, "low": low, "close": close}
+        self.candle_buffer.append(completed_candle)  # deque automatically handles maxlen overflow
+    
+        logger.info(f"CANDLE BUFFER DEBUG: Added candle O:{open:.4f} H:{high:.4f} L:{low:.4f} C:{close:.4f} | Buffer size={len(self.candle_buffer)}")
+    
         self.total_candles_processed += 1
-        
-        # Update indicators
         self.ema_fast.update(close)
         self.ema_slow.update(close)
         self.rsi.update(close)
         self.macd.update(close)
-        
-        #  NEW: Update Fibonacci levels with new candle data
+    
         if self.fibonacci_enabled:
             import time
             self.fibonacci.update(close, int(time.time()))
-        
-        # Update price history
+    
         self.price_history.append(close)
-        
-        # CRITICAL: Update trade timing for "close after second candlestick" logic
         self._update_trade_timing()
-        
         logger.debug(f"Candle updated: O:{open:.4f} H:{high:.4f} L:{low:.4f} C:{close:.4f}")
+
     
     def _complete_candle(self) -> None:
-        """Complete and process current candle."""
+        """
+        Finalize and process the current candle.
+
+        Handles:
+        - Appending completed candle to buffer
+        - Updating indicators and pattern detectors
+        - Managing trade phases (direction → close → reset)
+        - Logging and error resilience
+        """
         if self.current_candle is None:
+            logger.debug("⚠️ Skipping _complete_candle — current_candle is None.")
             return
-        
-        # Update pattern detector and indicators
-        self.update_candle(
-            open=self.current_candle["open"],
-            high=self.current_candle["high"],
-            low=self.current_candle["low"],
-            close=self.current_candle["close"]
-        )
-        
-        # CRITICAL: Update trade timing for "close after second candlestick" logic
-        self._update_trade_timing()
+
+        try:
+            # --- 📊 Finalize Candle Data ---
+            completed_candle = {
+                "open": self.current_candle["open"],
+                "high": self.current_candle["high"],
+                "low": self.current_candle["low"],
+                "close": self.current_candle["close"],
+                "timestamp": self.current_candle.get("timestamp", time.time())
+            }
+
+            # Append to candle buffer (maintain size limit)
+            self.candle_buffer.append(completed_candle)
+            if len(self.candle_buffer) > self.max_candles:
+                self.candle_buffer.pop()
+
+            logger.info(
+                f"📈 Candle completed — O:{completed_candle['open']:.5f} "
+                f"H:{completed_candle['high']:.5f} L:{completed_candle['low']:.5f} "
+                f"C:{completed_candle['close']:.5f} | Buffer size={len(self.candle_buffer)}"
+            )
+
+            # --- 🔁 Update indicators/pattern detectors ---
+            self.update_candle(
+                open=completed_candle["open"],
+                high=completed_candle["high"],
+                low=completed_candle["low"],
+                close=completed_candle["close"]
+            )
+
+            # --- 🕒 Trade Timing Control ---
+            self._update_trade_timing()
+
+            # --- ⚙️ Phase-Based Processing ---
+            if self.trade_phase == "waiting_for_direction":
+                # Try generating new signal
+                signal = self.get_signal()
+                if signal:
+                    logger.info(
+                        f"📊 Signal detected — {signal['type'].upper()} | Pattern={signal['pattern']} | Confidence={signal['confidence']:.1%}"
+                    )
+                else:
+                    logger.debug("No signal generated this candle (phase: waiting_for_direction).")
+
+            # --- 🧹 Reset current candle for next cycle ---
+            self.current_candle = None
+
+        except Exception as e:
+            logger.error(f"❌ Error during _complete_candle(): {e}")
+
+
+    def get_fibonacci_signal(self, price: float) -> Optional[dict]:
+        """
+        Generate a basic Fibonacci confluence signal.
+        Returns a dict with 'type', 'confidence', and 'level'.
+        """
+        try:
+            if not hasattr(self, "levels") or not self.levels:
+                return None
+
+            # Ensure all level prices are numeric
+            numeric_levels = []
+            for i, lvl in enumerate(self.levels):
+                if isinstance(lvl, dict):
+                    numeric_levels.append({"name": lvl.get("name", f"level_{i}"), "price": float(lvl.get("price", 0.0))})
+                else:
+                    numeric_levels.append({"name": f"level_{i}", "price": float(lvl)})
+
+            # Find nearest level
+            nearest = min(numeric_levels, key=lambda lvl: abs(price - lvl["price"]))
+            nearest_price = nearest["price"]
+
+            # Calculate difference ratio safely
+            if nearest_price == 0:
+                return None  # Avoid division by zero
+
+            diff_ratio = abs(price - nearest_price) / nearest_price
+
+            # Signal logic: within 0.2% of level
+            if diff_ratio < 0.002:
+                signal_type = "BUY" if price <= nearest_price else "SELL"
+                confidence = max(0.0, min(1.0, 0.9 - diff_ratio * 100))  # clamp confidence 0–1
+                return {"type": signal_type, "confidence": confidence, "level": nearest["name"]}
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error generating Fibonacci signal: {e}")
+            return None
     
     def get_signal(self) -> Optional[Dict]:
         """
         Get trading signal based on candlestick patterns and confirmations.
-        
-        FIXED LOGIC:
-        1. Wait for 1st candle to fully form -> decide direction
-        2. Place trade -> wait for 2 more candles to fully form  
-        3. Close trade -> wait for next candle to fully form
-        4. Repeat cycle
-        
+
         Returns:
             Signal dictionary or None
         """
-        # DEBUG: Log signal request
-        logger.info(f"SIGNAL REQUEST DEBUG: Phase='{self.trade_phase}', Buffer size={len(self.candle_buffer)}, Min required={self.min_candles_for_signal}")
-        
-        # CRITICAL: Only generate signals when waiting for direction
+        # --- 🛑 Phase Gate ---
         if self.trade_phase != "waiting_for_direction":
-            logger.info(f"CANDLESTICK: Skipping signal - phase is '{self.trade_phase}', not 'waiting_for_direction'")
+            logger.debug(
+                f"CANDLESTICK: Skipping signal generation — currently in phase '{self.trade_phase}'"
+            )
             return None
-        
-        # Check if we have enough candles for analysis
+
+        # --- 🧱 Ensure Enough Candles ---
         if len(self.candle_buffer) < self.min_candles_for_signal:
             self._record_filter("insufficient_candles")
-            logger.info(f"CANDLESTICK: Insufficient candles for signal: {len(self.candle_buffer)} < {self.min_candles_for_signal}")
+            logger.debug(
+                f"CANDLESTICK: Insufficient candles: {len(self.candle_buffer)} < {self.min_candles_for_signal}"
+            )
             return None
-        
-        # PHASE 1: Waiting for direction (need 1 candle to decide)
-        return self._get_direction_signal()
-    
+
+        # --- ⚙️ Generate Direction Signal ---
+        signal = self._get_direction_signal()
+        if not signal:
+            logger.debug("CANDLESTICK: No valid signal returned from _get_direction_signal().")
+            return None
+
+        # --- ✅ Signal Approved ---
+        logger.info(
+            f"✅ SIGNAL APPROVED: {signal['type'].upper()} | Pattern={signal['pattern']} | "
+            f"Confidence={signal['confidence']:.1%} | Quality={signal['quality_score']:.2f}"
+        )
+
+        return signal
+
     def _get_direction_signal(self) -> Optional[Dict]:
         """
-        Analyze the most recent candle to decide trade direction.
-        
+        Analyze recent candles to decide accurate trade direction based on
+        candlestick patterns, EMA trend, and momentum alignment.
+
         Returns:
             Signal dictionary or None
         """
         if len(self.candle_buffer) < 1:
+            logger.debug("No candles in buffer — cannot generate signal.")
             return None
-        
-        # Get the most recent candle
-        candle = self.candle_buffer[-1]
-        
-        # Analyze specific patterns from highlighted chart
-        pattern_result = self._analyze_highlighted_patterns(None, candle)
-        
-        if pattern_result is None:
+
+        # Most recent candles
+        if len(self.candle_buffer) >= 2:
+            candle2 = self.candle_buffer[-1]
+            candle1 = self.candle_buffer[-2]
+            self._analyze_highlighted_patterns(candle1, candle2)
+        else:
+            # Not enough candles to analyze
+            candle1, candle2 = None, None
+            logger.debug("Skipping pattern analysis - insufficient candle data")
+
+        # --- 1️⃣ Pattern Analysis ---
+        pattern_result = self._analyze_highlighted_patterns(candle1, candle2)
+        if not pattern_result:
+            logger.debug("No highlighted candlestick pattern detected.")
             return None
-        
+
         pattern_name, signal_type, confidence = pattern_result
-        
-        # Check minimum confidence
+
+        # --- 2️⃣ Confidence Filter ---
         if confidence < self.min_pattern_confidence:
             self._record_filter("low_confidence")
-            logger.debug(f"Pattern {pattern_name} filtered: confidence {confidence:.0%} < {self.min_pattern_confidence:.0%}")
+            logger.info(
+                f"[FILTER] Pattern '{pattern_name}' skipped — low confidence "
+                f"({confidence:.0%} < {self.min_pattern_confidence:.0%})"
+            )
             return None
-        
-        # Trend confirmation disabled to avoid filtering correct signals for R_ symbols
-        # The pattern detection now handles inverted logic correctly
-        
-        # Momentum confirmation also disabled to avoid filtering correct signals for R_ symbols
-        # The pattern detection now handles inverted logic correctly
-        
-        # Calculate quality score
-        quality_score = self._calculate_enhanced_quality_score(pattern_name, confidence, signal_type)
-        
-        # Generate signal with CRITICAL timing information
+
+        # --- 3️⃣ EMA & RSI Alignment ---
+        ema_trend = self._get_ema_trend()  # returns "up", "down", or "flat"
+        rsi_value = self.rsi.get_value() or 50.0
+        direction_ok = False
+
+        # ✅ Relaxed trend-momentum confirmation
+        if signal_type == "BUY" and ema_trend in ("up", "flat") and rsi_value > 48:
+            direction_ok = True
+        elif signal_type == "SELL" and ema_trend in ("down", "flat") and rsi_value < 52:
+            direction_ok = True
+        else:
+            # Allow strong patterns even against minor trend mismatch
+            if confidence >= 0.85:
+                direction_ok = True
+                logger.info(
+                    f"[OVERRIDE] {pattern_name} passes due to high confidence ({confidence:.0%}) "
+                    f"despite EMA/RSI mismatch."
+                )
+
+        if not direction_ok:
+            self._record_filter("trend_mismatch")
+            logger.info(
+                f"[FILTER] Pattern '{pattern_name}' rejected due to EMA/RSI mismatch — "
+                f"Signal={signal_type}, EMA={ema_trend}, RSI={rsi_value:.1f}, Confidence={confidence:.0%}"
+            )
+            return None
+
+        # --- 4️⃣ Signal Direction ---
+        # Patterns always return semantic meaning (BUY=expect up, SELL=expect down)
+        # This works for ALL symbols including R_100
+
+        # --- 5️⃣ Compute Signal Quality ---
+        quality_score = self._calculate_enhanced_quality_score(
+            pattern_name, confidence, signal_type
+        )
+
+        # --- 6️⃣ Construct Signal Dictionary ---
         signal = {
             "type": signal_type,
             "pattern": pattern_name,
             "confidence": confidence,
             "quality_score": quality_score,
-            "duration": 5,  # 5-minute contracts for faster binary options trading
+            "duration": 3,
             "timestamp": time.time(),
             "strategy": "EnhancedCandlestick",
-            "pattern_type": "highlighted_pattern",  # Required by strategy engine
-            # CRITICAL: Fixed timing - close after configurable candles complete
-            "close_after_candles": self.close_after_candles,  # Close after configurable candlesticks
-            "trade_start_candle": self.total_candles_processed,  # Track when trade starts
-            "expected_close_candle": self.total_candles_processed + self.close_after_candles,  # When to close
-            # Add metadata for strategy engine compatibility
+            "pattern_type": "highlighted_pattern",
+            "close_after_candles": self.close_after_candles,
+            "trade_start_candle": self.total_candles_processed,
+            "expected_close_candle": self.total_candles_processed + self.close_after_candles,
             "metadata": {
-                "ema_trend": self._get_ema_trend(),
-                "rsi_value": self.rsi.get_value() or 50.0,
-                "pattern_type": "highlighted_pattern"
-            }
+                "ema_trend": ema_trend,
+                "rsi_value": rsi_value,
+                "pattern_type": "highlighted_pattern",
+            },
         }
-        
-        # Record statistics
+
+        # --- 7️⃣ Logging Summary ---
+        logger.info(
+            f"[SIGNAL CONFIRMED] {signal_type.upper()} | "
+            f"Pattern={pattern_name}, Confidence={confidence:.1%}, "
+            f"EMA={ema_trend}, RSI={rsi_value:.1f}, Quality={quality_score:.2f}"
+        )
+        logger.info(
+            f"[TRADE PLAN] Will close after {signal['close_after_candles']} candles "
+            f"(expected close: {signal['expected_close_candle']})"
+        )
+
+        # --- 8️⃣ Update Internal Statistics ---
         self.signals_generated += 1
-        if pattern_name not in self.signals_by_pattern:
-            self.signals_by_pattern[pattern_name] = 0
-        self.signals_by_pattern[pattern_name] += 1
-        
-        logger.info(f"DIRECTION DECIDED: {signal_type} - {pattern_name} (confidence: {confidence:.0%}, quality: {quality_score:.0%})")
-        logger.info(f"TRADE TIMING: Will close after {signal['close_after_candles']} more candlesticks (candle {signal['expected_close_candle']})")
-        logger.info(f"PHASE: Moving from '{self.trade_phase}' to 'trade_active'")
-        
+        self.signals_by_pattern[pattern_name] = self.signals_by_pattern.get(pattern_name, 0) + 1
+
+        # --- ✅ Final Output ---
+        logger.debug(f"[DIRECTION OK] Signal object ready: {signal}")
         return signal
+
     
     def _check_trend_confirmation(self, pattern: PatternMatch) -> bool:
         """Check if EMA trend confirms the pattern signal (simplified for enhanced pattern detection only)."""
@@ -443,8 +561,26 @@ class CandlestickStrategy:
         return 0.8  # Simplified - high confidence for enhanced pattern detection
     
     def _get_ema_trend(self) -> str:
-        """Get current EMA trend direction (simplified for enhanced pattern detection only)."""
-        return "NEUTRAL"  # Simplified - enhanced pattern detection doesn't need complex EMA analysis
+        """Compute EMA trend based on actual EMA indicators."""
+        if len(self.candle_buffer) < 2:
+            return "neutral"
+        
+        # Use actual EMA indicators instead of simple moving averages
+        ema_fast_value = self.ema_fast.get_value()
+        ema_slow_value = self.ema_slow.get_value()
+        
+        if ema_fast_value is None or ema_slow_value is None:
+            return "neutral"
+        
+        # Add tolerance to avoid exact equality issues
+        tolerance = 0.001
+        if ema_fast_value > ema_slow_value + tolerance:
+            return "up"
+        elif ema_fast_value < ema_slow_value - tolerance:
+            return "down"
+        else:
+            return "neutral"
+
     
     def _get_duration(self, pattern: PatternMatch) -> int:
         """
@@ -486,404 +622,421 @@ class CandlestickStrategy:
             "strategy_name": "CandlestickPatternStrategy"
         }
     
-    def _analyze_highlighted_patterns(self, candle1: Optional[Dict], candle2: Dict) -> Optional[tuple]:
+    def _analyze_simple_patterns(self, candle1: Optional[Dict], candle2: Optional[Dict]) -> Optional[tuple]:
         """
-        Analyze specific patterns using four-category classification system:
-        1. Bullish Patterns: Indicate potential upward price movement
-        2. Bearish Patterns: Suggest possible downward price movement  
-        3. Neutral Patterns: Signal indecision in the market
-        4. Complex Patterns: Involve multiple candles and provide nuanced signals
-        
+        Analyze candle patterns using a structured four-category classification system:
+          1. Bullish Patterns   → potential upward move
+          2. Bearish Patterns   → potential downward move
+          3. Neutral Patterns   → indecision signals
+          4. Complex Patterns   → multi-candle, nuanced formations
+
+        Optionally integrates Fibonacci confluence to enhance confidence levels.
+
         Args:
             candle1: Previous candle (if available)
             candle2: Current candle
-            
+
         Returns:
-            Tuple of (pattern_name, signal_type, confidence) or None
+            Tuple (pattern_name, signal_type, confidence) or None
         """
-        if candle2 is None:
+        if not candle2:
             return None
-        
-        # Calculate candle metrics
-        body_size = abs(candle2["close"] - candle2["open"])
-        total_range = candle2["high"] - candle2["low"]
-        upper_wick = candle2["high"] - max(candle2["open"], candle2["close"])
-        lower_wick = min(candle2["open"], candle2["close"]) - candle2["low"]
-        
-        # Avoid division by zero
-        if total_range == 0:
+
+        # --- Step 1: Basic Candle Metrics ---
+        open_price = candle2["open"]
+        close_price = candle2["close"]
+        high_price = candle2["high"]
+        low_price = candle2["low"]
+
+        body_size = abs(close_price - open_price)
+        total_range = high_price - low_price
+        upper_wick = high_price - max(open_price, close_price)
+        lower_wick = min(open_price, close_price) - low_price
+
+        if total_range <= 0:
+            logger.debug("Skipped candle: total_range=0 (invalid)")
             return None
-        
-        # Quality filtering: Check minimum pip requirements
-        if body_size < self.min_body_size_pips or total_range < self.min_total_range_pips:
-            logger.debug(f"Pattern filtered: body_size={body_size:.2f} < {self.min_body_size_pips} or range={total_range:.2f} < {self.min_total_range_pips}")
+
+        # --- Step 2: Filter Out Weak / Noisy Candles ---
+        if (body_size < self.min_body_size_pips) or (total_range < self.min_total_range_pips):
+            logger.debug(
+                f"Pattern filtered: body_size={body_size:.2f} < {self.min_body_size_pips} "
+                f"or range={total_range:.2f} < {self.min_total_range_pips}"
+            )
             return None
-        
-        # Continue with existing pattern analysis
+
+        # --- Step 3: Calculate Relative Ratios ---
         body_ratio = body_size / total_range
         upper_wick_ratio = upper_wick / total_range
         lower_wick_ratio = lower_wick / total_range
-        
-        # ENHANCED: Four-Category Pattern Classification
-        # 1. NEUTRAL PATTERNS - Signal market indecision
-        neutral_pattern = self._detect_neutral_patterns(candle2, body_size, total_range, upper_wick, lower_wick)
-        if neutral_pattern:
-            return neutral_pattern
-        
-        # 2. BULLISH PATTERNS - Indicate potential upward price movement
-        bullish_pattern = self._detect_bullish_patterns(candle1, candle2, body_ratio, upper_wick_ratio, lower_wick_ratio)
-        if bullish_pattern:
-            return bullish_pattern
-        
-        # 3. BEARISH PATTERNS - Suggest possible downward price movement
-        bearish_pattern = self._detect_bearish_patterns(candle1, candle2, body_ratio, upper_wick_ratio, lower_wick_ratio)
-        if bearish_pattern:
-            return bearish_pattern
-        
-        # 4. COMPLEX PATTERNS - Multi-candle patterns with nuanced signals
-        complex_pattern = self._detect_complex_patterns(candle1, candle2, body_ratio, upper_wick_ratio, lower_wick_ratio)
-        if complex_pattern:
-            return complex_pattern
-        
-        # Enhanced four-category pattern detection completed
-        # All basic patterns are now handled by the sophisticated detection methods above
-        
-        # Additional Analysis: Fibonacci Level Confluence
-        if self.fibonacci_enabled and len(self.price_history) > 0:
-            current_price = candle2["close"]
+
+        # --- Step 4: Four-Category Pattern Detection ---
+        # 1. Neutral → 2. Bullish → 3. Bearish → 4. Complex
+        pattern_detectors = [
+            self._detect_neutral_patterns,
+            self._detect_bullish_patterns,
+            self._detect_bearish_patterns,
+            self._detect_complex_patterns,
+        ]
+
+        for detector in pattern_detectors:
+            try:
+                result = detector(candle1, candle2, body_ratio, upper_wick_ratio, lower_wick_ratio)
+                if result:
+                    return result
+            except TypeError:
+                # Handles detectors with different signatures (e.g., neutral uses more args)
+                if detector == self._detect_neutral_patterns:
+                    result = detector(candle2, body_size, total_range, upper_wick, lower_wick)
+                    if result:
+                        return result
+                else:
+                    raise
+
+        # --- Step 5: Fibonacci Confluence Analysis ---
+        if self.fibonacci_enabled and getattr(self, "fibonacci", None) and len(self.price_history) > 0:
+            current_price = close_price
             fib_signal = self.fibonacci.get_signal(current_price)
-            
+
             if fib_signal:
-                # Fibonacci level detected - boost confidence for any pattern
-                fib_confidence = fib_signal["confidence"]
+                fib_type = fib_signal["type"]  # BUY or SELL
                 fib_level = fib_signal["level"]
-                
-                # Check if Fibonacci signal aligns with any detected pattern
-                if fib_signal["type"] == "BUY":
-                    # Look for bullish patterns near Fibonacci support levels
-                    if lower_wick_ratio >= 0.4:  # Long lower wick (support bounce)
-                        boosted_confidence = min(0.95, 0.75 + self.fibonacci_confidence_boost)
-                        logger.info(f"FIBONACCI CONFLUENCE: Support bounce at {fib_level} level - confidence boosted to {boosted_confidence:.0%}")
+                fib_confidence = fib_signal.get("confidence", 0.7)
+
+                is_bullish_candle = close_price > open_price
+                boosted_confidence = None
+
+                if fib_type == "BUY":
+                    # Bullish Fibonacci confluence
+                    if lower_wick_ratio >= 0.4:
+                        boosted_confidence = min(0.95, fib_confidence + self.fibonacci_confidence_boost)
+                        logger.info(
+                            f"FIBONACCI: Support bounce at {fib_level} (wick={lower_wick_ratio:.2f}) "
+                            f"→ confidence {boosted_confidence:.0%}"
+                        )
                         return ("FibonacciSupportBounce", "BUY", boosted_confidence)
-                    elif body_ratio >= 0.5:  # Strong candle - Apply inverted logic for R_ symbols
-                        is_bullish_candle = candle2["close"] > candle2["open"]
-                        if self._is_inverted_symbol(self.current_symbol):
-                            if not is_bullish_candle:  # Red candle = bullish for inverted symbols
-                                boosted_confidence = min(0.95, 0.85 + self.fibonacci_confidence_boost)
-                                logger.info(f"FIBONACCI CONFLUENCE: Strong bullish candle at {fib_level} level (inverted logic - red candle) - confidence boosted to {boosted_confidence:.0%}")
-                                return ("FibonacciBullishMomentum", "BUY", boosted_confidence)
-                        else:
-                            if is_bullish_candle:  # Green candle = bullish for normal symbols
-                                boosted_confidence = min(0.95, 0.85 + self.fibonacci_confidence_boost)
-                                logger.info(f"FIBONACCI CONFLUENCE: Strong bullish candle at {fib_level} level (normal logic - green candle) - confidence boosted to {boosted_confidence:.0%}")
-                                return ("FibonacciBullishMomentum", "BUY", boosted_confidence)
-                
-                elif fib_signal["type"] == "SELL":
-                    # Look for bearish patterns near Fibonacci resistance levels
-                    if upper_wick_ratio >= 0.4:  # Long upper wick (resistance rejection)
-                        boosted_confidence = min(0.95, 0.75 + self.fibonacci_confidence_boost)
-                        logger.info(f"FIBONACCI CONFLUENCE: Resistance rejection at {fib_level} level - confidence boosted to {boosted_confidence:.0%}")
+
+                    elif body_ratio >= 0.5 and is_bullish_candle:
+                        # Large bullish candle body at Fibonacci level = strong bullish
+                        boosted_confidence = min(0.95, fib_confidence + 0.15)
+                        logger.info(
+                            f"FIBONACCI: Bullish momentum at {fib_level} "
+                            f"→ confidence {boosted_confidence:.0%}"
+                        )
+                        return ("FibonacciBullishMomentum", "BUY", boosted_confidence)
+
+                elif fib_type == "SELL":
+                    # Bearish Fibonacci confluence
+                    if upper_wick_ratio >= 0.4:
+                        boosted_confidence = min(0.95, fib_confidence + self.fibonacci_confidence_boost)
+                        logger.info(
+                            f"FIBONACCI: Resistance rejection at {fib_level} (wick={upper_wick_ratio:.2f}) "
+                            f"→ confidence {boosted_confidence:.0%}"
+                        )
                         return ("FibonacciResistanceRejection", "SELL", boosted_confidence)
-                    elif body_ratio >= 0.5:  # Strong candle - Apply inverted logic for R_ symbols
-                        is_bullish_candle = candle2["close"] > candle2["open"]
-                        if self._is_inverted_symbol(self.current_symbol):
-                            if is_bullish_candle:  # Green candle = bearish for inverted symbols
-                                boosted_confidence = min(0.95, 0.85 + self.fibonacci_confidence_boost)
-                                logger.info(f"FIBONACCI CONFLUENCE: Strong bearish candle at {fib_level} level (inverted logic - green candle) - confidence boosted to {boosted_confidence:.0%}")
-                                return ("FibonacciBearishMomentum", "SELL", boosted_confidence)
-                        else:
-                            if not is_bullish_candle:  # Red candle = bearish for normal symbols
-                                boosted_confidence = min(0.95, 0.85 + self.fibonacci_confidence_boost)
-                                logger.info(f"FIBONACCI CONFLUENCE: Strong bearish candle at {fib_level} level (normal logic - red candle) - confidence boosted to {boosted_confidence:.0%}")
-                                return ("FibonacciBearishMomentum", "SELL", boosted_confidence)
-        
+
+                    elif body_ratio >= 0.5 and not is_bullish_candle:
+                        # Large bearish candle body at Fibonacci level = strong bearish
+                        boosted_confidence = min(0.95, fib_confidence + 0.15)
+                        logger.info(
+                            f"FIBONACCI: Bearish momentum at {fib_level} "
+                            f"→ confidence {boosted_confidence:.0%}"
+                        )
+                        return ("FibonacciBearishMomentum", "SELL", boosted_confidence)
+
+        # --- Step 6: No Pattern Found ---
         return None
-    
-    def _detect_neutral_patterns(self, candle: Dict, body_size: float, total_range: float, upper_wick: float, lower_wick: float) -> Optional[tuple]:
+
+
+    def _analyze_highlighted_patterns(self, candle1: Optional[Dict], candle2: Optional[Dict]) -> Optional[tuple]:
+        """Legacy method - now redirects to simple patterns."""
+        return self._analyze_simple_patterns(candle1, candle2)
+
+
+    def _detect_neutral_patterns(
+        self,
+        candle: Dict,
+        body_size: float,
+        total_range: float,
+        upper_wick: float,
+        lower_wick: float
+    ) -> Optional[tuple]:
         """
-        Detect neutral patterns that signal market indecision.
-        
+        Detects neutral candlestick patterns indicating market indecision.
+
         Args:
-            candle: Current candle data
-            body_size: Candle body size
-            total_range: Total candle range
-            upper_wick: Upper wick length
-            lower_wick: Lower wick length
-            
+            candle: Current candle data (open, close, high, low)
+            body_size: Absolute difference between open and close
+            total_range: High - Low (entire candle range)
+            upper_wick: Distance from close/open to high
+            lower_wick: Distance from open/close to low
+
         Returns:
-            Tuple of (pattern_name, signal_type, confidence) or None
+            Tuple (pattern_name, signal_type, confidence) or None
         """
-        if total_range == 0:
-            return None
-            
+        if total_range <= 0:
+            return None  # Avoid division by zero or invalid candles
+
+        # Normalize proportions
         body_ratio = body_size / total_range
         upper_wick_ratio = upper_wick / total_range
         lower_wick_ratio = lower_wick / total_range
-        
-        # Enhanced Doji Detection - Multiple Doji Types
+
+        # =============================
+        # 1️⃣ DOJI FAMILY DETECTION
+        # =============================
         if body_ratio <= 0.1:  # Very small body
-            if upper_wick_ratio > 0.4 and lower_wick_ratio > 0.4:
-                # Long-legged Doji - Strong indecision
-                logger.info(f"NEUTRAL PATTERN: Long-legged Doji detected - Market indecision")
-                return ("LongLeggedDoji", "HOLD", 0.90)  # High confidence for indecision
-            elif upper_wick_ratio > 0.3:
-                # Gravestone Doji - Bearish indecision
-                logger.info(f"NEUTRAL PATTERN: Gravestone Doji detected - Bearish indecision")
+            if upper_wick_ratio >= 0.4 and lower_wick_ratio >= 0.4:
+                logger.info("NEUTRAL: Long-legged Doji detected — strong market indecision.")
+                return ("LongLeggedDoji", "HOLD", 0.90)
+
+            elif upper_wick_ratio >= 0.4 and lower_wick_ratio <= 0.2:
+                logger.info("NEUTRAL: Gravestone Doji detected — potential bearish reversal.")
                 return ("GravestoneDoji", "HOLD", 0.85)
-            elif lower_wick_ratio > 0.3:
-                # Dragonfly Doji - Bullish indecision
-                logger.info(f"NEUTRAL PATTERN: Dragonfly Doji detected - Bullish indecision")
+
+            elif lower_wick_ratio >= 0.4 and upper_wick_ratio <= 0.2:
+                logger.info("NEUTRAL: Dragonfly Doji detected — potential bullish reversal.")
                 return ("DragonflyDoji", "HOLD", 0.85)
+
             else:
-                # Standard Doji - General indecision
-                logger.info(f"NEUTRAL PATTERN: Standard Doji detected - Market indecision")
+                logger.info("NEUTRAL: Standard Doji detected — general indecision.")
                 return ("StandardDoji", "HOLD", 0.80)
-        
-        # Spinning Top - Small body with long wicks
-        if body_ratio <= 0.3 and upper_wick_ratio > 0.3 and lower_wick_ratio > 0.3:
-            logger.info(f"NEUTRAL PATTERN: Spinning Top detected - Market indecision")
+
+        # =============================
+        # 2️⃣ SPINNING TOP DETECTION
+        # =============================
+        if 0.1 < body_ratio <= 0.3 and upper_wick_ratio >= 0.3 and lower_wick_ratio >= 0.3:
+            logger.info("NEUTRAL: Spinning Top detected — market uncertainty.")
             return ("SpinningTop", "HOLD", 0.75)
-        
+
         return None
+
     
-    def _detect_bullish_patterns(self, candle1: Optional[Dict], candle2: Dict, body_ratio: float, upper_wick_ratio: float, lower_wick_ratio: float) -> Optional[tuple]:
+    def _detect_bullish_patterns(
+        self,
+        candle1: Optional[Dict],
+        candle2: Dict,
+        body_ratio: float,
+        upper_wick_ratio: float,
+        lower_wick_ratio: float
+    ) -> Optional[tuple]:
         """
-        Detect bullish patterns that indicate potential upward price movement.
-        
+        Detect bullish candlestick patterns suggesting potential upward movement.
+
         Args:
-            candle1: Previous candle (if available)
+            candle1: Previous candle (optional)
             candle2: Current candle
-            body_ratio: Current candle body ratio
-            upper_wick_ratio: Current candle upper wick ratio
-            lower_wick_ratio: Current candle lower wick ratio
-            
+            body_ratio: Body size ratio (body / total range)
+            upper_wick_ratio: Upper wick ratio (upper wick / total range)
+            lower_wick_ratio: Lower wick ratio (lower wick / total range)
+
         Returns:
-            Tuple of (pattern_name, signal_type, confidence) or None
+            Tuple (pattern_name, signal_type, confidence) or None
         """
-        # Hammer Pattern - Bullish reversal (long lower wick, small upper wick, small body)
-        # Context: Should appear after a downtrend for bullish reversal
+        is_bullish_candle = candle2["close"] > candle2["open"]
+
+        # ============================================================
+        # 1️⃣ Hammer (bullish reversal pattern)
+        # ============================================================
         if lower_wick_ratio >= 2.0 and upper_wick_ratio <= 0.1 and body_ratio <= 0.3:
-            # Simplified: Any long lower wick pattern is potentially bullish
-            # The trend context should be handled by trend confirmation elsewhere
-            logger.info(f"BULLISH PATTERN: Hammer detected - Long lower wick (ratio: {lower_wick_ratio:.2f})")
+            # Hammer: Long lower wick shows rejection of lower prices = bullish
+            logger.info(f"BULLISH PATTERN: Hammer detected → BUY")
             return ("Hammer", "BUY", 0.85)
-        
-        # Inverted Hammer - Bullish reversal (long upper wick, small lower wick, small body)
-        # Context: Should appear after a downtrend for bullish reversal
+
+        # ============================================================
+        # 2️⃣ Inverted Hammer (bullish reversal pattern)
+        # ============================================================
         if upper_wick_ratio >= 2.0 and lower_wick_ratio <= 0.1 and body_ratio <= 0.3:
-            # Simplified: Any long upper wick pattern is potentially bullish
-            # The trend context should be handled by trend confirmation elsewhere
-            logger.info(f"BULLISH PATTERN: Inverted Hammer detected - Long upper wick (ratio: {upper_wick_ratio:.2f})")
+            # Inverted Hammer: Buyers tried to push up (long upper wick) = potential bullish
+            logger.info(f"BULLISH PATTERN: Inverted Hammer detected → BUY")
             return ("InvertedHammer", "BUY", 0.80)
-        
-        # Bullish Engulfing (requires previous candle) - Apply inverted logic for R_ symbols
-        if candle1 is not None:
-            prev_body_size = abs(candle1["close"] - candle1["open"])
-            prev_is_bearish = candle1["close"] < candle1["open"]
-            current_is_bullish = candle2["close"] > candle2["open"]
-            
-            # Check engulfing condition with inverted logic
-            if self._is_inverted_symbol(self.current_symbol):
-                # For inverted symbols, bearish engulfing becomes bullish
-                if (prev_is_bearish and not current_is_bullish and 
-                    candle2["close"] < candle1["open"] and candle2["open"] > candle1["close"]):
-                    logger.info(f"BULLISH PATTERN: Bullish Engulfing detected (inverted logic - bearish engulfing)")
-                    return ("BullishEngulfing", "BUY", 0.90)
-            else:
-                # Normal logic for non-inverted symbols
-                if (prev_is_bearish and current_is_bullish and 
-                    candle2["close"] > candle1["open"] and candle2["open"] < candle1["close"]):
-                    logger.info(f"BULLISH PATTERN: Bullish Engulfing detected (normal logic - bullish engulfing)")
-                    return ("BullishEngulfing", "BUY", 0.90)
-        
-        # Support Bounce - Long lower wick with bullish close - Apply inverted logic for R_ symbols
-        is_bullish_candle = candle2["close"] > candle2["open"]
-        if lower_wick_ratio >= self.reversal_wick_ratio:
-            # For R_ symbols (inverted), red candles with long lower wick indicate bullish continuation
-            if self._is_inverted_symbol(self.current_symbol):
-                if not is_bullish_candle:  # Red candle = bullish for inverted symbols
-                    logger.info(f"BULLISH PATTERN: Support Bounce detected (inverted logic - red candle)")
-                    return ("SupportBounce", "BUY", 0.75)
-            else:
-                # Normal logic for non-inverted symbols
-                if is_bullish_candle:  # Green candle = bullish for normal symbols
-                    logger.info(f"BULLISH PATTERN: Support Bounce detected (normal logic - green candle)")
-                    return ("SupportBounce", "BUY", 0.75)
-        
-        # Strong Bullish Momentum - Apply inverted logic for R_ symbols
-        is_bullish_candle = candle2["close"] > candle2["open"]
-        if body_ratio >= self.momentum_candle_threshold:
-            # For R_ symbols (inverted), red candles indicate bullish momentum
-            if self._is_inverted_symbol(self.current_symbol):
-                if not is_bullish_candle:  # Red candle = bullish for inverted symbols
-                    logger.info(f"BULLISH PATTERN: Strong Bullish Momentum detected (inverted logic - red candle)")
-                    return ("StrongBullishMomentum", "BUY", 0.85)
-            else:
-                # Normal logic for non-inverted symbols
-                if is_bullish_candle:  # Green candle = bullish for normal symbols
-                    logger.info(f"BULLISH PATTERN: Strong Bullish Momentum detected (normal logic - green candle)")
-                    return ("StrongBullishMomentum", "BUY", 0.85)
-        
+
+        # ============================================================
+        # 3️⃣ Bullish Engulfing Pattern
+        # ============================================================
+        if candle1:
+            prev_open, prev_close = candle1["open"], candle1["close"]
+            curr_open, curr_close = candle2["open"], candle2["close"]
+            prev_is_bearish = prev_close < prev_open
+            curr_is_bullish = curr_close > curr_open
+
+            # Standard Bullish Engulfing definition (works for ALL symbols):
+            # - Previous candle is bearish (close < open)
+            # - Current candle is bullish (close > open)
+            # - Current candle's body engulfs previous candle's body
+            engulfing = (
+                prev_is_bearish and curr_is_bullish and
+                curr_close > prev_open and curr_open < prev_close
+            )
+
+            if engulfing:
+                logger.info(f"BULLISH PATTERN: Bullish Engulfing detected → BUY")
+                return ("BullishEngulfing", "BUY", 0.90)
+
+        # ============================================================
+        # 4️⃣ Support Bounce (long lower wick indicating buying pressure)
+        # ============================================================
+        if lower_wick_ratio >= getattr(self, "reversal_wick_ratio", 1.5):
+            # Long lower wick shows price was pushed down but recovered = bullish
+            logger.info(f"BULLISH PATTERN: Support Bounce detected → BUY")
+            return ("SupportBounce", "BUY", 0.75)
+
+        # ============================================================
+        # 5️⃣ Strong Bullish Momentum Candle
+        # ============================================================
+        if body_ratio >= getattr(self, "momentum_candle_threshold", 0.6) and is_bullish_candle:
+            # Large bullish candle body = strong upward momentum
+            logger.info(f"BULLISH PATTERN: Strong Bullish Momentum detected → BUY")
+            return ("StrongBullishMomentum", "BUY", 0.85)
+
         return None
-    
-    def _detect_bearish_patterns(self, candle1: Optional[Dict], candle2: Dict, body_ratio: float, upper_wick_ratio: float, lower_wick_ratio: float) -> Optional[tuple]:
+
+
+    def _detect_bearish_patterns(
+        self,
+        candle1: Optional[Dict],
+        candle2: Dict,
+        body_ratio: float,
+        upper_wick_ratio: float,
+        lower_wick_ratio: float
+    ) -> Optional[tuple]:
         """
-        Detect bearish patterns that suggest possible downward price movement.
-        
+        Detect bearish candlestick patterns suggesting potential downward movement.
+
         Args:
-            candle1: Previous candle (if available)
+            candle1: Previous candle (optional)
             candle2: Current candle
-            body_ratio: Current candle body ratio
-            upper_wick_ratio: Current candle upper wick ratio
-            lower_wick_ratio: Current candle lower wick ratio
-            
+            body_ratio: Body size ratio (body / total range)
+            upper_wick_ratio: Upper wick ratio (upper wick / total range)
+            lower_wick_ratio: Lower wick ratio (lower wick / total range)
+
         Returns:
-            Tuple of (pattern_name, signal_type, confidence) or None
+            Tuple (pattern_name, signal_type, confidence) or None
         """
-        # Hanging Man - Bearish reversal (long lower wick, small upper wick, small body)
-        # Context: Should appear after an uptrend for bearish reversal
+        is_bullish_candle = candle2["close"] > candle2["open"]
+
+        # ============================================================
+        # 1️⃣ Hanging Man (bearish reversal pattern after uptrend)
+        # ============================================================
         if lower_wick_ratio >= 2.0 and upper_wick_ratio <= 0.1 and body_ratio <= 0.3:
-            # Simplified: Any long lower wick pattern is potentially bearish
-            # The trend context should be handled by trend confirmation elsewhere
-            logger.info(f"BEARISH PATTERN: Hanging Man detected - Long lower wick (ratio: {lower_wick_ratio:.2f})")
+            # Hanging Man: Long lower wick after uptrend shows selling pressure = bearish
+            logger.info(f"BEARISH PATTERN: Hanging Man detected → SELL")
             return ("HangingMan", "SELL", 0.85)
-        
-        # Shooting Star - Bearish reversal (long upper wick, small lower wick, small body)
-        # Context: Should appear after an uptrend for bearish reversal
+
+        # ============================================================
+        # 2️⃣ Shooting Star (bearish reversal pattern)
+        # ============================================================
         if upper_wick_ratio >= 2.0 and lower_wick_ratio <= 0.1 and body_ratio <= 0.3:
-            # Simplified: Any long upper wick pattern is potentially bearish
-            # The trend context should be handled by trend confirmation elsewhere
-            logger.info(f"BEARISH PATTERN: Shooting Star detected - Long upper wick (ratio: {upper_wick_ratio:.2f})")
+            # Shooting Star: Rejection of higher prices (long upper wick) = bearish
+            logger.info(f"BEARISH PATTERN: Shooting Star detected → SELL")
             return ("ShootingStar", "SELL", 0.85)
-        
-        # Bearish Engulfing (requires previous candle) - Apply inverted logic for R_ symbols
-        if candle1 is not None:
-            prev_is_bullish = candle1["close"] > candle1["open"]
-            current_is_bearish = candle2["close"] < candle2["open"]
-            
-            # Check engulfing condition with inverted logic
-            if self._is_inverted_symbol(self.current_symbol):
-                # For inverted symbols, bullish engulfing becomes bearish
-                if (prev_is_bullish and not current_is_bearish and 
-                    candle2["close"] > candle1["open"] and candle2["open"] < candle1["close"]):
-                    logger.info(f"BEARISH PATTERN: Bearish Engulfing detected (inverted logic - bullish engulfing)")
-                    return ("BearishEngulfing", "SELL", 0.90)
-            else:
-                # Normal logic for non-inverted symbols
-                if (prev_is_bullish and current_is_bearish and 
-                    candle2["close"] < candle1["open"] and candle2["open"] > candle1["close"]):
-                    logger.info(f"BEARISH PATTERN: Bearish Engulfing detected (normal logic - bearish engulfing)")
-                    return ("BearishEngulfing", "SELL", 0.90)
-        
-        # Resistance Rejection - Long upper wick with bearish close - Apply inverted logic for R_ symbols
-        is_bullish_candle = candle2["close"] > candle2["open"]
-        if upper_wick_ratio >= self.reversal_wick_ratio:
-            # For R_ symbols (inverted), green candles with long upper wick indicate bearish continuation
-            if self._is_inverted_symbol(self.current_symbol):
-                if is_bullish_candle:  # Green candle = bearish for inverted symbols
-                    logger.info(f"BEARISH PATTERN: Resistance Rejection detected (inverted logic - green candle)")
-                    return ("ResistanceRejection", "SELL", 0.75)
-            else:
-                # Normal logic for non-inverted symbols
-                if not is_bullish_candle:  # Red candle = bearish for normal symbols
-                    logger.info(f"BEARISH PATTERN: Resistance Rejection detected (normal logic - red candle)")
-                    return ("ResistanceRejection", "SELL", 0.75)
-        
-        # Strong Bearish Momentum - Apply inverted logic for R_ symbols
-        is_bullish_candle = candle2["close"] > candle2["open"]
-        if body_ratio >= self.momentum_candle_threshold:
-            # For R_ symbols (inverted), green candles indicate bearish momentum
-            if self._is_inverted_symbol(self.current_symbol):
-                if is_bullish_candle:  # Green candle = bearish for inverted symbols
-                    logger.info(f"BEARISH PATTERN: Strong Bearish Momentum detected (inverted logic - green candle)")
-                    return ("StrongBearishMomentum", "SELL", 0.85)
-            else:
-                # Normal logic for non-inverted symbols
-                if not is_bullish_candle:  # Red candle = bearish for normal symbols
-                    logger.info(f"BEARISH PATTERN: Strong Bearish Momentum detected (normal logic - red candle)")
-                    return ("StrongBearishMomentum", "SELL", 0.85)
-        
+
+        # ============================================================
+        # 3️⃣ Bearish Engulfing Pattern
+        # ============================================================
+        if candle1:
+            prev_open, prev_close = candle1["open"], candle1["close"]
+            curr_open, curr_close = candle2["open"], candle2["close"]
+            prev_is_bullish = prev_close > prev_open
+            curr_is_bearish = curr_close < curr_open
+
+            # Standard Bearish Engulfing definition (works for ALL symbols):
+            # - Previous candle is bullish (close > open)
+            # - Current candle is bearish (close < open)
+            # - Current candle's body engulfs previous candle's body
+            engulfing = (
+                prev_is_bullish and curr_is_bearish and
+                curr_close < prev_open and curr_open > prev_close
+            )
+
+            if engulfing:
+                logger.info(f"BEARISH PATTERN: Bearish Engulfing detected → SELL")
+                return ("BearishEngulfing", "SELL", 0.90)
+
+        # ============================================================
+        # 4️⃣ Resistance Rejection (long upper wick indicating selling pressure)
+        # ============================================================
+        if upper_wick_ratio >= getattr(self, "reversal_wick_ratio", 1.5):
+            # Long upper wick shows price was pushed up but rejected = bearish
+            logger.info(f"BEARISH PATTERN: Resistance Rejection detected → SELL")
+            return ("ResistanceRejection", "SELL", 0.75)
+
+        # ============================================================
+        # 5️⃣ Strong Bearish Momentum Candle
+        # ============================================================
+        if body_ratio >= getattr(self, "momentum_candle_threshold", 0.6) and not is_bullish_candle:
+            # Large bearish candle body = strong downward momentum
+            logger.info(f"BEARISH PATTERN: Strong Bearish Momentum detected → SELL")
+            return ("StrongBearishMomentum", "SELL", 0.85)
+
         return None
+
     
-    def _detect_complex_patterns(self, candle1: Optional[Dict], candle2: Dict, body_ratio: float, upper_wick_ratio: float, lower_wick_ratio: float) -> Optional[tuple]:
+    def _detect_complex_patterns(
+        self,
+        candle1: Optional[Dict],
+        candle2: Dict,
+        body_ratio: float,
+        upper_wick_ratio: float,
+        lower_wick_ratio: float
+    ) -> Optional[tuple]:
         """
-        Detect complex patterns involving multiple candles with nuanced signals.
-        
+        Detect complex multi-candle patterns and breakout signals.
+    
         Args:
             candle1: Previous candle (if available)
             candle2: Current candle
             body_ratio: Current candle body ratio
             upper_wick_ratio: Current candle upper wick ratio
             lower_wick_ratio: Current candle lower wick ratio
-            
+    
         Returns:
             Tuple of (pattern_name, signal_type, confidence) or None
         """
         if candle1 is None:
             return None
-        
-        # Breakout Pattern - Strong move after consolidation
+    
+        # --- Helper calculations ---
         prev_body_size = abs(candle1["close"] - candle1["open"])
         prev_range = candle1["high"] - candle1["low"]
         prev_body_ratio = prev_body_size / prev_range if prev_range > 0 else 0
-        
-        # Current candle is strong, previous was small (consolidation breakout) - Apply inverted logic for R_ symbols
-        is_bullish_candle = candle2["close"] > candle2["open"]
-        if body_ratio >= 0.6 and prev_body_ratio < 0.4:
-            # For R_ symbols (inverted), red candles indicate bullish breakout
-            if self._is_inverted_symbol(self.current_symbol):
-                if not is_bullish_candle:  # Red candle = bullish for inverted symbols
-                    logger.info(f"COMPLEX PATTERN: Bullish Breakout detected (inverted logic - red candle)")
-                    return ("BullishBreakout", "BUY", 0.78)
-                else:  # Green candle = bearish for inverted symbols
-                    logger.info(f"COMPLEX PATTERN: Bearish Breakout detected (inverted logic - green candle)")
-                    return ("BearishBreakout", "SELL", 0.78)
-            else:
-                # Normal logic for non-inverted symbols
-                if is_bullish_candle:  # Green candle = bullish for normal symbols
-                    logger.info(f"COMPLEX PATTERN: Bullish Breakout detected (normal logic - green candle)")
-                    return ("BullishBreakout", "BUY", 0.78)
-                else:  # Red candle = bearish for normal symbols
-                    logger.info(f"COMPLEX PATTERN: Bearish Breakout detected (normal logic - red candle)")
-                    return ("BearishBreakout", "SELL", 0.78)
-        
-        # Morning Star Pattern (3-candle pattern - simplified to 2-candle) - Apply inverted logic for R_ symbols
-        prev_is_bearish = candle1["close"] < candle1["open"]
-        current_is_bullish = candle2["close"] > candle2["open"]
-        prev_body_large = prev_body_ratio >= 0.6
-        current_body_large = body_ratio >= 0.6
-        
-        if self._is_inverted_symbol(self.current_symbol):
-            # For inverted symbols, evening star becomes morning star
-            if prev_is_bearish and not current_is_bullish and prev_body_large and current_body_large:
-                logger.info(f"COMPLEX PATTERN: Morning Star (simplified) detected (inverted logic - evening star)")
-                return ("MorningStar", "BUY", 0.88)
-        else:
-            # Normal logic for non-inverted symbols
-            if prev_is_bearish and current_is_bullish and prev_body_large and current_body_large:
-                logger.info(f"COMPLEX PATTERN: Morning Star (simplified) detected (normal logic - morning star)")
-                return ("MorningStar", "BUY", 0.88)
-        
-        # Evening Star Pattern (3-candle pattern - simplified to 2-candle) - Apply inverted logic for R_ symbols
-        prev_is_bullish = candle1["close"] > candle1["open"]
-        current_is_bearish = candle2["close"] < candle2["open"]
-        
-        if self._is_inverted_symbol(self.current_symbol):
-            # For inverted symbols, morning star becomes evening star
-            if prev_is_bearish and not current_is_bearish and prev_body_large and current_body_large:
-                logger.info(f"COMPLEX PATTERN: Evening Star (simplified) detected (inverted logic - morning star)")
-                return ("EveningStar", "SELL", 0.88)
-        else:
-            # Normal logic for non-inverted symbols
-            if prev_is_bullish and current_is_bearish and prev_body_large and current_body_large:
-                logger.info(f"COMPLEX PATTERN: Evening Star (simplified) detected (normal logic - evening star)")
-                return ("EveningStar", "SELL", 0.88)
-        
-        return None
     
-    def _check_trend_confirmation_enhanced(self, signal_type: str) -> bool:
-        """Enhanced trend confirmation (simplified for enhanced pattern detection only)."""
-        return True  # Simplified - enhanced pattern detection doesn't need complex trend confirmation
+        is_bullish_candle = candle2["close"] > candle2["open"]
+    
+        # --- Breakout Pattern ---
+        if body_ratio >= 0.6 and prev_body_ratio < 0.4:
+            # Consolidation (small prev body) followed by strong move (large current body)
+            if is_bullish_candle:
+                logger.info(f"COMPLEX PATTERN: Bullish Breakout detected")
+                return ("BullishBreakout", "BUY", 0.80)
+            else:
+                logger.info(f"COMPLEX PATTERN: Bearish Breakout detected")
+                return ("BearishBreakout", "SELL", 0.80)
+    
+        # --- Morning/Evening Star (Simplified 2-Candle) ---
+        prev_is_bullish = candle1["close"] > candle1["open"]
+        prev_is_bearish = not prev_is_bullish
+        curr_is_bullish = candle2["close"] > candle2["open"]
+        curr_is_bearish = not curr_is_bullish
+    
+        prev_body_large = prev_body_ratio >= 0.6
+        curr_body_large = body_ratio >= 0.6
+    
+        # Standard definitions (works for ALL symbols):
+        #   Morning Star = Bearish → Bullish reversal
+        #   Evening Star = Bullish → Bearish reversal
+    
+        if prev_is_bearish and curr_is_bullish and prev_body_large and curr_body_large:
+            logger.info("COMPLEX PATTERN: Morning Star detected")
+            return ("MorningStar", "BUY", 0.88)
+    
+        if prev_is_bullish and curr_is_bearish and prev_body_large and curr_body_large:
+            logger.info("COMPLEX PATTERN: Evening Star detected")
+            return ("EveningStar", "SELL", 0.88)
+    
+        return None
+
+
     
     def _switch_to_fallback_market(self):
         """Switch to fallback market (simplified for enhanced pattern detection only)."""
@@ -922,55 +1075,85 @@ class CandlestickStrategy:
             return switch_to
         return None
     
-    def _check_momentum_confirmation_enhanced(self, signal_type: str) -> bool:
-        """Enhanced momentum confirmation (simplified for enhanced pattern detection only)."""
-        return True  # Simplified - enhanced pattern detection doesn't need complex momentum confirmation
-    
     def _calculate_enhanced_quality_score(self, pattern_name: str, confidence: float, signal_type: str) -> float:
-        """Calculate enhanced quality score (simplified for enhanced pattern detection only)."""
-        return confidence  # Simplified - use pattern confidence directly
-
-    def _calculate_recent_volatility(self) -> float:
-        """Calculate recent price volatility (simplified for enhanced pattern detection only)."""
-        return 0.001  # Simplified - fixed volatility for enhanced pattern detection
+        """Compute quality score factoring EMA and RSI alignment."""
+        ema_trend = self._get_ema_trend()
+        rsi = self.rsi.get_value() or 50.0
+        score = confidence
+        
+        # Reward if signal aligns with EMA trend
+        if signal_type == "buy" and ema_trend == "up":
+            score += 0.1
+        elif signal_type == "sell" and ema_trend == "down":
+            score += 0.1
+        
+        # Penalize if RSI is overbought/oversold
+        if signal_type == "buy" and rsi > 70:
+            score -= 0.1
+        elif signal_type == "sell" and rsi < 30:
+            score -= 0.1
+        
+        return max(0.0, min(1.0, score))  # Clamp between 0-1
 
     def _update_trade_timing(self) -> None:
         """Update trade timing for 'close after second candlestick' logic."""
         try:
-            # This method will be called by the trade executor to track trade timing
-            # For now, we'll just log the candle completion
-            logger.debug(f"Candle completed. Total candles: {len(self.candle_buffer)}")
+            total_candles = len(self.candle_buffer)
+            logger.debug(f"Candle completed. Total candles: {total_candles}")
             
             # Check if any active trades should be closed
             self._check_trade_close_conditions()
             
-            # Update trade phase based on candle count
+            # Update trade phase based on candle count and trade state
             self._update_trade_phase()
             
+            logger.debug(f"Active trades: {list(self.active_trades.keys())}, Current phase: {self.trade_phase}")
+            
         except Exception as e:
-            logger.error(f"Error updating trade timing: {e}")
+            logger.error(f"Error updating trade timing: {e}", exc_info=True)
+
     
     def _update_trade_phase(self) -> None:
         """Update trade phase based on current state."""
         try:
+            active_trade_count = len(self.active_trades)
+            current_candle_count = self.total_candles_processed
+
             if self.trade_phase == "waiting_for_direction":
-                # Stay in this phase until we get a signal
-                pass
+                # Stay in this phase until a trade is placed
+                if active_trade_count > 0:
+                    # Safety check: mismatch
+                    logger.warning(
+                        f"PHASE MISMATCH: Have {active_trade_count} active trades but phase is 'waiting_for_direction' - correcting to 'trade_active'"
+                    )
+                    self.trade_phase = "trade_active"
+
             elif self.trade_phase == "trade_active":
-                # Check if we should move to waiting_for_close
-                current_candle_count = self.total_candles_processed
+                # Check if any trade has reached expected close candle
                 for trade_id, trade_data in self.active_trades.items():
                     expected_close_candle = trade_data.get("expected_close_candle", 0)
                     if current_candle_count >= expected_close_candle:
                         self.trade_phase = "waiting_for_close"
-                        logger.info(f"PHASE CHANGE: Moving to 'waiting_for_close' (candle {current_candle_count} >= {expected_close_candle})")
+                        logger.info(
+                            f"PHASE CHANGE: Moving to 'waiting_for_close' (candle {current_candle_count} >= {expected_close_candle})"
+                        )
                         break
+
             elif self.trade_phase == "waiting_for_close":
-                # Stay in this phase until trade is closed
-                pass
-                
+                if active_trade_count == 0:
+                    # Safety check: mismatch
+                    logger.warning(
+                        f"PHASE MISMATCH: No active trades but phase is 'waiting_for_close' - correcting to 'waiting_for_direction'"
+                    )
+                    self.trade_phase = "waiting_for_direction"
+
+            else:
+                # Catch unexpected trade_phase values
+                logger.error(f"Unknown trade_phase '{self.trade_phase}' encountered")
+
         except Exception as e:
             logger.error(f"Error updating trade phase: {e}")
+
     
     def _check_trade_close_conditions(self) -> None:
         """Check if any active trades should be closed based on candlestick timing."""
@@ -1005,9 +1188,22 @@ class CandlestickStrategy:
             signal: Signal data containing timing information
         """
         try:
+            # CRITICAL: Ensure we have valid timing data
+            start_candle = signal.get("trade_start_candle", 0)
+            expected_close_candle = signal.get("expected_close_candle", 0)
+            
+            # If timing data is missing or invalid, calculate it based on current candle count
+            if start_candle == 0 or expected_close_candle == 0:
+                close_after_candles = signal.get("close_after_candles", 2)
+                # Use current candle count as start if not provided
+                start_candle = self.total_candles_processed if start_candle == 0 else start_candle
+                # Calculate expected close based on start candle + close_after_candles
+                expected_close_candle = start_candle + close_after_candles
+                logger.warning(f"TIMING DATA MISSING: Using calculated values - Start: {start_candle}, Expected close: {expected_close_candle} (from current candle {self.total_candles_processed})")
+            
             self.active_trades[trade_id] = {
-                "start_candle": signal.get("trade_start_candle", self.total_candles_processed),
-                "expected_close_candle": signal.get("expected_close_candle", self.total_candles_processed + 2),
+                "start_candle": start_candle,
+                "expected_close_candle": expected_close_candle,
                 "signal_type": signal.get("type", ""),
                 "pattern": signal.get("pattern", ""),
                 "start_time": time.time(),
@@ -1016,10 +1212,15 @@ class CandlestickStrategy:
             }
             
             # CRITICAL: Change phase to trade_active when trade is registered
-            self.trade_phase = "trade_active"
+            # This ensures we stay in 'waiting_for_direction' or 'signal_pending' phase until trade is actually placed
+            if self.trade_phase != "trade_active":
+                logger.info(f"PHASE CHANGE: Moving from '{self.trade_phase}' to 'trade_active'")
+                self.trade_phase = "trade_active"
+                # Clear pending signal since trade is now registered
+                self.active_signal = None
             
+            logger.info(f"TRADE REGISTERED: {trade_id} - Pattern: {self.active_trades[trade_id]['pattern']}, Signal Type: {self.active_trades[trade_id]['signal_type']}")
             logger.info(f"TRADE REGISTERED: {trade_id} - Start candle: {self.active_trades[trade_id]['start_candle']}, Expected close: {self.active_trades[trade_id]['expected_close_candle']}")
-            logger.info(f"PHASE CHANGE: Moving to 'trade_active'")
             
         except Exception as e:
             logger.error(f"Error registering trade: {e}")
@@ -1091,106 +1292,6 @@ class CandlestickStrategy:
             "insufficient_candles": 0
         }
         logger.info("Candlestick Strategy reset")
-
-
-# Example usage and testing
-if __name__ == "__main__":
-    print("="*80)
-    print("CANDLESTICK STRATEGY - TEST")
-    print("="*80)
-    
-    # Initialize strategy
-    strategy = CandlestickStrategy(
-        min_pattern_confidence=0.65,
-        require_trend_confirmation=True,
-        require_momentum_confirmation=True
-    )
-    
-    print("\n1. Building trend with EMA confirmation")
-    print("-" * 80)
-    
-    # Build uptrend
-    base_price = 100.0
-    for i in range(30):
-        price = base_price + i * 0.3  # Gradual uptrend
-        strategy.update_candle(
-            open=price,
-            high=price + 0.5,
-            low=price - 0.3,
-            close=price + 0.2
-        )
-    
-    print(f"EMA Trend: {strategy._get_ema_trend()}")
-    print(f"RSI: {strategy.rsi.get_value():.1f}")
-    
-    print("\n2. Testing Bearish Reversal at top of uptrend")
-    print("-" * 80)
-    
-    # Evening Star pattern
-    last_price = base_price + 30 * 0.3
-    strategy.update_candle(open=last_price, high=last_price+1, low=last_price, close=last_price+0.8)  # Bullish
-    strategy.update_candle(open=last_price+0.9, high=last_price+1, low=last_price+0.7, close=last_price+0.85)  # Star
-    strategy.update_candle(open=last_price+0.8, high=last_price+0.9, low=last_price-0.5, close=last_price-0.3)  # Bearish
-    
-    signal = strategy.get_signal()
-    if signal:
-        print(f" Signal: {signal['type']} - {signal['pattern']}")
-        print(f"   Confidence: {signal['confidence']:.0%}, Quality: {signal['quality_score']:.0%}")
-        print(f"   Duration: {signal['duration']} minutes")
-    else:
-        print(" No signal generated (filtered)")
-    
-    print("\n3. Testing Bullish Reversal")
-    print("-" * 80)
-    
-    strategy.reset()
-    
-    # Build downtrend
-    for i in range(30):
-        price = 100 - i * 0.3
-        strategy.update_candle(
-            open=price,
-            high=price + 0.3,
-            low=price - 0.5,
-            close=price - 0.2
-        )
-    
-    # Hammer at bottom
-    last_price = 100 - 30 * 0.3
-    strategy.update_candle(
-        open=last_price,
-        high=last_price + 0.3,
-        low=last_price - 2.0,  # Long lower shadow
-        close=last_price + 0.2
-    )
-    
-    signal = strategy.get_signal()
-    if signal:
-        print(f" Signal: {signal['type']} - {signal['pattern']}")
-        print(f"   Confidence: {signal['confidence']:.0%}, Quality: {signal['quality_score']:.0%}")
-        print(f"   Duration: {signal['duration']} minutes")
-    else:
-        print(" No signal generated (filtered)")
-    
-    # Print statistics
-    print("\n" + "="*80)
-    print("STRATEGY STATISTICS")
-    print("="*80)
-    stats = strategy.get_statistics()
-    print(f"Signals generated: {stats['signals_generated']}")
-    print(f"Signals filtered: {stats['signals_filtered']}")
-    print(f"Signal rate: {stats['signal_rate']:.1f}%")
-    print(f"Filter rate: {stats['filter_rate']:.1f}%")
-    print(f"\nFilter reasons:")
-    for reason, count in stats['filter_reasons'].items():
-        print(f"  {reason}: {count}")
-    print(f"\nSignals by pattern:")
-    for pattern, count in stats['signals_by_pattern'].items():
-        print(f"  {pattern}: {count}")
-    
-    print("\n" + "="*80)
-    print("TEST COMPLETE")
-    print("="*80)
 
 
 
