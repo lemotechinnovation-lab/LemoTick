@@ -10,7 +10,7 @@ scrape_configs:
   - job_name: 'lemotick-bot'
     static_configs:
         # Use only the Docker container name to avoid duplicate metrics
-        - targets: ['lemotick-bot:8000']
+        - targets: ['lemotick-bot:9092']
     scrape_interval: 1s  # 1-second scraping for near-instant updates in Grafana
     # Python prometheus_client.start_http_server serves metrics at '/'
     metrics_path: /

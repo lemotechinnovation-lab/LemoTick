@@ -337,3 +337,4 @@ docker-volumes/
 # Backup files
 *.backup
 *.bak
+.claude/settings.local.json

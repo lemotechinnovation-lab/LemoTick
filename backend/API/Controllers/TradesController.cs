@@ -3,6 +3,9 @@ using MediatR;
 using InvestorManagementSystem.Application.Commands.Trades;
 using InvestorManagementSystem.Application.Queries.Trades;
 using InvestorManagementSystem.Application.DTOs;
+using InvestorManagementSystem.Application.Services;
+using Microsoft.EntityFrameworkCore;
+using InvestorManagementSystem.Infrastructure.Data;
 
 namespace InvestorManagementSystem.API.Controllers;
 
@@ -12,11 +15,15 @@ public class TradesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<TradesController> _logger;
+    private readonly CsvExportService _csvExportService;
+    private readonly ApplicationDbContext _context;
 
-    public TradesController(IMediator mediator, ILogger<TradesController> logger)
+    public TradesController(IMediator mediator, ILogger<TradesController> logger, CsvExportService csvExportService, ApplicationDbContext context)
     {
         _mediator = mediator;
         _logger = logger;
+        _csvExportService = csvExportService;
+        _context = context;
     }
 
     /// <summary>
@@ -111,6 +118,69 @@ public class TradesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving trades for portfolio {PortfolioId}", portfolioId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Export trades to CSV
+    /// </summary>
+    /// <param name="portfolioId">Optional: Filter by portfolio ID</param>
+    /// <param name="startDate">Optional: Filter by start date</param>
+    /// <param name="endDate">Optional: Filter by end date</param>
+    /// <returns>CSV file download</returns>
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportTrades(
+        [FromQuery] Guid? portfolioId = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
+    {
+        try
+        {
+            var query = _context.Trades
+                .Include(t => t.Portfolio)
+                .AsQueryable();
+
+            // Apply filters
+            if (portfolioId.HasValue)
+                query = query.Where(t => t.PortfolioId == portfolioId.Value);
+
+            if (startDate.HasValue)
+                query = query.Where(t => t.EntryTime >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(t => t.EntryTime <= endDate.Value);
+
+            var trades = await query
+                .OrderByDescending(t => t.EntryTime)
+                .Select(t => new TradeExportDto
+                {
+                    Symbol = t.Symbol,
+                    Type = t.Type.ToString(),
+                    Direction = t.Direction.ToString(),
+                    Amount = t.Amount,
+                    EntryPrice = t.EntryPrice,
+                    ExitPrice = t.ExitPrice,
+                    Stake = t.Stake,
+                    Profit = t.Profit,
+                    Loss = t.Loss,
+                    Status = t.Status.ToString(),
+                    EntryTime = t.EntryTime,
+                    ExitTime = t.ExitTime,
+                    Strategy = t.Strategy,
+                    Signal = t.Signal,
+                    PortfolioName = t.Portfolio.Name
+                })
+                .ToListAsync();
+
+            var csvData = _csvExportService.ExportTradesToCsv(trades);
+            var fileName = $"trades_{DateTime.UtcNow:yyyyMMddHHmmss}.csv";
+
+            return File(csvData, "text/csv", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting trades");
             return StatusCode(500, "Internal server error");
         }
     }

@@ -100,7 +100,7 @@ def check_current_account():
         print("❌ No active configuration found")
         return
     
-    with open(TARGET_ENV, 'r') as f:
+    with open(TARGET_ENV, 'r', encoding='utf-8') as f:
         content = f.read()
     
     if "LEMOTICK_LIVE_ACCOUNT=true" in content:

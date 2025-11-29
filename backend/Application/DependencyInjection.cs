@@ -3,6 +3,7 @@ using MediatR;
 using FluentValidation;
 using System.Reflection;
 using InvestorManagementSystem.Application.Mappings;
+using InvestorManagementSystem.Application.Services;
 
 namespace InvestorManagementSystem.Application;
 
@@ -18,6 +19,17 @@ public static class DependencyInjection
 
         // Add FluentValidation
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // Add Application Services
+        services.AddScoped<CsvExportService>();
+        services.AddScoped<WebhookSignatureService>();
+        services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+        services.AddScoped<TwoFactorAuthService>();
+        services.AddScoped<StatementGenerationService>();
+
+        // Bot Management Services
+        services.AddSingleton<IBotManagementService, BotManagementService>();
+        services.AddSingleton<IBotConfigurationService, BotConfigurationService>();
 
         return services;
     }

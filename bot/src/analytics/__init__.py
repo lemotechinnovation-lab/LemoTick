@@ -3,9 +3,8 @@ Analytics module for LemoTick Bot.
 Contains signal scoring and analysis features.
 """
 
-from .adaptive_scorer import AdaptiveSignalScorer
+# adaptive_scorer removed (unused)
+# backtesting_engine moved to backups/unused_code/
 
-__all__ = ['AdaptiveSignalScorer']
-
-
+__all__ = []
 

@@ -11,6 +11,7 @@ using InvestorManagementSystem.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using AspNetCoreRateLimit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,14 +30,32 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add HttpContextAccessor for audit tracking
+builder.Services.AddHttpContextAccessor();
+
+// Add SignalR for real-time notifications
+builder.Services.AddSignalR();
+
+// Add Rate Limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173",  // Vite default port
+                "https://localhost:3000",
+                "https://localhost:5173")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();  // Important for auth cookies/tokens
     });
 });
 
@@ -49,6 +68,12 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 // Add Authentication Services
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Add Real-Time Notification Service
+builder.Services.AddScoped<IRealTimeNotificationService, InvestorManagementSystem.API.Services.SignalRNotificationService>();
+
+// Add Real-Time Trading Broadcast Service
+builder.Services.AddSingleton<InvestorManagementSystem.API.Services.ITradingBroadcastService, InvestorManagementSystem.API.Services.TradingBroadcastService>();
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -86,15 +111,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
+
+// Add Rate Limiting Middleware
+app.UseIpRateLimiting();
 
 // Add custom middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseMiddleware<JwtMiddleware>();
+// JWT middleware removed - using built-in ASP.NET Core JWT authentication
 
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map SignalR Hub
+app.MapHub<InvestorManagementSystem.API.Hubs.NotificationHub>("/notificationHub");
+app.MapHub<InvestorManagementSystem.API.Hubs.TradingHub>("/tradingHub");
 
 // Ensure database is created
 using (var scope = app.Services.CreateScope())

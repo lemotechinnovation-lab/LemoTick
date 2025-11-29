@@ -1,0 +1,1151 @@
+{
+    "info": {
+        "_postman_id": "lemotick-investor-mgmt-001",
+        "name": "Investor Management System API",
+        "description": "Complete API collection for LemoTick Investor Management System",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{jwt_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "https://localhost:7001/api",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "investor_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "portfolio_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "trade_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Authentication",
+            "item": [
+                {
+                    "name": "Register Investor",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('investor_id', jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"phoneNumber\": \"+27123456789\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"nationality\": \"South African\",\n  \"idNumber\": \"9001155800087\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('jwt_token', jsonData.token);",
+                                    "    pm.environment.set('investor_id', jsonData.investorId);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Refresh Token",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"token\": \"{{jwt_token}}\",\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Auth/refresh-token",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Auth",
+                                "refresh-token"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"investorId\": \"{{investor_id}}\",\n  \"currentPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Auth/change-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Auth",
+                                "change-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Health",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Health"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Investors",
+            "item": [
+                {
+                    "name": "Get All Investors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Investors",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Investor By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Investors/{{investor_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors",
+                                "{{investor_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Investor",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('investor_id', jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phoneNumber\": \"+27987654321\",\n  \"dateOfBirth\": \"1985-05-20\",\n  \"nationality\": \"South African\",\n  \"idNumber\": \"8505205800088\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Investors",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Investor",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Smith-Updated\",\n  \"phoneNumber\": \"+27987654321\",\n  \"status\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Investors/{{investor_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors",
+                                "{{investor_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Investor",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Investors/{{investor_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors",
+                                "{{investor_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Investor Portfolios",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Investors/{{investor_id}}/portfolios",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Investors",
+                                "{{investor_id}}",
+                                "portfolios"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Portfolios",
+            "item": [
+                {
+                    "name": "Get All Portfolios",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Portfolios",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Portfolios"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Portfolio By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Portfolios/{{portfolio_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Portfolios",
+                                "{{portfolio_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Portfolio",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('portfolio_id', jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"investorId\": \"{{investor_id}}\",\n  \"name\": \"Growth Portfolio\",\n  \"description\": \"Aggressive growth trading strategy\",\n  \"initialAmount\": 50000.00\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Portfolios",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Portfolios"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Portfolio",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Conservative Growth Portfolio\",\n  \"description\": \"Moderate risk trading strategy\",\n  \"status\": 0\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Portfolios/{{portfolio_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Portfolios",
+                                "{{portfolio_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Trades",
+            "item": [
+                {
+                    "name": "Get All Trades",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Trades",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Trades"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Trade By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Trades/{{trade_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Trades",
+                                "{{trade_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Trade",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('trade_id', jsonData.id);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"portfolioId\": \"{{portfolio_id}}\",\n  \"symbol\": \"EUR/USD\",\n  \"type\": 2,\n  \"amount\": 1.5,\n  \"entryPrice\": 1.0850,\n  \"notes\": \"Bullish trend detected on 1H chart\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Trades",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Trades"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Trade (Close)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"exitPrice\": 1.0920,\n  \"status\": 1,\n  \"notes\": \"Take profit hit, closed manually\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Trades/{{trade_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Trades",
+                                "{{trade_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Trades By Portfolio",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Trades/portfolio/{{portfolio_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Trades",
+                                "portfolio",
+                                "{{portfolio_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Transactions",
+            "item": [
+                {
+                    "name": "Get All Transactions",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Transaction By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Transactions/{{transaction_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions",
+                                "{{transaction_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Transaction (Deposit)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"investorId\": \"{{investor_id}}\",\n  \"portfolioId\": \"{{portfolio_id}}\",\n  \"type\": 0,\n  \"amount\": 10000.00,\n  \"currency\": \"USD\",\n  \"description\": \"Initial deposit\",\n  \"reference\": \"DEP-001\",\n  \"paymentMethod\": \"Bank Transfer\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Transaction (Withdrawal)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"investorId\": \"{{investor_id}}\",\n  \"portfolioId\": \"{{portfolio_id}}\",\n  \"type\": 1,\n  \"amount\": 5000.00,\n  \"currency\": \"USD\",\n  \"description\": \"Profit withdrawal\",\n  \"reference\": \"WD-001\",\n  \"paymentMethod\": \"Bank Transfer\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Transaction Status",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": 2,\n  \"description\": \"Transaction completed successfully\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Transactions/{{transaction_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions",
+                                "{{transaction_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Transactions By Investor",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Transactions/investor/{{investor_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions",
+                                "investor",
+                                "{{investor_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Transactions By Portfolio",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Transactions/portfolio/{{portfolio_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Transactions",
+                                "portfolio",
+                                "{{portfolio_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Performance Metrics",
+            "item": [
+                {
+                    "name": "Get All Performance Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/PerformanceMetrics",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "PerformanceMetrics"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Performance Metric By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/PerformanceMetrics/{{metric_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "PerformanceMetrics",
+                                "{{metric_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Performance Metric",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"portfolioId\": \"{{portfolio_id}}\",\n  \"date\": \"2024-11-15T00:00:00Z\",\n  \"totalValue\": 55000.00,\n  \"totalProfit\": 5500.00,\n  \"totalLoss\": 500.00,\n  \"netProfit\": 5000.00,\n  \"profitPercentage\": 10.00,\n  \"drawdown\": 2.50,\n  \"maxDrawdown\": 5.00,\n  \"sharpeRatio\": 1.85,\n  \"winRate\": 65.00,\n  \"totalTrades\": 100,\n  \"winningTrades\": 65,\n  \"losingTrades\": 35,\n  \"averageWin\": 150.00,\n  \"averageLoss\": 80.00,\n  \"profitFactor\": 2.75\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/PerformanceMetrics",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "PerformanceMetrics"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Performance Metrics By Portfolio",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/PerformanceMetrics/portfolio/{{portfolio_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "PerformanceMetrics",
+                                "portfolio",
+                                "{{portfolio_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Notifications",
+            "item": [
+                {
+                    "name": "Get All Notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Notification By ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications/{{notification_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications",
+                                "{{notification_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Notification",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"investorId\": \"{{investor_id}}\",\n  \"title\": \"Trade Executed\",\n  \"message\": \"Your EUR/USD trade has been executed successfully at 1.0850\",\n  \"type\": 0,\n  \"priority\": 1,\n  \"actionUrl\": \"/trades/{{trade_id}}\",\n  \"actionText\": \"View Trade\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/Notifications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Notifications By Investor",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications/investor/{{investor_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications",
+                                "investor",
+                                "{{investor_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Unread Notifications By Investor",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications/investor/{{investor_id}}/unread",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications",
+                                "investor",
+                                "{{investor_id}}",
+                                "unread"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark Notification As Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications/{{notification_id}}/mark-as-read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications",
+                                "{{notification_id}}",
+                                "mark-as-read"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark All Notifications As Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Notifications/investor/{{investor_id}}/mark-all-as-read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Notifications",
+                                "investor",
+                                "{{investor_id}}",
+                                "mark-all-as-read"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Database Seeding & Performance",
+            "item": [
+                {
+                    "name": "Get Database Stats",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "stats"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Quick Seed (1,000 records)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/seed-quick",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "seed-quick"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Standard Seed (10,000 records)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/seed?recordsPerEntity=10000",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "seed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "recordsPerEntity",
+                                    "value": "10000"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Large Seed (50,000 records)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/seed-large",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "seed-large"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Custom Seed",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/seed?recordsPerEntity=5000",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "seed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "recordsPerEntity",
+                                    "value": "5000",
+                                    "description": "Change this value to seed custom number of records"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Performance Test",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/performance-test",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "performance-test"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Clear All Data (⚠️ DANGER)",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/Seed/clear",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "Seed",
+                                "clear"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

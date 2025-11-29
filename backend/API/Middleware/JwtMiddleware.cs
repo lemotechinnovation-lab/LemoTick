@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace InvestorManagementSystem.API.Middleware;
@@ -50,11 +51,18 @@ public class JwtMiddleware
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
-            var userId = jwtToken.Claims.First(x => x.Type == "investor_id").Value;
 
-            context.Items["UserId"] = userId;
-            context.Items["UserEmail"] = jwtToken.Claims.First(x => x.Type == "email").Value;
-            context.Items["UserName"] = jwtToken.Claims.First(x => x.Type == "name").Value;
+            // Extract claims safely
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "investor_id");
+            var emailClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+            var nameClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name);
+
+            if (userIdClaim != null)
+                context.Items["UserId"] = userIdClaim.Value;
+            if (emailClaim != null)
+                context.Items["UserEmail"] = emailClaim.Value;
+            if (nameClaim != null)
+                context.Items["UserName"] = nameClaim.Value;
         }
         catch (Exception ex)
         {
