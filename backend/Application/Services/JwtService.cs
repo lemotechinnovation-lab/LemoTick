@@ -35,11 +35,12 @@ public class JwtService
             new(ClaimTypes.NameIdentifier, investor.Id.ToString()),
             new(ClaimTypes.Email, investor.Email),
             new(ClaimTypes.Name, $"{investor.FirstName} {investor.LastName}"),
-            new(ClaimTypes.Role, "Investor"),
+            new(ClaimTypes.Role, investor.Role.ToString()),
             new("investor_id", investor.Id.ToString()),
             new("email", investor.Email),
             new("first_name", investor.FirstName),
-            new("last_name", investor.LastName)
+            new("last_name", investor.LastName),
+            new("role", investor.Role.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

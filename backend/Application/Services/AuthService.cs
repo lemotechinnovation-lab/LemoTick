@@ -115,10 +115,10 @@ public class AuthService : IAuthService
                 LastName = registerDto.LastName,
                 Email = registerDto.Email,
                 PhoneNumber = registerDto.PhoneNumber,
-                DateOfBirth = registerDto.DateOfBirth,
+                DateOfBirth = DateTime.SpecifyKind(registerDto.DateOfBirth, DateTimeKind.Utc),
                 Nationality = registerDto.Nationality,
                 IdNumber = registerDto.IdNumber,
-                Status = InvestorStatus.Pending, // Requires verification
+                Status = InvestorStatus.Active, // Active immediately for development (TODO: require email verification in production)
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
                 CreatedAt = DateTime.UtcNow

@@ -40,6 +40,20 @@ public class Investor
     public InvestorStatus Status { get; set; } = InvestorStatus.Pending;
 
     [Required]
+    public UserRole Role { get; set; } = UserRole.Investor;
+
+    // Two-Factor Authentication fields
+    public bool TwoFactorEnabled { get; set; } = false;
+    [StringLength(256)]
+    public string? TwoFactorSecret { get; set; }
+    public DateTime? TwoFactorEnabledAt { get; set; }
+
+    // Referral fields
+    [StringLength(20)]
+    public string? ReferralCode { get; set; } // Unique referral code for this investor
+    public Guid? ReferredBy { get; set; } // ID of the investor who referred them
+
+    [Required]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
@@ -57,6 +71,9 @@ public class Investor
     public virtual ICollection<Portfolio> Portfolios { get; set; } = new List<Portfolio>();
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public virtual ICollection<KYCDocument> KYCDocuments { get; set; } = new List<KYCDocument>();
+    public virtual ICollection<Referral> ReferralsMade { get; set; } = new List<Referral>(); // Referrals this investor has made
+    public virtual ICollection<ReferralCommission> Commissions { get; set; } = new List<ReferralCommission>(); // Commissions earned
 }
 
 /// <summary>
@@ -72,4 +89,16 @@ public enum InvestorStatus
     KYCPending = 5,
     KYCApproved = 6,
     KYCDenied = 7
+}
+
+/// <summary>
+/// User role enumeration for role-based access control
+/// </summary>
+public enum UserRole
+{
+    Investor = 0,           // Regular investor
+    Administrator = 1,      // System administrator
+    ComplianceOfficer = 2,  // Compliance oversight and KYC verification
+    Support = 3,            // Customer support
+    Auditor = 4             // Read-only auditor access
 }

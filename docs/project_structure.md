@@ -1,234 +1,153 @@
-# LemoTick Investor Management System - Project Structure
+# LemoTick Project Structure
 
-## 📁 Clean Architecture Overview
+## 📁 Root Directory
 
 ```
 LemoTick/
-│
-├── 🎯 ROOT FILES
-│   ├── start_system.py              # Main system startup script
-│   ├── README.md                    # Original LemoTick documentation
-│   ├── README-InvestorManagement.md # New investor system documentation
-│   ├── PROJECT_STRUCTURE.md         # This file
-│   └── LICENSE                      # MIT License
-│
-├── 🖥️ FRONTEND (React TypeScript)
-│   ├── investor-portal/            # Investor dashboard and management
-│   ├── admin-dashboard/            # Admin operations and analytics
-│   └── shared/                     # Shared UI components and utilities
-│
-├── ⚙️ BACKEND (.NET Core Clean Architecture)
-│   ├── Core/                       # Domain layer
-│   │   └── Entities/               # Domain entities
-│   │       ├── Investor.cs         # Investor entity
-│   │       ├── Portfolio.cs       # Portfolio entity
-│   │       ├── Trade.cs           # Trade entity
-│   │       ├── Transaction.cs     # Transaction entity
-│   │       ├── PerformanceMetric.cs # Performance tracking
-│   │       └── Notification.cs    # Notification entity
-│   │
-│   ├── Application/                # Application layer (CQRS)
-│   │   ├── Commands/              # Write operations
-│   │   ├── Queries/               # Read operations
-│   │   ├── DTOs/                  # Data Transfer Objects
-│   │   └── Interfaces/            # Service interfaces
-│   │
-│   ├── Infrastructure/            # Infrastructure layer
-│   │   ├── Data/                  # Entity Framework context
-│   │   ├── Repositories/         # Data access implementations
-│   │   └── ExternalServices/      # Third-party integrations
-│   │
-│   ├── Services/                  # Background services
-│   │   ├── PerformanceCalculationService.cs
-│   │   └── NotificationService.cs
-│   │
-│   ├── API/                       # Presentation layer
-│   │   ├── Controllers/           # REST API controllers
-│   │   │   ├── InvestorsController.cs
-│   │   │   ├── PortfoliosController.cs
-│   │   │   └── TradesController.cs
-│   │   └── Program.cs             # Application startup
-│   │
-│   ├── BotIntegration/           # Python bot integration
-│   └── Tests/                     # Unit and integration tests
-│
-├── 🤖 BOT (Python - Refactored)
-│   ├── src/                       # Source code
-│   │   ├── core/                  # Core bot engine
-│   │   │   ├── bot_engine.py      # Main bot orchestrator
-│   │   │   └── config_manager.py  # Configuration management
-│   │   │
-│   │   ├── strategies/            # Trading strategies
-│   │   ├── indicators/            # Technical indicators
-│   │   ├── services/              # Core services
-│   │   ├── integrations/          # Backend communication
-│   │   │   └── backend_client.py  # HTTP client for backend
-│   │   └── main.py                # Bot entry point
-│   │
-│   ├── config/                    # Configuration files
-│   │   ├── settings.yaml          # Bot settings
-│   │   └── credentials.env        # API credentials
-│   │
-│   ├── logs/                      # Bot logs
-│   ├── tests/                     # Bot tests
-│   ├── requirements.txt           # Python dependencies
-│   └── run_bot.py                 # Bot startup script
-│
-├── 📊 DATA & MONITORING
-│   ├── data/                      # Data storage
-│   │   ├── backtests/            # Backtest results
-│   │   ├── ticks/                 # Market tick data
-│   │   └── trades/                # Trade data
-│   │
-│   ├── logs/                      # System logs
-│   └── monitoring/                # Grafana monitoring
-│       ├── grafana/               # Grafana dashboards
-│       └── prometheus.yml         # Metrics collection
-│
-├── 🐳 DOCKER & DEPLOYMENT
-│   ├── docker/                    # Docker configuration
-│   │   ├── docker-compose.yml    # Multi-container setup
-│   │   └── Dockerfile             # Bot container
-│   │
-│   ├── docker-compose.monitoring.yml # Monitoring stack
-│   └── scripts/                   # Deployment scripts
-│
-└── 📚 DOCUMENTATION
-    ├── docs/                      # Comprehensive documentation
-    │   ├── guides/                # User guides
-    │   ├── reference/             # Technical reference
-    │   └── troubleshooting/       # Problem solving
-    │
-    └── utilities/                 # Utility scripts
+├── backend/                    # .NET Backend (Investor Management)
+├── bot/                       # Python Trading Bot
+├── frontend/                  # React Frontend
+├── deployment/                # Deployment Scripts & Docs
+├── docs/                      # Project Documentation
+├── deploy.ps1                 # Main Deployment Manager
+├── README.md                  # Main Project README
+└── LICENSE                    # Project License
 ```
 
-## 🎯 Key Architectural Decisions
+## 🤖 Bot Directory (`bot/`)
 
-### 1. **Clean Architecture**
-- **Core**: Pure business logic, no dependencies
-- **Application**: Use cases and business rules
-- **Infrastructure**: External concerns (database, APIs)
-- **API**: Presentation layer and controllers
-
-### 2. **Separation of Concerns**
-- **Frontend**: React TypeScript applications
-- **Backend**: .NET Core with Clean Architecture
-- **Bot**: Python trading engine
-- **Integration**: HTTP API communication
-
-### 3. **Scalability**
-- **Microservices Ready**: Modular structure
-- **Database**: Entity Framework Core with migrations
-- **Caching**: Redis for performance
-- **Monitoring**: Grafana and Prometheus
-
-### 4. **Security & Compliance**
-- **Authentication**: JWT-based security
-- **Authorization**: Role-based access control
-- **Data Protection**: POPIA compliance
-- **Audit Logging**: Comprehensive audit trails
-
-## 🚀 Getting Started
-
-### Prerequisites
-- .NET 8.0 SDK
-- Node.js 18+ and npm/yarn
-- Python 3.9+
-- SQL Server or PostgreSQL
-- Docker (optional)
-
-### Quick Start
-```bash
-# Start the entire system
-python start_system.py
-
-# Or start components individually:
-# Backend
-cd backend && dotnet run --project API
-
-# Bot
-cd bot && python run_bot.py
-
-# Frontend (when implemented)
-cd frontend/investor-portal && npm start
+```
+bot/
+├── src/                       # Bot Source Code
+│   ├── core/                 # Core bot functionality
+│   ├── engine/               # Trading engine
+│   ├── strategies/           # Trading strategies
+│   ├── indicators/           # Technical indicators
+│   ├── integrations/         # External integrations
+│   └── utils/                # Utility functions
+├── config/                   # Configuration Files
+│   ├── settings.yaml        # Main bot settings
+│   ├── credentials.demo.env  # Demo account credentials
+│   ├── credentials.live.env  # Live account credentials
+│   └── credentials.env       # Active credentials
+├── scripts/                  # Bot Management Scripts
+├── data/                     # Trading Data
+├── logs/                     # Bot Logs
+├── monitoring/               # Monitoring Configuration
+└── requirements.txt          # Python Dependencies
 ```
 
-## 📈 Development Workflow
+## 🚀 Deployment Directory (`deployment/`)
 
-### 1. **Backend Development**
-```bash
-cd backend
-dotnet restore
-dotnet build
-dotnet test
-dotnet run --project API
+```
+deployment/
+├── scripts/                  # Deployment Scripts
+│   ├── deploy-to-vps.ps1     # VPS deployment (PowerShell)
+│   ├── deploy-to-vps.sh      # VPS deployment (Bash)
+│   ├── deploy-lemotick.ps1   # Local deployment (PowerShell)
+│   ├── deploy-lemotick.sh     # Local deployment (Bash)
+│   └── deploy-docker-*.sh    # Docker deployments
+├── docker/                   # Docker Files
+│   └── Dockerfile.bot        # Bot Dockerfile
+├── docs/                     # Deployment Documentation
+│   ├── DEPLOYMENT_GUIDE.md   # General deployment guide
+│   └── VPS_DEPLOYMENT_GUIDE.md # VPS-specific guide
+├── managers/                 # Service Management
+│   ├── lemotick-manager.*    # Local service managers
+│   └── vps-manager.*         # VPS managers
+└── README.md                 # Deployment documentation
 ```
 
-### 2. **Bot Development**
-```bash
-cd bot
-pip install -r requirements.txt
-python run_bot.py
+## 🏗️ Backend Directory (`backend/`)
+
+```
+backend/
+├── API/                      # Web API
+├── Application/              # Application Layer
+├── Core/                     # Domain Models
+├── Infrastructure/           # Data Access
+├── Services/                 # Business Services
+├── BotIntegration/           # Bot Integration
+└── Tests/                    # Unit Tests
 ```
 
-### 3. **Frontend Development**
-```bash
-cd frontend/investor-portal
-npm install
-npm start
+## 📚 Documentation Directory (`docs/`)
+
+```
+docs/
+├── guides/                   # User Guides
+├── reference/                # Technical Reference
+├── troubleshooting/          # Troubleshooting Guides
+├── business requirements document/ # Business Requirements
+└── README.md                 # Documentation Index
 ```
 
-## 🔧 Configuration
+## 🎯 Key Files
 
-### Environment Variables
-- **Backend**: Connection strings, JWT secrets
-- **Bot**: API credentials, trading parameters
-- **Frontend**: API endpoints, feature flags
+### Main Entry Points
+- `deploy.ps1` - Main deployment manager
+- `bot/run_bot.py` - Bot entry point
+- `backend/API/Program.cs` - Backend entry point
 
-### Database
-- **Development**: SQLite (local)
-- **Production**: PostgreSQL or SQL Server
-- **Migrations**: Entity Framework migrations
+### Configuration Files
+- `bot/config/settings.yaml` - Bot settings
+- `bot/config/credentials.env` - Active credentials
+- `backend/API/appsettings.json` - Backend settings
 
-## 📊 Monitoring & Observability
+### Documentation
+- `README.md` - Main project README
+- `deployment/README.md` - Deployment guide
+- `docs/README.md` - Documentation index
 
-### Logging
-- **Backend**: Serilog with structured logging
-- **Bot**: Python logging with correlation IDs
-- **Frontend**: Console and file logging
+## 🔧 Development Workflow
 
-### Metrics
-- **Performance**: Trading performance metrics
-- **System**: CPU, memory, disk usage
-- **Business**: Investor metrics, portfolio performance
+### Bot Development
+1. Edit code in `bot/src/`
+2. Update config in `bot/config/`
+3. Test locally: `.\deploy.ps1 local deploy`
+4. Deploy to VPS: `.\deploy.ps1 vps deploy`
 
-### Alerts
-- **Risk Management**: Portfolio risk alerts
-- **System Health**: Infrastructure monitoring
-- **Business**: Performance notifications
+### Backend Development
+1. Edit code in `backend/`
+2. Run tests in `backend/Tests/`
+3. Deploy API to server
 
-## 🛡️ Security Considerations
+### Frontend Development
+1. Edit code in `frontend/`
+2. Build and deploy to web server
 
-### Authentication
-- JWT tokens with refresh mechanism
-- Role-based authorization
-- API key management for bot integration
+## 📊 Monitoring & Logs
 
-### Data Protection
-- Encryption at rest and in transit
-- PII data handling compliance
-- Secure credential management
+### Bot Monitoring
+- Logs: `bot/logs/`
+- Monitoring: `bot/monitoring/`
+- Data: `bot/data/`
 
-### Risk Management
-- Portfolio-level risk limits
-- System-wide risk controls
-- Real-time risk monitoring
+### Backend Monitoring
+- Logs: `backend/API/logs/`
+- Health checks via API endpoints
 
-## 📚 Documentation
+## 🚀 Deployment Workflow
 
-- **API Documentation**: Swagger/OpenAPI
-- **Architecture Diagrams**: Mermaid diagrams
-- **User Guides**: Step-by-step instructions
-- **Developer Documentation**: Technical specifications
+### Development
+1. Local testing with `deploy.ps1 local`
+2. Demo testing with demo credentials
+3. VPS testing with `deploy.ps1 vps`
 
-This structure provides a solid foundation for building a professional investment platform that can scale and comply with regulatory requirements.
+### Production
+1. Switch to live credentials
+2. Deploy to VPS: `deploy.ps1 vps deploy`
+3. Monitor with `deploy.ps1 vps logs`
+
+## 🔒 Security
+
+### Credentials Management
+- Demo credentials: `bot/config/credentials.demo.env`
+- Live credentials: `bot/config/credentials.live.env`
+- Never commit live credentials to version control
+
+### SSH Keys
+- VPS access: `~/.ssh/lemotick_vps_key`
+- Secure deployment to remote servers
+
+This structure provides clear separation of concerns and easy navigation for development and deployment.

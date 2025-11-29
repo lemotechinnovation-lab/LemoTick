@@ -1,0 +1,313 @@
+# LemoTick EMA + RSI Only Strategy Configuration
+# Optimized for Volatility Indices (V25, V75)
+# Expected Win Rate: 65-85%
+
+# ============================================================================
+# BOT SETTINGS
+# ============================================================================
+bot:
+  name: "LemoTick-EMA-RSI"
+  version: "3.0"
+  debug: false
+  log_level: "INFO"
+
+# ============================================================================
+# BACKEND INTEGRATION
+# ============================================================================
+backend:
+  backend_url: "https://localhost:7001"
+  investor_id: "default-investor"
+  portfolio_id: "00000000-0000-0000-0000-000000000001"
+
+  accounts:
+    demo:
+      min_stake: 3.0
+      max_stake: 10.0
+      initial_equity: 50.0
+      risk_per_trade: 0.02 # 2% per trade
+    real:
+      min_stake: 3.0
+      max_stake: 20.0
+      initial_equity: 1000.0
+      risk_per_trade: 0.02 # 2% per trade
+
+# ============================================================================
+# TRADING CONFIGURATION
+# ============================================================================
+trading:
+  # Primary Market - V25 recommended (safest, smoothest)
+  symbol: "R_25" # Volatility 25 Index (best for this strategy)
+
+  # Timeframe - M5 (5-minute candles)
+  candle_timeframe: "5m"
+  contract_duration: 5 # 5 minutes to align with M5 candles
+  contract_basis: "stake"
+
+  # Position Sizing
+  base_stake: 3.0
+  min_stake: 3.0
+  max_stake: 10.0
+
+  # Trade Limits
+  max_concurrent_trades: 3 # Up to 3 trades at once
+  max_daily_trades: 100 # Maximum 100 trades per day (M5 ultra-fast EMA 2/4, RSI 1)
+  max_daily_loss: 20.0 # Stop trading after $20 loss
+  emergency_stop_loss: 50.0 # Emergency stop at $50 loss
+
+  # Risk Management
+  risk_per_trade: 0.02 # 2% of account per trade
+
+  # Profit Targets (optional, strategy uses EMA/RSI exits)
+  take_profit_pct: 0.05 # 5% profit target (backup exit)
+  stop_loss_pct: 0.02 # 2% stop loss (backup exit)
+
+  # Early Exit Settings (SUPPORTED on M5 - Deriv allows resale of 5-minute contracts)
+  # Note: Bot automatically handles early exit based on contract duration
+  # M5 contracts CAN be sold early, M1 cannot
+  early_closure_enabled: true
+  early_closure_check_interval: 10 # Check every 10 seconds
+
+  # Instant Entry (tick-by-tick signal checking)
+  # When true: Bot checks entry conditions on EVERY tick (immediate entry)
+  # When false: Bot only checks on completed candles (waits up to 5 minutes)
+  # Recommended: true for fast entries, false for more conservative approach
+  instant_entry_enabled: true
+
+  # Available Markets (in order of preference)
+  available_symbols:
+    - "R_25" # Best: Volatility 25 (smoothest, highest win rate)
+    - "R_75" # Good: Volatility 75 (more profit, more risk)
+    - "R_50" # Acceptable: Volatility 50
+
+  # Avoid these markets
+  excluded_symbols:
+    - "R_10"
+    - "R_10_1s"
+    - "R_75_1s"
+    - "R_100"
+    - "R_100_1s"
+
+# ============================================================================
+# EMA + RSI STRATEGY SETTINGS
+# ============================================================================
+strategy:
+  name: "EMA_RSI_ONLY"
+  enabled: true
+
+  # EMA Settings (Ultra-responsive for M5 - 5-minute candles)
+  ema:
+    fast_period: 2 # EMA 2 (fast) = 10 minutes on M5 - ULTRA FAST
+    slow_period: 4 # EMA 4 (slow) = 20 minutes on M5 - ULTRA FAST
+    angle_threshold: 0.00001 # Threshold to detect flat EMAs
+
+  # RSI Settings (Ultra-responsive for M5 - 5-minute candles)
+  rsi:
+    period: 2 # RSI 2 (10 minutes on M5) - stable calculations, prevents 0.0 bug
+    buy_threshold: 60.0 # RSI must be > 60 for BUY (STRONG momentum to overcome spread faster)
+    sell_threshold: 40.0 # RSI must be < 40 for SELL (STRONG momentum to overcome spread faster)
+    neutral_zone_low: 40.0 # Lower bound of neutral zone
+    neutral_zone_high: 60.0 # Upper bound of neutral zone
+    overbought: 70.0 # Extreme overbought level
+    oversold: 30.0 # Extreme oversold level
+
+    # Highest Probability Mode (stricter thresholds for higher win rate)
+    highest_probability_mode: false # Enable for 75-85% win rate (fewer trades)
+    high_prob_buy_threshold: 60.0 # RSI > 60 for highest probability BUY
+    high_prob_sell_threshold: 40.0 # RSI < 40 for highest probability SELL
+
+    # Multi-candle RSI confirmation
+    require_2_candle_trend: false # RSI rising for 2 candles (BUY) or falling (SELL)
+
+  # Entry Rules
+  entry:
+    require_ema_crossover: true # Must have EMA crossover
+    require_rsi_confirmation: true # RSI must confirm direction
+    require_price_above_emas_for_buy: true # Price must close above both EMAs
+    require_price_below_emas_for_sell: true # Price must close below both EMAs
+    require_emas_angled: false # EMAs must be trending (relaxed)
+    require_momentum_confirmation: false # Next candle bigger than previous (relaxed)
+    min_confidence: 0.6 # Minimum 60% confidence score
+
+  # Exit Rules
+  exit:
+    ema_touch_threshold: 0.0001 # Exit when EMAs touch (0.01% distance)
+    rsi_neutral_zone: true # Exit when RSI enters 45-55 zone
+    opposite_side_close: true # Exit when price closes opposite side of EMAs
+    rsi_opposite_threshold: true # Exit on RSI cross (BUY:<50, SELL:>50)
+    profit_target_pct: 0.05 # Exit at 5% profit
+
+  # Filters (Avoid Bad Trades)
+  filters:
+    no_flat_emas: false # Allow flat EMAs (relaxed)
+    no_tangled_emas: false # Allow tangled EMAs (relaxed)
+    tangled_lookback_candles: 5 # Check last 5 candles for tangling
+    max_crossovers_in_lookback: 2 # Max 2 crossovers = not tangled
+
+    no_neutral_rsi: false # Allow neutral RSI (relaxed)
+
+    min_candle_body_ratio: 0.15 # Candle body must be 15% of total range (relaxed from 30%)
+    max_upper_wick_ratio: 0.6 # Upper wick max 60% of range (relaxed from 40%)
+    max_lower_wick_ratio: 0.6 # Lower wick max 60% of range (relaxed from 40%)
+
+    no_small_candles: true # Filter out small candles
+    no_doji_candles: true # Filter out doji-like candles
+
+    # Wick direction filter (highest probability)
+    no_wick_against_trend: false # Allow wicks against trend (relaxed)
+    max_counter_wick_ratio: 0.7 # Max 70% wick in counter-trend direction (relaxed)
+
+  # Advanced Filters (High Accuracy Mode)
+  advanced_filters:
+    enabled: false # Disabled to allow more trades
+    momentum_confirmation: false # Next candle bigger than previous (relaxed)
+    strong_rsi: false # Prefer RSI > 60 (buy) or < 40 (sell) (relaxed)
+    clean_candle: false # Small wicks in trade direction (relaxed)
+
+  # Highest Probability Setup (as per strategy document)
+  # This gives 75-85% win rate on V25, 65-75% on V75
+  highest_probability:
+    enabled: false # Enable for maximum win rate (fewer but better signals)
+    rsi_buy_min: 55.0 # RSI must be > 60 for BUY
+    rsi_sell_max: 45.0 # RSI must be < 40 for SELL
+    require_rsi_2_candle_trend: true # RSI rising/falling for 2 candles
+    require_strong_candle: true # Strong candle close in trend direction
+    no_counter_wick: true # No wick against trend
+    strong_candle_body_ratio: 0.7 # Candle body must be >70% of range
+
+# ============================================================================
+# RISK MANAGEMENT
+# ============================================================================
+risk_management:
+  # Position Sizing
+  risk_per_trade: 0.02 # 2% of account
+  adaptive_position_sizing: false # Keep fixed for consistency
+
+  # Daily Limits
+  max_daily_loss: 20.0
+  max_daily_trades: 100 # M5 ultra-fast generates signals (EMA 2/4, RSI 1, 50/50)
+  daily_profit_target: 100.0 # Optional: stop after $100 profit
+
+  # Trade Limits
+  max_concurrent_trades: 3
+  cooldown_seconds: 60 # 1 minute cooldown between trades
+  cooldown_enabled: true
+
+  # Emergency Stops
+  emergency_stop_loss: 50.0
+  max_consecutive_losses: 5 # Stop after 5 consecutive losses
+  pause_duration_minutes: 30 # Pause for 30 minutes after max losses
+
+  # Win/Loss Management
+  win_streak_bonus: 0.0 # Disabled (keep fixed stake)
+  loss_penalty: 0.0 # Disabled (keep fixed stake)
+  martingale_protection: true # Prevent martingale
+
+  # Drawdown Protection
+  max_drawdown_percent: 0.15 # 15% max drawdown
+  equity_protection_enabled: true
+
+  # Signal Quality
+  signal_quality_threshold: 0.6 # Minimum 60% confidence
+  trend_confirmation_required: true
+  momentum_confirmation_required: true
+
+# ============================================================================
+# MONITORING & METRICS
+# ============================================================================
+monitoring:
+  metrics_enabled: true
+  metrics_interval: 5 # Update every 5 seconds
+
+  track_latency: true
+  track_memory: true
+  track_cpu: true
+
+  alerts_enabled: true
+  alert_thresholds:
+    high_loss: -20.0 # Alert at $20 loss
+    low_win_rate: 0.50 # Alert if win rate < 50%
+    high_latency: 1000 # Alert if latency > 1s
+
+indicators:
+  ema_short_period: 6
+  ema_medium_period: 18
+  ema_long_period: 50
+  rsi_period: 14
+  rsi_overbought: 70
+  rsi_oversold: 30
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  atr_period: 14
+  atr_multiplier: 2.0
+  volatility_window: 20
+  momentum_threshold: 0.01
+  bb_period: 20
+  bb_std_dev: 2.0
+
+# ============================================================================
+# API & DERIV INTEGRATION
+# ============================================================================
+deriv:
+  app_id: "1089"
+  base_url: "wss://ws.derivws.com/websockets/v3"
+  ws_url: "wss://ws.derivws.com/websockets/v3" # Add missing ws_url
+  timeout: 10 # Reduced from 30 to 10 seconds for faster API responses
+
+api:
+  prometheus:
+    enabled: true
+    port: 9092
+    path: "/metrics"
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logging:
+  level: "INFO"
+  file: "logs/lemotick_ema_rsi.log"
+  max_size: "10MB"
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  categories:
+    trading: "INFO"
+    strategy: "INFO"
+    risk: "INFO"
+    metrics: "INFO"
+
+# ============================================================================
+# ACCOUNT MODE
+# ============================================================================
+account_mode:
+  use_live_account: false # Start with demo
+  require_explicit_confirmation: true # Require confirmation before live
+
+# ============================================================================
+# DEVELOPMENT & TESTING
+# ============================================================================
+development:
+  # Testing
+  test_mode: false
+  paper_trading: false
+
+  # Debugging
+  debug_signals: true
+  debug_indicators: true
+  debug_risk: true
+
+  # Simulation
+  simulation_mode: false
+  simulation_start_date: "2024-01-01"
+  simulation_end_date: "2024-12-31"
+
+# ============================================================================
+# DATA & DATABASE
+# ============================================================================
+data:
+  db_path: "data/lemotick.db"
+
+database:
+  type: "sqlite"
+  path: "data/lemotick.db"
+  backup_interval: 3600 # Backup every hour

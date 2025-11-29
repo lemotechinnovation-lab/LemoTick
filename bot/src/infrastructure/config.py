@@ -4,14 +4,18 @@ Handles environment variables, YAML settings, and credential loading.
 """
 
 import os
-import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+import yaml
+
 try:
     from dotenv import load_dotenv  # type: ignore
 except ImportError:
-    def load_dotenv(path):  # type: ignore
-        pass
+
+    def load_dotenv(*args, **kwargs) -> bool:  # type: ignore
+        """Fallback when python-dotenv is not installed."""
+        return True
 
 
 class Config:
@@ -22,39 +26,60 @@ class Config:
         config_path: Optional[str] = None,
         env_path: Optional[str] = None,
     ):
+        # Calculate bot root directory from this file's location
+        # This file is in bot/src/infrastructure/config.py, so go up 3 levels
+        bot_root = Path(__file__).parent.parent.parent.resolve()
+        config_dir = bot_root / "config"
+
         # Auto-detect config paths if not provided
         if config_path is None:
-            # Try multiple possible locations
+            # Try multiple possible locations, prioritizing absolute paths from bot root
             possible_config_paths = [
-                "config/settings.yaml",  # From bot root
-                "../config/settings.yaml",  # From bot/src
-                "../../config/settings.yaml",  # From bot/src/subdir
+                config_dir / "settings_ema_rsi.yaml",  # Absolute path from bot root
+                Path("config/settings_ema_rsi.yaml"),  # Relative from current dir
+                Path("../config/settings_ema_rsi.yaml"),  # Relative from bot/src
+                Path(
+                    "../../config/settings_ema_rsi.yaml"
+                ),  # Relative from bot/src/subdir
             ]
-            
+
             for path in possible_config_paths:
-                if Path(path).exists():
-                    config_path = path
+                if path.exists():
+                    config_path = str(path)
                     break
-            
+
             if config_path is None:
-                config_path = "config/settings.yaml"  # Default fallback
-        
+                # Final fallback to absolute path (will raise error if not found)
+                config_path = str(config_dir / "settings_ema_rsi.yaml")
+
         if env_path is None:
-            # Try multiple possible locations
+            # Check for live account setting to determine which credentials file to use
+            lemotick_live_account = os.getenv("LEMOTICK_LIVE_ACCOUNT", "").lower()
+
+            if lemotick_live_account in ("true", "1", "yes"):
+                env_filename = "credentials.live.env"
+            else:
+                env_filename = "credentials.demo.env"
+
+            # Try multiple possible locations, prioritizing absolute paths from bot root
             possible_env_paths = [
-                "config/credentials.env",  # From bot root
-                "../config/credentials.env",  # From bot/src
-                "../../config/credentials.env",  # From bot/src/subdir
+                config_dir / env_filename,  # Absolute path from bot root
+                config_dir / "credentials.env",  # Fallback to generic credentials.env
+                Path(f"config/{env_filename}"),  # Relative from current dir
+                Path(f"../config/{env_filename}"),  # Relative from bot/src
+                Path(f"../../config/{env_filename}"),  # Relative from bot/src/subdir
+                Path("config/credentials.env"),  # Generic fallback
             ]
-            
+
             for path in possible_env_paths:
-                if Path(path).exists():
-                    env_path = path
+                if path.exists():
+                    env_path = str(path)
                     break
-            
+
             if env_path is None:
-                env_path = "config/credentials.env"  # Default fallback
-        
+                # Final fallback to absolute path
+                env_path = str(config_dir / "credentials.env")
+
         self.config_path = Path(config_path)
         self.env_path = Path(env_path)
 
@@ -122,10 +147,12 @@ class Config:
         """Get risk per trade percentage based on account type."""
         is_demo = self.get("development.demo_account", True)
         account_type = "demo" if is_demo else "real"
-        
+
         # Try to get account-specific risk first, fall back to risk_management section
-        return self.get(f"accounts.{account_type}.risk_per_trade", 
-                       self.settings["risk_management"]["risk_per_trade"])
+        return self.get(
+            f"accounts.{account_type}.risk_per_trade",
+            self.settings["risk_management"]["risk_per_trade"],
+        )
 
     @property
     def max_daily_drawdown(self) -> float:
@@ -157,20 +184,22 @@ class Config:
         """Get minimum stake amount based on account type."""
         is_demo = self.get("development.demo_account", True)
         account_type = "demo" if is_demo else "real"
-        
+
         # Try to get account-specific stake first, fall back to trading section
-        return self.get(f"accounts.{account_type}.min_stake", 
-                       self.settings["trading"]["min_stake"])
+        return self.get(
+            f"accounts.{account_type}.min_stake", self.settings["trading"]["min_stake"]
+        )
 
     @property
     def max_stake(self) -> float:
         """Get maximum stake amount based on account type."""
         is_demo = self.get("development.demo_account", True)
         account_type = "demo" if is_demo else "real"
-        
+
         # Try to get account-specific stake first, fall back to trading section
-        return self.get(f"accounts.{account_type}.max_stake", 
-                       self.settings["trading"]["max_stake"])
+        return self.get(
+            f"accounts.{account_type}.max_stake", self.settings["trading"]["max_stake"]
+        )
 
     @property
     def cooldown_after_loss(self) -> float:
@@ -216,11 +245,11 @@ class Config:
                 return default
 
         return value
-        
+
     def get_account_type(self) -> str:
         """
         Get current account type (demo or real).
-        
+
         Priority order:
         1. Environment variable LEMOTICK_LIVE_ACCOUNT
         2. account_mode.use_live_account setting
@@ -228,42 +257,70 @@ class Config:
         4. Default to demo (safe default)
         """
         import os
-        
+
         # Check environment variable first (highest priority)
         env_live = os.getenv("LEMOTICK_LIVE_ACCOUNT", "").lower()
         if env_live in ("true", "1", "yes"):
             return "real"
         elif env_live in ("false", "0", "no"):
             return "demo"
-        
+
         # Check new account_mode configuration
         use_live = self.get("account_mode.use_live_account", False)
         if use_live:
             return "real"
-        
+
         # Fall back to deprecated development.demo_account (backward compatibility)
         is_demo = self.get("development.demo_account", True)
         return "demo" if is_demo else "real"
-        
+
     def get_account_config(self, key: str, default: Any = None) -> Any:
         """Get account-specific configuration value."""
         account_type = self.get_account_type()
         return self.get(f"accounts.{account_type}.{key}", default)
-        
+
     def is_demo_account(self) -> bool:
         """
         Check if currently using a demo account.
-        
+
         Returns False if using REAL/LIVE account (real money).
         """
         return self.get_account_type() == "demo"
-    
+
     def requires_live_confirmation(self) -> bool:
         """Check if live trading requires explicit confirmation."""
         return self.get("account_mode.require_explicit_confirmation", True)
 
 
 # Global config instance
-config = Config()
+try:
+    config = Config()
+except FileNotFoundError as e:
+    import sys
 
+    print(f"CRITICAL ERROR: Configuration file not found: {e}", file=sys.stderr)
+    print(
+        "Please ensure config/settings_ema_rsi.yaml exists in the bot directory",
+        file=sys.stderr,
+    )
+    # Re-raise to prevent bot from starting with invalid config
+    raise
+except ValueError as e:
+    import sys
 
+    print(f"CRITICAL ERROR: Invalid configuration: {e}", file=sys.stderr)
+    print(
+        "Please check your configuration files and environment variables",
+        file=sys.stderr,
+    )
+    # Re-raise to prevent bot from starting with invalid config
+    raise
+except Exception as e:
+    import sys
+
+    print(f"CRITICAL ERROR: Failed to initialize configuration: {e}", file=sys.stderr)
+    import traceback
+
+    traceback.print_exc(file=sys.stderr)
+    # Re-raise to prevent bot from starting with invalid config
+    raise

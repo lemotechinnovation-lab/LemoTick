@@ -7,7 +7,7 @@ services:
     container_name: lemotick-bot
     restart: unless-stopped
     ports:
-      - "8000:8000" # Prometheus metrics port
+      - "9092:9092" # Prometheus metrics port
 
     environment:
       # Load environment variables from docker.env
@@ -17,7 +17,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - DEBUG_MODE=${DEBUG_MODE:-false}
       - SIMULATION_MODE=${SIMULATION_MODE:-false}
-      - PROMETHEUS_PORT=8000
+      - PROMETHEUS_PORT=9092
       - LEMOTICK_LIVE_ACCOUNT=true # Enable live trading
       - LEMOTICK_CONFIRM_LIVE=true # Auto-confirm live trading
 

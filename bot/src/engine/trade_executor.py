@@ -1,406 +1,597 @@
+# trade_executor.py
 """
-Trade Executor for LemoTick Bot
---------------------------------
-Handles placement, validation, and management of trades via Deriv API.
-
-✅ Features:
- - Standard binary options direction mapping (BUY→CALL, SELL→PUT)
- - 1.5% risk-based stake sizing (via RiskManager)
- - Concurrency lock + timeout recovery
- - Pattern and entry validation logging
- - Full proposal → buy → update → sell lifecycle
- - Auto take-profit / stop-loss close
- - Equity & PnL tracking
-
-Author: LemoTick Core
+TradeExecutor
+--------------
+Responsible for:
+  - preparing proposals
+  - sending proposal -> receiving proposal responses
+  - placing buys (market entries)
+  - early sell (market exit)
+  - tracking open contracts and mapping responses from StreamHandler callbacks
+Integrates with: stream_handler.StreamHandler
 """
 
+import asyncio
 import time
-import threading
-import logging
-from typing import Optional, Callable, Dict, Any
+import uuid
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Optional, TypedDict, Union
 
-logger = logging.getLogger(__name__)
+from infrastructure.logger import logger  # your logger instance
+from infrastructure.metrics import get_metrics
 
-def generate_trade_id() -> str:
-    return f"trade_{int(time.time() * 1000)}"
+
+class ProposalData(TypedDict, total=False):
+    id: str
+    price: float
+    req_id: str
+
+
+class BuyData(TypedDict, total=False):
+    contract_id: int
+    buy_price: float
+    price: float
+    id: int
+
+
+class SellData(TypedDict, total=False):
+    sell_price: float
+    price: float
+
+
+# Simple container for trade results
+@dataclass
+class TradeResult:
+    success: bool
+    reason: str = ""
+    contract_id: Optional[int] = None
+    buy_price: Optional[float] = None
+    sell_price: Optional[float] = None
+    raw_response: Optional[Dict[str, Any]] = None
 
 
 class TradeExecutor:
-    def __init__(self, stream_handler, strategy_engine, config, risk_manager):
-        self.stream_handler = stream_handler
-        self.strategy_engine = strategy_engine
-        self.config = config or {}
-        self.risk_manager = risk_manager
+    """
+    Orchestrates trade lifecycle via StreamHandler.
 
-        self.active_contracts: Dict[str, Dict] = {}
-        self._placing_trade = False
-        self._placing_trade_start_time = 0
-        self._trade_lock = threading.Lock()
+    Usage:
+        executor = TradeExecutor(stream_handler)
+        await executor.buy_market(symbol, amount, duration, barrier=None)
+        await executor.sell_at_market(contract_id)
+    """
 
-        self.contract_duration = 3  # default 3 minutes
-        self.min_stake = 1.0
-        self.max_stake = 1000.0
+    def __init__(self, stream_handler):
+        self.stream = stream_handler
+        self.metrics = get_metrics()
+        self._pending_proposals_payloads: Dict[str, Dict[str, Any]] = {}
+        self._pending_proposals: Dict[str, asyncio.Future[Dict[str, Any]]] = {}
+        self._pending_buys: Dict[str, asyncio.Future[Dict[str, Any]]] = {}
+        self._pending_sells: Dict[str, asyncio.Future[Dict[str, Any]]] = {}
 
-        # Register API callbacks
-        self.stream_handler.register_trade_callbacks(
-            on_proposal=self._on_proposal_response,
-            on_buy=self._on_buy_response,
-            on_sell=self._on_sell_response,
+        self._open_contracts: Dict[
+            int, Dict[str, Any]
+        ] = {}  # contract_id -> contract data
+
+        # Register callbacks on stream handler
+        self.stream.register_trade_callbacks(
+            on_proposal=self._on_proposal,
+            on_buy=self._on_buy,
+            on_sell=self._on_sell,
             on_sell_error=self._on_sell_error,
             on_contract_update=self._on_contract_update,
         )
 
-    # ------------------------------------------------------------------ #
-    # 🔹 MAIN TRADE EXECUTION LOGIC
-    # ------------------------------------------------------------------ #
-
-    def place_trade(
-            self,
-            stake: float,
-            on_trade_result: Optional[Callable] = None,
-            duration: Optional[int] = None,
-            signal_data: Optional[Dict] = None,
-            signal_type: Optional[str] = None,
-        ) -> Optional[str]:
-            """Primary entry point for trade placement."""
-            if not signal_type:
-                logger.error("[TRADE] ❌ Missing signal_type.")
-                return None
-    
-            signal_type = signal_type.upper()
-            symbol = self.config.get("trading", {}).get("symbol", "R_100")
-    
-            # ------------------ Direction Mapping ------------------ #
-            # Strategy returns semantic meaning: BUY=expect price up, SELL=expect price down
-            # This applies to ALL symbols including R_100 (synthetic indices)
-            # 
-            # For binary options:
-            #   - BUY signal (expect price UP) → CALL contract (profits when price rises)
-            #   - SELL signal (expect price DOWN) → PUT contract (profits when price falls)
-            #
-            # Note: R_100, R_75, etc. are NOT inverted - patterns are read directly from their charts
-            mapping = {"BUY": "CALL", "SELL": "PUT"}
-    
-            contract_type = mapping.get(signal_type)
-            if not contract_type:
-                logger.error(f"[TRADE] ❌ Unknown signal_type={signal_type}")
-                return None
-    
-            logger.info(f"[TRADE] 📊 {symbol} | Signal={signal_type} → {contract_type}")
-    
-            # ------------------ Concurrency & Stake ---------------- #
-            with self._trade_lock:
-                trade_id = generate_trade_id()
-                try:
-                    # prevent multiple concurrent trades
-                    if self._placing_trade:
-                        elapsed = time.time() - self._placing_trade_start_time
-                        if elapsed < 45:
-                            logger.warning(f"[TRADE] ⏳ Placement blocked ({elapsed:.1f}s elapsed).")
-                            return None
-                        logger.warning(f"[TRADE] 🧭 Timeout exceeded, unlocking after {elapsed:.1f}s.")
-                        self._placing_trade = False
-    
-                    # Clean up any invalid contracts (those without proper contract_id)
-                    invalid_keys = [k for k, v in self.active_contracts.items() 
-                                   if not v.get("contract_id") or not str(v.get("contract_id")).isdigit()]
-                    for key in invalid_keys:
-                        logger.warning(f"[TRADE] 🧹 Removing invalid contract: {key}")
-                        del self.active_contracts[key]
-                    
-                    # limit concurrent open trades (exclude pending, closing, closed)
-                    active = [t for t in self.active_contracts.values() 
-                             if t.get("status") not in ["pending", "closing", "closing_early", "force_closing", "closed", "sold"]]
-                    max_concurrent = self.config.get("trading", {}).get("max_concurrent_trades_24_7", 1)
-                    if len(active) >= max_concurrent:
-                        logger.warning(f"[TRADE] ⚠️ Max concurrent trades reached ({len(active)}/{max_concurrent})")
-                        for t in active:
-                            logger.warning(f"  - Contract {t.get('contract_id', 'pending')}: status={t.get('status')}")
-                        return None
-    
-                    # ------------------ Stake Validation ---------------- #
-                    equity = getattr(self.risk_manager, "current_equity", self.risk_manager.initial_equity)
-                    max_stake_allowed = equity * 0.015  # 1.5% risk cap
-    
-                    # Cap stake if above risk limit
-                    if stake > max_stake_allowed:
-                        logger.info(f"[RISK] Stake adjusted {stake:.2f} → {max_stake_allowed:.2f} (1.5% cap)")
-                        stake = max_stake_allowed
-    
-                    # 🔹 Fix: Always adjust stake to fit within min/max bounds, never reject the trade
-                    if stake < self.min_stake:
-                        logger.warning(f"[RISK] Stake {stake:.2f} below min, using {self.min_stake:.2f}")
-                        stake = self.min_stake
-                    elif stake > self.max_stake:
-                        logger.warning(f"[RISK] Stake {stake:.2f} above max, using {self.max_stake:.2f}")
-                        stake = self.max_stake
-    
-                    logger.info(f"[RISK] Final stake after validation: {stake:.2f} | Equity: {equity:.2f} | Min: {self.min_stake:.2f} | Max: {self.max_stake:.2f}")
-    
-                    # Optional pattern analysis for debugging
-                    self._analyze_highlighted_patterns(signal_data)
-    
-                    # ------------------ Execute Trade ---------------- #
-                    self._placing_trade = True
-                    self._placing_trade_start_time = time.time()
-    
-                    success = self._execute_direct_buy(
-                        trade_id=trade_id,
-                        contract_type=contract_type,
-                        stake=stake,
-                        duration=duration or self.contract_duration,
-                        signal_type=signal_type,
-                        signal_data=signal_data,
-                        on_trade_result=on_trade_result,
-                    )
-    
-                    if success:
-                        self.active_contracts[trade_id] = {
-                            "trade_id": trade_id,
-                            "symbol": symbol,
-                            "type": contract_type,
-                            "stake": stake,
-                            "status": "pending",  # pending until we get contract_id
-                            "timestamp": time.time(),  # consistent field name
-                            "signal_type": signal_type,
-                            "signal_data": signal_data or {},
-                        }
-                        logger.info(f"[TRADE] ✅ Executed {contract_type} | ID={trade_id}")
-                        return trade_id
-                    else:
-                        logger.error(f"[TRADE] ❌ Failed to execute trade for {contract_type}")
-                        return None
-    
-                except Exception as e:
-                    logger.error(f"[TRADE] 💥 Exception placing trade: {e}", exc_info=True)
-                    return None
-    
-                finally:
-                    self._placing_trade = False
-                    logger.debug("[LOCK] Released after trade attempt.")
-
-
-    # ------------------------------------------------------------------ #
-    # 🔹 INTERNAL EXECUTION SIMULATION / API CALL
-    # ------------------------------------------------------------------ #
-
-    def _execute_direct_buy(
-        self,
-        trade_id: str,
-        contract_type: str,
-        stake: float,
-        duration: int,
-        signal_type: str,
-        signal_data: Optional[Dict] = None,
-        on_trade_result: Optional[Callable] = None,
-    ) -> bool:
-        """
-        Executes a direct Deriv buy contract request through StreamHandler.
-        Returns True if the request was sent successfully, False otherwise.
-        """
-
+        # local asyncio loop
         try:
-            # ------------------ Basic validation ------------------ #
-            if not self.stream_handler:
-                logger.error("[TRADE] ❌ StreamHandler not initialized — cannot place trade.")
-                return False
+            self._loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
 
-            if not self.stream_handler.is_connected:
-                logger.error("[TRADE] ❌ WebSocket not connected — cannot execute buy.")
-                return False
+        logger.info("TradeExecutor initialized")
 
-            # ------------------ Build proposal payload ------------------ #
-            symbol = self.config.get("trading", {}).get("symbol", "R_100")
-            currency = self.config.get("account", {}).get("currency", "USD")
+    # -----------------------
+    # Public API
+    # -----------------------
+    async def buy_market(
+        self,
+        symbol: str,
+        amount: float,
+        duration: int,
+        contract_type: str = "buy",
+        currency: Optional[str] = None,
+        **extra,
+    ) -> TradeResult:
+        """
+        Place a market BUY (entry) using Deriv's proposal -> buy flow.
+        Returns TradeResult.
+        """
+        correlation_id = str(uuid.uuid4())
+        fut = self._loop.create_future()
+        self._pending_proposals[correlation_id] = fut
 
-            proposal = {
-                "buy": 1,
-                "price": stake,  # limit to stake amount
-                "parameters": {
-                    "amount": float(stake),
-                    "basis": "stake",
-                    "contract_type": contract_type,
-                    "currency": currency,
-                    "duration": int(duration),
-                    "duration_unit": "m",
-                    "symbol": symbol,
-                },
-            }
+        proposal_payload = self._build_proposal_payload(
+            symbol, amount, duration, contract_type, correlation_id, currency, **extra
+        )
 
-            logger.info(f"[TRADE] 🚀 Sending buy request to Deriv: {proposal}")
+        self._pending_proposals_payloads[correlation_id] = dict(proposal_payload)
 
-            # ------------------ Send via StreamHandler ------------------ #
-            success = self.stream_handler.send_message(proposal)
-            if not success:
-                logger.error("[TRADE] ❌ Failed to send buy message to WebSocket")
-                return False
-
-            # Optionally attach signal metadata for post-trade analytics
-            if signal_data:
-                logger.debug(f"[META] Signal data attached to {trade_id}: {signal_data}")
-
-            # Log success
-            logger.info(
-                f"[TRADE] ✅ Buy request sent | ID={trade_id} | "
-                f"Type={contract_type} | Stake={stake:.2f} | Duration={duration}m | Symbol={symbol}"
+        logger.info(
+            f"[EXECUTOR] Sending proposal ({correlation_id}) for {symbol} amount={amount}"
+        )
+        sent = self.stream.send_message(proposal_payload)
+        if not sent:
+            # cleanup
+            fut.cancel()
+            self._pending_proposals.pop(correlation_id, None)
+            self._pending_proposals_payloads.pop(correlation_id, None)
+            return TradeResult(
+                success=False, reason="Failed to send proposal (WS disconnected)"
             )
 
-            # Note: Don't add to active_contracts yet - wait for buy response with actual contract_id
-            # This prevents accumulation of "pending" contracts that never get removed
-            
-            return True
-
-        except Exception as e:
-            logger.error(f"[TRADE] 💥 Exception in _execute_direct_buy: {e}", exc_info=True)
-            return False
-
-    # ------------------------------------------------------------------ #
-    # 🔹 SUPPORT UTILITIES
-    # ------------------------------------------------------------------ #
-
-    def _analyze_highlighted_patterns(self, signal_data: Optional[Dict]) -> None:
-        if not signal_data:
-            return
-        pattern = signal_data.get("pattern_name") or signal_data.get("fallback") or "unknown"
-        conf = signal_data.get("confidence", 0)
-        logger.info(f"[PATTERN] 🎯 {pattern} | Confidence={conf:.2f}")
-
-    # ------------------------------------------------------------------ #
-    # 🔹 CALLBACK HANDLERS (Deriv)
-    # ------------------------------------------------------------------ #
-
-    def _on_proposal_response(self, data: Dict[str, Any]) -> None:
         try:
-            if "error" in data:
-                logger.error(f"[PROPOSAL] ❌ {data['error'].get('message')}")
-                return
-            p = data.get("proposal", {})
-            logger.info(f"[PROPOSAL] 💵 {p.get('symbol')} {p.get('contract_type')} @ {p.get('display_value')}")
-        except Exception as e:
-            logger.error(f"[PROPOSAL] Exception: {e}", exc_info=True)
+            # Increase timeout to 8-10s to tolerate network latency
+            proposal_resp = await asyncio.wait_for(fut, timeout=10.0)
+        except asyncio.TimeoutError:
+            self._pending_proposals.pop(correlation_id, None)
+            self._pending_proposals_payloads.pop(correlation_id, None)
+            logger.warning(
+                "[EXECUTOR] Proposal timed out - no response received. "
+                "Saved payload removed."
+            )
+            return TradeResult(success=False, reason="Proposal timed out")
 
-    def _on_buy_response(self, data: Dict[str, Any]) -> None:
+        # defensive: ensure proposal_resp is a dict
+        if not isinstance(proposal_resp, dict):
+            logger.warning("[EXECUTOR] Proposal response not dict, ignoring")
+            return TradeResult(success=False, reason="Invalid proposal response type")
+
+        # Check for errors in proposal response (only reject if error is meaningful)
+        if proposal_resp.get("error") not in (None, {}, ""):
+            logger.warning(f"[EXECUTOR] Proposal response error: {proposal_resp}")
+            return TradeResult(
+                success=False, reason=f"Proposal error: {proposal_resp.get('error')}"
+            )
+
+        # Proposal valid — now place buy
+        buy_correlation = str(uuid.uuid4())
+        buy_fut = self._loop.create_future()
+        self._pending_buys[buy_correlation] = buy_fut
+
+        buy_payload = self._build_buy_payload(proposal_resp, buy_correlation)
+        logger.info(f"[EXECUTOR] Sending buy ({buy_correlation})")
+        sent = self.stream.send_message(buy_payload)
+        if not sent:
+            buy_fut.cancel()
+            self._pending_buys.pop(buy_correlation, None)
+            return TradeResult(
+                success=False, reason="Failed to send buy (WS disconnected)"
+            )
+
         try:
-            if "error" in data:
-                logger.error(f"[BUY] ❌ {data['error'].get('message')}")
-                self._placing_trade = False  # unlock if buy failed
+            # Slightly longer buy wait (server may take extra time)
+            buy_resp = await asyncio.wait_for(buy_fut, timeout=10.0)
+        except asyncio.TimeoutError:
+            self._pending_buys.pop(buy_correlation, None)
+            logger.warning("[EXECUTOR] Buy timed out")
+            return TradeResult(success=False, reason="Buy timed out")
+
+        # Process buy response
+        if buy_resp.get("error") not in (None, {}, ""):
+            logger.warning(f"[EXECUTOR] Buy response error: {buy_resp}")
+            return TradeResult(
+                success=False, reason=f"Buy error: {buy_resp.get('error')}"
+            )
+
+        contract_id = self._extract_contract_id_from_buy(buy_resp)
+        buy_price = self._extract_buy_price(buy_resp)
+
+        # store open contract metadata
+        if contract_id is not None:
+            self._open_contracts[contract_id] = {
+                "contract_id": contract_id,
+                "buy_resp": buy_resp,
+                "symbol": symbol,
+                "amount": amount,
+                "buy_price": buy_price,
+                "timestamp": time.time(),
+            }
+
+        logger.info(
+            f"[EXECUTOR] Buy successful. Contract ID: {contract_id}, price: {buy_price}"
+        )
+        return TradeResult(
+            success=True,
+            contract_id=contract_id,
+            buy_price=buy_price,
+            raw_response=buy_resp,
+        )
+
+    async def sell_at_market(
+        self, contract_id: int, price_limit: Optional[float] = None
+    ) -> TradeResult:
+        """
+        Attempt early sell (market). Returns TradeResult.
+        """
+        if contract_id not in self._open_contracts:
+            msg = f"Unknown contract {contract_id}"
+            logger.warning("[EXECUTOR] " + msg)
+            return TradeResult(success=False, reason=msg)
+
+        correlation = str(uuid.uuid4())
+        fut = self._loop.create_future()
+        self._pending_sells[correlation] = fut
+
+        sell_payload = {
+            "sell": contract_id,
+            "price": price_limit if price_limit is not None else 0,
+            "command": "sell",
+            "req_id": correlation,
+        }
+
+        logger.info(
+            f"[EXECUTOR] Sending sell request for contract {contract_id} (corr={correlation})"
+        )
+        sent = self.stream.send_message(sell_payload)
+        if not sent:
+            fut.cancel()
+            self._pending_sells.pop(correlation, None)
+            return TradeResult(
+                success=False, reason="Failed to send sell (WS disconnected)"
+            )
+
+        try:
+            sell_resp = await asyncio.wait_for(fut, timeout=5.0)
+        except asyncio.TimeoutError:
+            self._pending_sells.pop(correlation, None)
+            logger.warning("[EXECUTOR] Sell timed out")
+            return TradeResult(success=False, reason="Sell timed out")
+
+        if sell_resp.get("error"):
+            logger.warning(f"[EXECUTOR] Sell response error: {sell_resp}")
+            # Mark contract as not sellable if appropriate
+            return TradeResult(
+                success=False,
+                reason=f"Sell error: {sell_resp.get('error')}",
+                raw_response=sell_resp,
+            )
+
+        sell_price = self._extract_sell_price(sell_resp)
+        # Remove from open contracts if sold
+        if contract_id in self._open_contracts:
+            self._open_contracts.pop(contract_id, None)
+
+        logger.info(
+            f"[EXECUTOR] Sell successful contract {contract_id} sold at {sell_price}"
+        )
+        return TradeResult(
+            success=True,
+            contract_id=contract_id,
+            sell_price=sell_price,
+            raw_response=sell_resp,
+        )
+
+    # -----------------------
+    # Internal helpers
+    # -----------------------
+
+    def _build_proposal_payload(
+        self,
+        symbol: str,
+        amount: float,
+        duration: int,
+        contract_type: str,
+        currency: str,
+        **extra: Any,
+    ) -> Dict[str, Any]:
+        # STEP 1: Capture UUID object first
+        uid = uuid.uuid4()
+
+        # STEP 2: Extract integer property from UUID (Pyright now recognizes it)
+        uid_int: int = uid.int
+
+        # STEP 3: Make safe 31-bit req_id
+        req_id: int = uid_int & 0x7FFFFFFF
+
+        payload: Dict[str, Any] = {
+            "proposal": 1,
+            "symbol": symbol,
+            "amount": float(amount),
+            "basis": "stake",
+            "contract_type": contract_type.upper(),
+            "duration": int(duration),
+            "currency": currency or "USD",
+            "req_id": req_id,
+        }
+
+        payload.update(extra)
+        return payload
+
+    def _build_buy_payload(
+        self, proposal_resp: Dict[str, Any], buy_correlation: str
+    ) -> Dict[str, Any]:
+        proposal: ProposalData = proposal_resp.get("proposal", {})  # TypedDict
+
+        buy_payload: Dict[str, Any] = {
+            "buy": 1,
+            "proposal_id": proposal.get("id") or proposal_resp.get("proposal_id"),
+            "req_id": buy_correlation,
+        }
+
+        if "echo_req" in proposal_resp:
+            buy_payload["echo_req"] = proposal_resp["echo_req"]
+
+        return buy_payload
+
+    def _extract_contract_id_from_buy(self, buy_resp: Dict[str, Any]) -> Optional[int]:
+        """
+        Extract contract ID safely with pyright strict typing.
+        """
+
+        buy_data: BuyData = buy_resp.get("buy", {})
+
+        # Pyright-safe union type (TypedDict OR dict)
+        contract_data: Union[BuyData, Dict[str, Any]] = (
+            buy_data or buy_resp.get("contract", {}) or buy_resp
+        )
+
+        # Pull possible values
+        raw_value: Any = (
+            contract_data.get("contract_id")
+            or contract_data.get("id")
+            or contract_data.get("longcode")
+        )
+
+        if raw_value is None:
+            return None
+
+        try:
+            return int(raw_value)
+        except Exception:
+            return None
+
+    def _extract_buy_price(self, buy_resp: Dict[str, Any]) -> Optional[float]:
+        buy_data: BuyData = buy_resp.get("buy", {})
+
+        raw_value: Any = (
+            buy_data.get("buy_price")
+            or buy_resp.get("buy_price")
+            or buy_resp.get("price")
+        )
+
+        if raw_value is None:
+            return None
+
+        try:
+            return float(raw_value)
+        except Exception:
+            return None
+
+    def _extract_sell_price(self, sell_resp: Dict[str, Any]) -> Optional[float]:
+        sell_data: SellData = sell_resp.get("sell", {})
+
+        raw_value: Any = (
+            sell_data.get("sell_price")
+            or sell_resp.get("sell_price")
+            or sell_resp.get("price")
+        )
+
+        if raw_value is None:
+            return None
+
+        try:
+            return float(raw_value)
+        except Exception:
+            return None
+
+    # -----------------------
+    # Stream callbacks (registered on StreamHandler)
+    # -----------------------
+    def _on_proposal(self, message: dict[str, Any]) -> None:
+        """
+        Called by StreamHandler when a 'proposal' message arrives.
+
+        Matching strategy (priority):
+         1) echo_req.req_id
+         2) top-level req_id
+         3) try to match echo_req content with saved proposal payloads (symbol/amount/duration/contract_type)
+         4) if exactly one pending proposal exists, use it (last-resort)
+        """
+        try:
+            logger.debug(f"[EXECUTOR] _on_proposal raw message: {message}")
+
+            echo_req = message.get("echo_req", {}) or {}
+            # Primary: echo_req.req_id
+            req_id = echo_req.get("req_id") or message.get("req_id")
+
+            # Try to match by proposal_id (some flows use proposal_id)
+            if not req_id:
+                prop = message.get("proposal", {}) or {}
+                # maybe the server returned the original req under proposal.req_id
+                req_id = prop.get("req_id") or message.get("proposal_id")
+
+            # If still not found, attempt content-based matching: compare echo_req to saved payloads
+            if not req_id:
+                # echo_req often contains the original fields (symbol, amount, duration, contract_type)
+                if echo_req:
+                    candidates = []
+                    for pid, payload in self._pending_proposals_payloads.items():
+                        # match a few key fields conservatively
+                        matches = True
+                        for k in ("symbol", "amount", "duration", "contract_type"):
+                            # both may be absent, that's ok
+                            if k in echo_req and k in payload:
+                                # Normalize numeric types to float for comparison
+                                try:
+                                    left = (
+                                        float(echo_req[k])
+                                        if isinstance(echo_req[k], (int, float, str))
+                                        else echo_req[k]
+                                    )
+                                    right = (
+                                        float(payload[k])
+                                        if isinstance(payload[k], (int, float, str))
+                                        else payload[k]
+                                    )
+                                except Exception:
+                                    left = echo_req[k]
+                                    right = payload[k]
+                                if left != right:
+                                    matches = False
+                                    break
+                        if matches:
+                            candidates.append(pid)
+
+                    if len(candidates) == 1:
+                        req_id = candidates[0]
+                        logger.debug(
+                            f"[EXECUTOR] Matched proposal by content -> {req_id}"
+                        )
+                    elif len(candidates) > 1:
+                        logger.debug(
+                            f"[EXECUTOR] Multiple proposal candidates matched by content: {candidates}"
+                        )
+
+            # Last-resort: if there's exactly one pending proposal, assume it
+            if not req_id and len(self._pending_proposals) == 1:
+                req_id = next(iter(self._pending_proposals.keys()))
+                logger.debug(
+                    f"[EXECUTOR] Using sole pending proposal id fallback: {req_id}"
+                )
+
+            if not req_id:
+                logger.debug(
+                    "[EXECUTOR] Proposal without req_id and no match - message ignored"
+                )
                 return
-            buy = data.get("buy", {})
-            cid = buy.get("contract_id")
-            if cid:
-                # Find the pending trade and update it with contract_id (don't create duplicate)
-                pending_trade = None
-                pending_trade_id = None
-                for tid, tdata in self.active_contracts.items():
-                    if tdata.get("status") == "pending" and not tdata.get("contract_id"):
-                        pending_trade = tdata
-                        pending_trade_id = tid
-                        break
-                
-                if pending_trade:
-                    # Update existing trade entry
-                    pending_trade["contract_id"] = cid
-                    pending_trade["status"] = "open"
-                    pending_trade["entry_price"] = buy.get("buy_price", 0)
-                    pending_trade["stake"] = buy.get("buy_price", pending_trade.get("stake", 0))
-                    logger.info(f"[BUY] ✅ Contract opened ID={cid} (trade_id={pending_trade_id})")
+
+            fut = self._pending_proposals.pop(req_id, None)
+            # cleanup saved payload
+            self._pending_proposals_payloads.pop(req_id, None)
+
+            if fut:
+                if not fut.done():
+                    logger.debug(
+                        f"[EXECUTOR] Resolving proposal future for req_id={req_id}"
+                    )
+                    self._loop.call_soon_threadsafe(fut.set_result, message)
                 else:
-                    # No pending trade found - create new entry (shouldn't happen normally)
-                    logger.warning(f"[BUY] No pending trade found for contract {cid}, creating new entry")
-                    self.active_contracts[f"contract_{cid}"] = {
-                        "contract_id": cid,
-                        "stake": buy.get("buy_price", 0),
-                        "status": "open",
-                        "timestamp": time.time(),
-                        "entry_price": buy.get("buy_price", 0),
-                    }
-                
-                self._subscribe_to_contract_updates(cid)
-                self._placing_trade = False  # unlock after successful buy
-        except Exception as e:
-            logger.error(f"[BUY] Exception: {e}", exc_info=True)
-            self._placing_trade = False  # unlock on error
-
-    def _subscribe_to_contract_updates(self, contract_id: str) -> None:
-        try:
-            if not contract_id:
-                return
-            logger.info(f"[CONTRACT] 🔔 Subscribe {contract_id}")
-            if hasattr(self.stream_handler, "subscribe_to_contract"):
-                self.stream_handler.subscribe_to_contract(contract_id)
-        except Exception as e:
-            logger.error(f"[CONTRACT] Subscription error: {e}", exc_info=True)
-
-    def _on_contract_update(self, update: Dict[str, Any]) -> None:
-        try:
-            c = update.get("contract")
-            if not c:
-                return
-            cid = c.get("contract_id")
-            profit = c.get("profit", 0)
-            status = c.get("status")
-            logger.info(f"[UPDATE] 📈 {cid} | Profit={profit:.2f} | Status={status}")
-
-            tp = getattr(self.risk_manager, "take_profit", 1.3)
-            sl = getattr(self.risk_manager, "stop_loss", -1.0)
-            if profit >= tp or profit <= sl:
-                logger.info(f"[UPDATE] 🚨 Auto-close {cid} (TP/SL reached)")
-                if hasattr(self.stream_handler, "sell_contract"):
-                    self.stream_handler.sell_contract(cid)
-
-            if status in ["sold", "expired"]:
-                self._finalize_contract(cid, profit, c.get("sell_price"))
-        except Exception as e:
-            logger.error(f"[UPDATE] Exception: {e}", exc_info=True)
-
-    def _on_sell_response(self, data: Dict[str, Any]) -> None:
-        try:
-            s = data.get("sell", {})
-            cid = s.get("contract_id")
-            profit = s.get("profit", 0)
-            logger.info(f"[SELL] ✅ {cid} closed | Profit={profit:.2f}")
-            self._finalize_contract(cid, profit, s.get("sell_price"))
-        except Exception as e:
-            logger.error(f"[SELL] Exception: {e}", exc_info=True)
-
-    def _on_sell_error(self, error: Dict[str, Any]) -> None:
-        try:
-            msg = error.get("message") or str(error)
-            logger.error(f"[SELL] ❌ Error: {msg}")
-        except Exception as e:
-            logger.error(f"[SELL] Exception logging error: {e}", exc_info=True)
-
-    # ------------------------------------------------------------------ #
-    # 🔹 CLEANUP & EQUITY UPDATE
-    # ------------------------------------------------------------------ #
-
-    def _finalize_contract(self, contract_id: str, profit: float, sell_price: Optional[float]) -> None:
-        if not contract_id:
-            return
-        
-        # Find the trade by contract_id (active_contracts is keyed by trade_id)
-        trade_id_to_remove = None
-        for tid, tdata in self.active_contracts.items():
-            if tdata.get("contract_id") == contract_id:
-                trade_id_to_remove = tid
-                break
-        
-        if not trade_id_to_remove:
-            logger.warning(f"[FINALIZE] Contract {contract_id} not found in active_contracts")
-            return
-        
-        trade = self.active_contracts.pop(trade_id_to_remove)
-        old_eq = getattr(self.risk_manager, "current_equity", self.risk_manager.initial_equity)
-        new_eq = old_eq + profit
-        self.risk_manager.current_equity = new_eq
-        
-        # Update strategy engine win/loss stats
-        result = "WIN" if profit > 0 else "LOSS"
-        if hasattr(self.strategy_engine, 'total_wins') and hasattr(self.strategy_engine, 'total_losses'):
-            if profit > 0:
-                self.strategy_engine.total_wins += 1
+                    logger.debug(f"[EXECUTOR] Future for req_id={req_id} already done")
             else:
-                self.strategy_engine.total_losses += 1
-        
-        logger.info(f"[FINALIZE] 🏁 {contract_id} {result} | PnL={profit:.2f} | Equity {old_eq:.2f}→{new_eq:.2f}")
+                logger.debug(
+                    f"[EXECUTOR] No pending future for proposal req_id={req_id} - storing as unsolicited"
+                )
+        except Exception as e:
+            logger.warning(f"[EXECUTOR] Error handling proposal: {e}")
+
+    def _on_buy(self, message: dict[str, Any]) -> None:
+        """
+        Called on buy response. Try to match by echo_req.req_id, req_id, buy.req_id.
+        If none, try to match using contract id or fallback to single pending buy.
+        """
+        try:
+            logger.debug(f"[EXECUTOR] _on_buy raw message: {message}")
+
+            echo_req = message.get("echo_req", {}) or {}
+            req_id = (
+                echo_req.get("req_id")
+                or message.get("req_id")
+                or (message.get("buy", {}) or {}).get("req_id")
+            )
+
+            if not req_id and len(self._pending_buys) == 1:
+                req_id = next(iter(self._pending_buys.keys()))
+                logger.debug(f"[EXECUTOR] Using sole pending buy fallback: {req_id}")
+
+            fut = self._pending_buys.pop(req_id, None) if req_id else None
+
+            if fut and not fut.done():
+                logger.debug(f"[EXECUTOR] Resolving buy future for req_id={req_id}")
+                self._loop.call_soon_threadsafe(fut.set_result, message)
+                return
+
+            # No pending future — try to extract contract and persist
+            contract_id = self._extract_contract_id_from_buy(message)
+            if contract_id:
+                self._open_contracts[contract_id] = {
+                    "contract_id": contract_id,
+                    "buy_resp": message,
+                    "timestamp": time.time(),
+                }
+                logger.debug(
+                    f"[EXECUTOR] Stored open contract from unsolicited buy message: {contract_id}"
+                )
+            else:
+                logger.debug(
+                    "[EXECUTOR] Unmatched buy message (no req_id, no contract_id) — logged for inspection"
+                )
+
+        except Exception as e:
+            logger.warning(f"[EXECUTOR] Error handling buy msg: {e}")
+
+    def _on_sell(self, message: dict[str, Any]) -> None:
+        """
+        Called when sell response arrives. Map to pending sell by req_id.
+        """
+        try:
+            req_id = message.get("req_id") or message.get("echo_req", {}).get("req_id")
+            if not req_id and len(self._pending_sells) == 1:
+                req_id = next(iter(self._pending_sells.keys()))
+            fut = self._pending_sells.pop(req_id, None)
+            if fut and not fut.done():
+                self._loop.call_soon_threadsafe(fut.set_result, message)
+            else:
+                # If not pending, still log
+                logger.debug(f"[EXECUTOR] Sell response (no pending) : {message}")
+        except Exception as e:
+            logger.warning(f"[EXECUTOR] Error handling sell msg: {e}")
+
+    def _on_sell_error(self, message: dict[str, Any]) -> None:
+        """
+        Called when sell error arrives (e.g. 'InvalidSellContractProposal').
+        We'll try to map it to a pending sell by contract id if possible.
+        """
+        try:
+            # Map to pending sell futures if possible (best-effort)
+            # Some messages include 'contract_id' in error
+            contract_id = message.get("contract_id") or message.get("error", {}).get(
+                "contract_id"
+            )
+            # Try to resolve a pending sell future and notify
+            if self._pending_sells:
+                # Just pop one and set error
+                req_id, fut = self._pending_sells.popitem()
+                if not fut.done():
+                    self._loop.call_soon_threadsafe(fut.set_result, {"error": message})
+        except Exception as e:
+            logger.warning(f"[EXECUTOR] Error handling sell_error msg: {e}")
+
+    def _on_contract_update(self, message: dict[str, Any]) -> None:
+        """
+        Called when proposal_open_contract updates arrive. Store/update contract state.
+        """
+        try:
+            contract = message or {}
+            contract_id = contract.get("contract_id") or contract.get("id")
+            if contract_id:
+                try:
+                    cid = int(contract_id)
+                except Exception:
+                    cid = contract_id
+                # merge or set
+                existing = self._open_contracts.get(cid, {})
+                existing.update(contract)
+                self._open_contracts[cid] = existing
+                logger.debug(f"[EXECUTOR] Contract update saved for {cid}")
+        except Exception as e:
+            logger.warning(f"[EXECUTOR] Error saving contract update: {e}")
+
+    # -----------------------
+    # Utility
+    # -----------------------
+
+    def list_open_contracts(self) -> Dict[int, Dict[str, Any]]:
+        return dict(self._open_contracts)
+
+    def is_contract_open(self, contract_id: int) -> bool:
+        return contract_id in self._open_contracts
