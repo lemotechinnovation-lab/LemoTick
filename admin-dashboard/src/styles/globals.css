@@ -1,0 +1,67 @@
+:root {
+
+    /* Brand Colors */
+    --color-primary: #3B82F6;
+    --color-primary-light: #60A5FA;
+    --color-primary-dark: #2563EB;
+
+    --color-secondary: #F59E0B;
+    --color-secondary-light: #FBBF24;
+    --color-secondary-dark: #F97316;
+
+    /* Background Colors */
+    --color-background: #0B0830;
+    --color-background-gradient: linear-gradient(135deg,#0B0830 0%,#14104A 50%,#0B0830 100%);
+    --color-card: #17124D;
+    --color-card-hover: #1E1863;
+
+    /* Text Colors */
+    --color-text-primary: #E8ECFF;
+    --color-text-secondary: #9AA3B2;
+    --color-text-disabled: rgba(255,255,255,0.4);
+    --color-text-muted: #9AA3B2;
+
+    /* Border & Divider */
+    --color-border: rgba(255,255,255,0.08);
+    --color-border-hover: rgba(59,130,246,0.35);
+    --color-divider: rgba(255,255,255,0.08);
+
+    /* Action States */
+    --color-hover: rgba(59,130,246,0.08);
+    --color-selected: rgba(59,130,246,0.18);
+    --color-disabled: rgba(255,255,255,0.25);
+
+    /* Status Colors */
+    --color-success: #22C55E;
+    --color-destructive: #EF4444;
+    --color-warning: #F59E0B;
+    --color-info: #3B82F6;
+
+    /* Shadows */
+    --shadow-card: 0 20px 40px rgba(0,0,0,0.4);
+    --shadow-button: 0 6px 16px rgba(0,0,0,0.35);
+    --shadow-button-hover: 0 10px 24px rgba(0,0,0,0.45);
+
+    /* Border Radius */
+    --radius-card: 16px;
+    --radius-button: 10px;
+    --radius-input: 10px;
+    --radius-xl: 16px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+
+    /* Backdrop */
+    --backdrop-blur: blur(20px);
+    --backdrop-blur-light: blur(10px);
+
+    /* Transitions */
+    --transition-fast: all .2s ease;
+    --transition-normal: all .25s ease;
+
+    /* Chart Colors */
+    --color-chart-1: #3B82F6;
+    --color-chart-2: #F59E0B;
+    --color-chart-3: #22C55E;
+    --color-chart-4: #EF4444;
+    --color-chart-5: #A855F7;
+}
