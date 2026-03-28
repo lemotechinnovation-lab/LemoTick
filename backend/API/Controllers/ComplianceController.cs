@@ -49,7 +49,7 @@ public class ComplianceController : ControllerBase
             _context.SuspiciousActivityReports.Add(sar);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("SAR created: {SARId} for  investor {InvestorId} by {UserId}",
+            _logger.LogInformation("SAR created: {SARId} for investor {InvestorId} by {UserId}",
                 sar.Id, dto.InvestorId, userId);
 
             return CreatedAtAction(nameof(GetSAR), new { id = sar.Id }, new

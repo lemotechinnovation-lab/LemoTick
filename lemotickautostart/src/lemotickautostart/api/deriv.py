@@ -169,7 +169,7 @@ class DerivClient:
         
         def close_callback(response):
             if "error" in response:
-                logger.error(f"Close  failed for {trade_id}: {response['error']}")
+                logger.error(f"Close failed for {trade_id}: {response['error']}")
                 close_result[0] = False
             else:
                 sell_response = response.get("sell")

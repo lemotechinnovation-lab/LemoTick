@@ -58,7 +58,7 @@ function Login() {
             } else if (err.message?.includes('timeout')) {
                 loginToast.error('Request timed out. Please try again.');
             } else {
-                loginToast.error('Unable to sign in. Please  check your credentials and try again.');
+                loginToast.error('Unable to sign in. Please check your credentials and try again.');
             }
         } finally {
             setIsLoading(false);
