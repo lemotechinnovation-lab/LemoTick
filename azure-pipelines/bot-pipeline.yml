@@ -51,6 +51,8 @@ stages:
 # ==============================================================
   - stage: Build
     displayName: '🔨 Build Bot Image'
+    variables:
+      - group: lemotick-dev
     jobs:
       - job: BuildImage
         displayName: Lint · Docker build & push

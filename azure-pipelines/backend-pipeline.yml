@@ -49,6 +49,8 @@ stages:
 # ==============================================================
   - stage: Build
     displayName: '🔨 Build & Test'
+    variables:
+      - group: lemotick-dev
     jobs:
       - job: BuildTest
         displayName: Restore · Build · Test · Push image

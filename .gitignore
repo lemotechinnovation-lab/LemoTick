@@ -13,6 +13,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!admin-dashboard/src/lib/
 lib64/
 parts/
 sdist/
@@ -321,6 +322,7 @@ bot_output.log
 
 # Data directories
 data/
+!backend/Infrastructure/Data/
 test_data/
 
 # Logs
