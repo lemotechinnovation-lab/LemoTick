@@ -13,21 +13,25 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy bot files
-COPY bot/ /app/
+# Copy bot source and install via pyproject.toml
+COPY lemotickautostart/ /app/
 
-# Install Python dependencies
+# Install Python dependencies from project definition
 RUN pip install --no-cache-dir \
     requests>=2.31.0 \
     websocket-client>=1.6.0 \
+    websockets>=11.0 \
     numpy>=1.24.0 \
     pandas>=2.0.0 \
     python-dotenv>=1.0.0 \
-    pyyaml>=6.0
+    pyyaml>=6.0 \
+    pydantic>=2.0.0 \
+    loguru>=0.7.0 \
+    aiohttp>=3.9.0 \
+    signalrcore>=0.9.5
 
 # Set environment variables
-ENV PYTHONPATH=/app/src
-ENV NODE_ENV=production
+ENV PYTHONPATH=/app/src/lemotickautostart
 
 # Create logs directory
 RUN mkdir -p /app/logs
@@ -40,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python3 -c "import requests; requests.get('http://localhost:8080/health', timeout=5)" || exit 1
 
 # Start the bot
-CMD ["python3", "src/core/bot_engine.py"]
+CMD ["python3", "-m", "lemotickautostart"]
