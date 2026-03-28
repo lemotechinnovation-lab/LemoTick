@@ -135,7 +135,7 @@ stages:
                 - task: SSH@0
                   displayName: Pull & restart lemotick-backend-dev
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e
@@ -196,7 +196,7 @@ stages:
                 - task: SSH@0
                   displayName: Pull & restart lemotick-backend-qa
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e
@@ -258,7 +258,7 @@ stages:
                 - task: SSH@0
                   displayName: Pull & restart lemotick-backend-prod
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e

@@ -124,7 +124,7 @@ stages:
                 - task: SSH@0
                   displayName: Prepare web root (dev)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       mkdir -p /var/www/lemotick-dev
@@ -133,7 +133,7 @@ stages:
                 - task: CopyFilesOverSSH@0
                   displayName: SCP dist/ → /var/www/lemotick-dev
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     sourceFolder: $(Pipeline.Workspace)/dashboard-dist
                     contents: '**'
                     targetFolder: /var/www/lemotick-dev
@@ -143,7 +143,7 @@ stages:
                 - task: SSH@0
                   displayName: Fix permissions & reload Nginx (dev)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e
@@ -185,7 +185,7 @@ stages:
                 - task: SSH@0
                   displayName: Prepare web root (qa)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       mkdir -p /var/www/lemotick-qa
@@ -194,7 +194,7 @@ stages:
                 - task: CopyFilesOverSSH@0
                   displayName: SCP dist/ → /var/www/lemotick-qa
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     sourceFolder: $(Pipeline.Workspace)/dashboard-dist
                     contents: '**'
                     targetFolder: /var/www/lemotick-qa
@@ -204,7 +204,7 @@ stages:
                 - task: SSH@0
                   displayName: Fix permissions & reload Nginx (qa)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e
@@ -247,7 +247,7 @@ stages:
                 - task: SSH@0
                   displayName: Prepare web root (prod)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       mkdir -p /var/www/lemotick-prod
@@ -256,7 +256,7 @@ stages:
                 - task: CopyFilesOverSSH@0
                   displayName: SCP dist/ → /var/www/lemotick-prod
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     sourceFolder: $(Pipeline.Workspace)/dashboard-dist
                     contents: '**'
                     targetFolder: /var/www/lemotick-prod
@@ -266,7 +266,7 @@ stages:
                 - task: SSH@0
                   displayName: Fix permissions & reload Nginx (prod)
                   inputs:
-                    sshEndpoint: lemotick-ssh
+                    sshEndpoint: lemotick-ssh-connection
                     runOptions: inline
                     inline: |
                       set -e
