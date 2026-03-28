@@ -1,25 +1,13 @@
 # ==============================================================
 # LemoTick – Bot Pipeline (Python Trading Bot)
-# CI:       Azure DevOps
+# CI:       Azure DevOps  (self-hosted agent on the same VM)
 # Registry: Docker Hub
-# Deploy:   Single AlmaLinux 10 VM — all envs on one server
+# Deploy:   Direct docker commands — agent runs ON the server
 #
-# Container names on the VM:
+# Container names:
 #   prod  →  lemotick-bot-prod
 #   qa    →  lemotick-bot-qa
 #   dev   →  lemotick-bot-dev
-#
-# Azure DevOps pre-requisites:
-#   Service connections:
-#     "lemotick-dockerhub-connection"  Docker Registry → Docker Hub
-#     "lemotick-ssh"                   SSH → the single AlmaLinux 10 VM
-#
-#   Variable groups:
-#     "lemotick-dev", "lemotick-qa", "lemotick-prod"
-#
-#   Environments:
-#     development / staging / production
-#     Add an Approval check on "production".
 # ==============================================================
 
 trigger:
@@ -57,10 +45,10 @@ variables:
   IMAGE_TAG: $(Build.BuildId)
   IS_PR: $[eq(variables['Build.Reason'], 'PullRequest')]
 
+stages:
 # ==============================================================
 # STAGE 1 – Lint, Build & Push
 # ==============================================================
-stages:
   - stage: Build
     displayName: '🔨 Build Bot Image'
     jobs:
@@ -76,25 +64,23 @@ stages:
                 --max-line-length=120 \
                 --exclude=__pycache__,.git \
                 --ignore=E501,W503
+            workingDirectory: $(Build.SourcesDirectory)
             displayName: Lint Python source
             continueOnError: true
 
-          - task: Docker@2
+          - script: |
+              echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
+              docker build -t $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG) \
+                           -t $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(Build.SourceBranchName) \
+                           -f $(Build.SourcesDirectory)/deployment/docker/Dockerfile.bot \
+                           $(Build.SourcesDirectory)
+              docker push $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+              docker push $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(Build.SourceBranchName)
             displayName: Build & push bot image → Docker Hub
             condition: and(succeeded(), eq(variables['IS_PR'], false))
-            inputs:
-              command: buildAndPush
-              repository: $(IMAGE_REPOSITORY)
-              dockerfile: deployment/docker/Dockerfile.bot
-              containerRegistry: lemotick-dockerhub-connection
-              buildContext: $(Build.SourcesDirectory)
-              tags: |
-                $(IMAGE_TAG)
-                $(Build.SourceBranchName)
 
 # ==============================================================
 # STAGE 2a – Deploy → Development  (branch: dev)
-#   Container: lemotick-bot-dev
 # ==============================================================
   - stage: DeployDev
     displayName: '🚀 Deploy → Development'
@@ -109,52 +95,40 @@ stages:
       - group: lemotick-dev
     jobs:
       - deployment: DeployDev
-        displayName: Deploy lemotick-bot-dev on VM
+        displayName: Deploy lemotick-bot-dev
         environment: development
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-bot-dev
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
+                - script: |
+                    set -e
+                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker stop lemotick-bot-dev 2>/dev/null || true
+                    docker rm   lemotick-bot-dev 2>/dev/null || true
 
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                    mkdir -p /var/log/lemotick-bot-dev
+                    docker run -d \
+                      --name lemotick-bot-dev \
+                      --restart unless-stopped \
+                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
+                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
+                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
+                      -e "ENV=development" \
+                      -v /var/log/lemotick-bot-dev:/app/logs \
+                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-bot-dev 2>/dev/null || true
-                      docker rm   lemotick-bot-dev 2>/dev/null || true
-
-                      echo "==> Start lemotick-bot-dev"
-                      docker run -d \
-                        --name lemotick-bot-dev \
-                        --restart unless-stopped \
-                        -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                        -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                        -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                        -e "ENV=development" \
-                        -v /var/log/lemotick-bot-dev:/app/logs \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-bot-dev" \
-                        --format "table {{.Names}}\t{{.Status}}"
-                      echo "==> Last 20 log lines"
-                      docker logs --tail 20 lemotick-bot-dev
-                      docker image prune -f
+                    sleep 8
+                    docker ps --filter "name=lemotick-bot-dev" \
+                      --format "table {{.Names}}\t{{.Status}}"
+                    docker logs --tail 20 lemotick-bot-dev
+                    docker image prune -f
+                  displayName: Run lemotick-bot-dev
 
 # ==============================================================
 # STAGE 2b – Deploy → QA  (branch: qa)
-#   Container: lemotick-bot-qa
 # ==============================================================
   - stage: DeployQA
     displayName: '🚀 Deploy → QA'
@@ -169,51 +143,40 @@ stages:
       - group: lemotick-qa
     jobs:
       - deployment: DeployQA
-        displayName: Deploy lemotick-bot-qa on VM
+        displayName: Deploy lemotick-bot-qa
         environment: staging
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-bot-qa
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
+                - script: |
+                    set -e
+                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker stop lemotick-bot-qa 2>/dev/null || true
+                    docker rm   lemotick-bot-qa 2>/dev/null || true
 
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                    mkdir -p /var/log/lemotick-bot-qa
+                    docker run -d \
+                      --name lemotick-bot-qa \
+                      --restart unless-stopped \
+                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
+                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
+                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
+                      -e "ENV=staging" \
+                      -v /var/log/lemotick-bot-qa:/app/logs \
+                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-bot-qa 2>/dev/null || true
-                      docker rm   lemotick-bot-qa 2>/dev/null || true
-
-                      echo "==> Start lemotick-bot-qa"
-                      docker run -d \
-                        --name lemotick-bot-qa \
-                        --restart unless-stopped \
-                        -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                        -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                        -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                        -e "ENV=staging" \
-                        -v /var/log/lemotick-bot-qa:/app/logs \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-bot-qa" \
-                        --format "table {{.Names}}\t{{.Status}}"
-                      docker logs --tail 20 lemotick-bot-qa
-                      docker image prune -f
+                    sleep 8
+                    docker ps --filter "name=lemotick-bot-qa" \
+                      --format "table {{.Names}}\t{{.Status}}"
+                    docker logs --tail 20 lemotick-bot-qa
+                    docker image prune -f
+                  displayName: Run lemotick-bot-qa
 
 # ==============================================================
 # STAGE 2c – Deploy → Production  (branch: main / master)
-#   Container: lemotick-bot-prod
 #   ⚠  Add Approval check on "production" Environment
 # ==============================================================
   - stage: DeployProd
@@ -229,56 +192,34 @@ stages:
       - group: lemotick-prod
     jobs:
       - deployment: DeployProd
-        displayName: Deploy lemotick-bot-prod on VM
+        displayName: Deploy lemotick-bot-prod
         environment: production
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-bot-prod
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
+                - script: |
+                    set -e
+                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
+                    docker stop lemotick-bot-prod 2>/dev/null || true
+                    docker rm   lemotick-bot-prod 2>/dev/null || true
 
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                    mkdir -p /var/log/lemotick-bot-prod
+                    docker run -d \
+                      --name lemotick-bot-prod \
+                      --restart unless-stopped \
+                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
+                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
+                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
+                      -e "ENV=production" \
+                      -v /var/log/lemotick-bot-prod:/app/logs \
+                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
 
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-bot-prod 2>/dev/null || true
-                      docker rm   lemotick-bot-prod 2>/dev/null || true
-
-                      echo "==> Start lemotick-bot-prod"
-                      docker run -d \
-                        --name lemotick-bot-prod \
-                        --restart unless-stopped \
-                        -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                        -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                        -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                        -e "ENV=production" \
-                        -v /var/log/lemotick-bot-prod:/app/logs \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-bot-prod" \
-                        --format "table {{.Names}}\t{{.Status}}"
-                      docker logs --tail 20 lemotick-bot-prod
-                      docker image prune -f
-
-# ==============================================================
-# Variable group keys (lemotick-dev / qa / prod)
-# --------------------------------------------------------------
-#   DOCKERHUB_USERNAME    Docker Hub username          (not secret)
-#   DOCKERHUB_TOKEN       Docker Hub access token      🔒 secret
-#   DERIV_API_TOKEN       Deriv broker API token       🔒 secret
-#   BACKEND_API_URL       dev: http://localhost:5001
-#                         qa:  http://localhost:5002
-#                         prod:http://localhost:5000
-#   BACKEND_API_KEY       Shared secret bot ↔ backend  🔒 secret
-# ==============================================================
+                    sleep 8
+                    docker ps --filter "name=lemotick-bot-prod" \
+                      --format "table {{.Names}}\t{{.Status}}"
+                    docker logs --tail 20 lemotick-bot-prod
+                    docker image prune -f
+                  displayName: Run lemotick-bot-prod

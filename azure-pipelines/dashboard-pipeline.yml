@@ -1,23 +1,12 @@
 # ==============================================================
 # LemoTick – Dashboard Pipeline (React + Vite SPA)
-# CI:     Azure DevOps
-# Deploy: Single AlmaLinux 10 VM — all envs on one server via SCP → Nginx
+# CI:     Azure DevOps  (self-hosted agent on the same VM)
+# Deploy: Direct cp to Nginx web root — agent runs ON the server
 #
-# Nginx port mapping on the VM:
+# Nginx port mapping:
 #   prod  →  port 80   →  /var/www/lemotick-prod
 #   qa    →  port 8090 →  /var/www/lemotick-qa
 #   dev   →  port 8080 →  /var/www/lemotick-dev
-#
-# Azure DevOps pre-requisites:
-#   Service connections:
-#     "lemotick-ssh"   SSH → the single AlmaLinux 10 VM
-#
-#   Variable groups:
-#     "lemotick-dev", "lemotick-qa", "lemotick-prod"
-#
-#   Environments:
-#     development / staging / production
-#     Add an Approval check on "production".
 # ==============================================================
 
 trigger:
@@ -48,57 +37,44 @@ pool:
     - agent.name -equals lemotick-vm
 
 variables:
-  NODE_VERSION: '20.x'
   IS_PR: $[eq(variables['Build.Reason'], 'PullRequest')]
 
+stages:
 # ==============================================================
 # STAGE 1 – Install, Lint, Type-check & Build
 # ==============================================================
-stages:
   - stage: Build
     displayName: '🔨 Build'
     jobs:
       - job: Build
         displayName: Install · Lint · Type-check · Vite build
         steps:
-          - task: NodeTool@0
-            displayName: Use Node.js $(NODE_VERSION)
-            inputs:
-              versionSpec: $(NODE_VERSION)
+          - script: node --version && npm --version
+            displayName: Verify Node.js version
 
           - script: npm ci
-            workingDirectory: admin-dashboard
+            workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
             displayName: Install dependencies (ci)
 
           - script: npm run lint
-            workingDirectory: admin-dashboard
+            workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
             displayName: Lint
             continueOnError: true
 
           - script: npx tsc --noEmit
-            workingDirectory: admin-dashboard
+            workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
             displayName: Type check
             continueOnError: true
 
           - script: npm run build
-            workingDirectory: admin-dashboard
+            workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
             displayName: Vite build
             env:
               VITE_API_BASE_URL: $(VITE_API_BASE_URL)
               VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
 
-          - task: PublishBuildArtifacts@1
-            displayName: Publish dist as pipeline artifact
-            condition: and(succeeded(), eq(variables['IS_PR'], false))
-            inputs:
-              PathtoPublish: admin-dashboard/dist
-              ArtifactName: dashboard-dist
-              publishLocation: Container
-
 # ==============================================================
 # STAGE 2a – Deploy → Development  (branch: dev)
-#   Web root : /var/www/lemotick-dev
-#   Nginx    : port 8080
 # ==============================================================
   - stage: DeployDev
     displayName: '🚀 Deploy → Development'
@@ -113,53 +89,26 @@ stages:
       - group: lemotick-dev
     jobs:
       - deployment: DeployDev
-        displayName: SCP → /var/www/lemotick-dev
+        displayName: Copy dist → /var/www/lemotick-dev
         environment: development
         strategy:
           runOnce:
             deploy:
               steps:
-                - download: current
-                  artifact: dashboard-dist
-                  displayName: Download dist artifact
-
-                - task: SSH@0
-                  displayName: Prepare web root (dev)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      mkdir -p /var/www/lemotick-dev
-                      chown -R $USER:$USER /var/www/lemotick-dev
-
-                - task: CopyFilesOverSSH@0
-                  displayName: SCP dist/ → /var/www/lemotick-dev
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    sourceFolder: $(Pipeline.Workspace)/dashboard-dist
-                    contents: '**'
-                    targetFolder: /var/www/lemotick-dev
-                    cleanTargetFolder: true
-                    readyTimeout: '20000'
-
-                - task: SSH@0
-                  displayName: Fix permissions & reload Nginx (dev)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
-                      chown -R nginx:nginx /var/www/lemotick-dev
-                      chmod -R 755 /var/www/lemotick-dev
-                      chcon -Rt httpd_sys_content_t /var/www/lemotick-dev
-                      nginx -t
-                      systemctl reload nginx
-                      echo "==> Dashboard (dev) deployed — http://$(hostname -I | awk '{print $1}'):8080"
+                - script: |
+                    set -e
+                    mkdir -p /var/www/lemotick-dev
+                    rm -rf /var/www/lemotick-dev/*
+                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-dev/
+                    chown -R nginx:nginx /var/www/lemotick-dev
+                    chmod -R 755 /var/www/lemotick-dev
+                    chcon -Rt httpd_sys_content_t /var/www/lemotick-dev 2>/dev/null || true
+                    nginx -t && systemctl reload nginx
+                    echo "==> Dashboard (dev) deployed → http://154.66.196.172:8080"
+                  displayName: Deploy dashboard (dev)
 
 # ==============================================================
 # STAGE 2b – Deploy → QA  (branch: qa)
-#   Web root : /var/www/lemotick-qa
-#   Nginx    : port 8090
 # ==============================================================
   - stage: DeployQA
     displayName: '🚀 Deploy → QA'
@@ -174,53 +123,26 @@ stages:
       - group: lemotick-qa
     jobs:
       - deployment: DeployQA
-        displayName: SCP → /var/www/lemotick-qa
+        displayName: Copy dist → /var/www/lemotick-qa
         environment: staging
         strategy:
           runOnce:
             deploy:
               steps:
-                - download: current
-                  artifact: dashboard-dist
-                  displayName: Download dist artifact
-
-                - task: SSH@0
-                  displayName: Prepare web root (qa)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      mkdir -p /var/www/lemotick-qa
-                      chown -R $USER:$USER /var/www/lemotick-qa
-
-                - task: CopyFilesOverSSH@0
-                  displayName: SCP dist/ → /var/www/lemotick-qa
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    sourceFolder: $(Pipeline.Workspace)/dashboard-dist
-                    contents: '**'
-                    targetFolder: /var/www/lemotick-qa
-                    cleanTargetFolder: true
-                    readyTimeout: '20000'
-
-                - task: SSH@0
-                  displayName: Fix permissions & reload Nginx (qa)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
-                      chown -R nginx:nginx /var/www/lemotick-qa
-                      chmod -R 755 /var/www/lemotick-qa
-                      chcon -Rt httpd_sys_content_t /var/www/lemotick-qa
-                      nginx -t
-                      systemctl reload nginx
-                      echo "==> Dashboard (qa) deployed — http://$(hostname -I | awk '{print $1}'):8090"
+                - script: |
+                    set -e
+                    mkdir -p /var/www/lemotick-qa
+                    rm -rf /var/www/lemotick-qa/*
+                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-qa/
+                    chown -R nginx:nginx /var/www/lemotick-qa
+                    chmod -R 755 /var/www/lemotick-qa
+                    chcon -Rt httpd_sys_content_t /var/www/lemotick-qa 2>/dev/null || true
+                    nginx -t && systemctl reload nginx
+                    echo "==> Dashboard (qa) deployed → http://154.66.196.172:8090"
+                  displayName: Deploy dashboard (qa)
 
 # ==============================================================
 # STAGE 2c – Deploy → Production  (branch: main / master)
-#   Web root : /var/www/lemotick-prod
-#   Nginx    : port 80
 #   ⚠  Add Approval check on "production" Environment
 # ==============================================================
   - stage: DeployProd
@@ -236,52 +158,20 @@ stages:
       - group: lemotick-prod
     jobs:
       - deployment: DeployProd
-        displayName: SCP → /var/www/lemotick-prod
+        displayName: Copy dist → /var/www/lemotick-prod
         environment: production
         strategy:
           runOnce:
             deploy:
               steps:
-                - download: current
-                  artifact: dashboard-dist
-                  displayName: Download dist artifact
-
-                - task: SSH@0
-                  displayName: Prepare web root (prod)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      mkdir -p /var/www/lemotick-prod
-                      chown -R $USER:$USER /var/www/lemotick-prod
-
-                - task: CopyFilesOverSSH@0
-                  displayName: SCP dist/ → /var/www/lemotick-prod
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    sourceFolder: $(Pipeline.Workspace)/dashboard-dist
-                    contents: '**'
-                    targetFolder: /var/www/lemotick-prod
-                    cleanTargetFolder: true
-                    readyTimeout: '20000'
-
-                - task: SSH@0
-                  displayName: Fix permissions & reload Nginx (prod)
-                  inputs:
-                    sshEndpoint: lemotick-ssh-connection
-                    runOptions: inline
-                    inline: |
-                      set -e
-                      chown -R nginx:nginx /var/www/lemotick-prod
-                      chmod -R 755 /var/www/lemotick-prod
-                      chcon -Rt httpd_sys_content_t /var/www/lemotick-prod
-                      nginx -t
-                      systemctl reload nginx
-                      echo "==> Dashboard (prod) deployed — http://$(hostname -I | awk '{print $1}')"
-
-# ==============================================================
-# Variable group keys (lemotick-dev / qa / prod)
-# --------------------------------------------------------------
-#   VITE_API_BASE_URL      dev: http://<ip>:8080  qa: http://<ip>:8090  prod: http://<ip>
-#   VITE_SIGNALR_HUB_URL   same pattern as above
-# ==============================================================
+                - script: |
+                    set -e
+                    mkdir -p /var/www/lemotick-prod
+                    rm -rf /var/www/lemotick-prod/*
+                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-prod/
+                    chown -R nginx:nginx /var/www/lemotick-prod
+                    chmod -R 755 /var/www/lemotick-prod
+                    chcon -Rt httpd_sys_content_t /var/www/lemotick-prod 2>/dev/null || true
+                    nginx -t && systemctl reload nginx
+                    echo "==> Dashboard (prod) deployed → http://154.66.196.172"
+                  displayName: Deploy dashboard (prod)
