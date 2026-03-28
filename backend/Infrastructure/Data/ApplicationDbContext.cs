@@ -25,33 +25,33 @@ public class ApplicationDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<InvestorPreferences> InvestorPreferences => Set<InvestorPreferences>();
 
-    // ── Lookup tables ─────────────────────────────────────────────────────────
-    public DbSet<InvestorStatusLookup> InvestorStatusLookups => Set<InvestorStatusLookup>();
-    public DbSet<UserRoleLookup> UserRoleLookups => Set<UserRoleLookup>();
-    public DbSet<PortfolioStatusLookup> PortfolioStatusLookups => Set<PortfolioStatusLookup>();
-    public DbSet<RiskLevelLookup> RiskLevelLookups => Set<RiskLevelLookup>();
-    public DbSet<TradeTypeLookup> TradeTypeLookups => Set<TradeTypeLookup>();
-    public DbSet<TradeDirectionLookup> TradeDirectionLookups => Set<TradeDirectionLookup>();
-    public DbSet<TradeStatusLookup> TradeStatusLookups => Set<TradeStatusLookup>();
-    public DbSet<TransactionTypeLookup> TransactionTypeLookups => Set<TransactionTypeLookup>();
-    public DbSet<TransactionStatusLookup> TransactionStatusLookups => Set<TransactionStatusLookup>();
-    public DbSet<NotificationTypeLookup> NotificationTypeLookups => Set<NotificationTypeLookup>();
-    public DbSet<NotificationPriorityLookup> NotificationPriorityLookups => Set<NotificationPriorityLookup>();
-    public DbSet<DocumentTypeLookup> DocumentTypeLookups => Set<DocumentTypeLookup>();
-    public DbSet<DocumentStatusLookup> DocumentStatusLookups => Set<DocumentStatusLookup>();
-    public DbSet<SARStatusLookup> SARStatusLookups => Set<SARStatusLookup>();
-    public DbSet<FeeTypeLookup> FeeTypeLookups => Set<FeeTypeLookup>();
-    public DbSet<FeeStatusLookup> FeeStatusLookups => Set<FeeStatusLookup>();
-    public DbSet<WithdrawalStatusLookup> WithdrawalStatusLookups => Set<WithdrawalStatusLookup>();
-    public DbSet<ReferralStatusLookup> ReferralStatusLookups => Set<ReferralStatusLookup>();
-    public DbSet<CommissionStatusLookup> CommissionStatusLookups => Set<CommissionStatusLookup>();
-    public DbSet<PaymentTypeLookup> PaymentTypeLookups => Set<PaymentTypeLookup>();
-    public DbSet<PaymentMethodLookup> PaymentMethodLookups => Set<PaymentMethodLookup>();
-    public DbSet<PaymentStatusLookup> PaymentStatusLookups => Set<PaymentStatusLookup>();
-    public DbSet<BankAccountTypeLookup> BankAccountTypeLookups => Set<BankAccountTypeLookup>();
-    public DbSet<BankAccountStatusLookup> BankAccountStatusLookups => Set<BankAccountStatusLookup>();
-    public DbSet<StatementDeliveryMethodLookup> StatementDeliveryMethodLookups => Set<StatementDeliveryMethodLookup>();
-    public DbSet<RiskToleranceLookup> RiskToleranceLookups => Set<RiskToleranceLookup>();
+    // ── Lookup tables (named to match controller access patterns) ─────────────
+    public DbSet<InvestorStatusLookup> InvestorStatusLookup => Set<InvestorStatusLookup>();
+    public DbSet<UserRoleLookup> UserRoleLookup => Set<UserRoleLookup>();
+    public DbSet<PortfolioStatusLookup> PortfolioStatusLookup => Set<PortfolioStatusLookup>();
+    public DbSet<RiskLevelLookup> RiskLevelLookup => Set<RiskLevelLookup>();
+    public DbSet<TradeTypeLookup> TradeTypeLookup => Set<TradeTypeLookup>();
+    public DbSet<TradeDirectionLookup> TradeDirectionLookup => Set<TradeDirectionLookup>();
+    public DbSet<TradeStatusLookup> TradeStatusLookup => Set<TradeStatusLookup>();
+    public DbSet<TransactionTypeLookup> TransactionTypeLookup => Set<TransactionTypeLookup>();
+    public DbSet<TransactionStatusLookup> TransactionStatusLookup => Set<TransactionStatusLookup>();
+    public DbSet<NotificationTypeLookup> NotificationTypeLookup => Set<NotificationTypeLookup>();
+    public DbSet<NotificationPriorityLookup> NotificationPriorityLookup => Set<NotificationPriorityLookup>();
+    public DbSet<DocumentTypeLookup> DocumentTypeLookup => Set<DocumentTypeLookup>();
+    public DbSet<DocumentStatusLookup> DocumentStatusLookup => Set<DocumentStatusLookup>();
+    public DbSet<SARStatusLookup> SARStatusLookup => Set<SARStatusLookup>();
+    public DbSet<FeeTypeLookup> FeeTypeLookup => Set<FeeTypeLookup>();
+    public DbSet<FeeStatusLookup> FeeStatusLookup => Set<FeeStatusLookup>();
+    public DbSet<WithdrawalStatusLookup> WithdrawalStatusLookup => Set<WithdrawalStatusLookup>();
+    public DbSet<ReferralStatusLookup> ReferralStatusLookup => Set<ReferralStatusLookup>();
+    public DbSet<CommissionStatusLookup> CommissionStatusLookup => Set<CommissionStatusLookup>();
+    public DbSet<PaymentTypeLookup> PaymentTypeLookup => Set<PaymentTypeLookup>();
+    public DbSet<PaymentMethodLookup> PaymentMethodLookup => Set<PaymentMethodLookup>();
+    public DbSet<PaymentStatusLookup> PaymentStatusLookup => Set<PaymentStatusLookup>();
+    public DbSet<BankAccountTypeLookup> BankAccountTypeLookup => Set<BankAccountTypeLookup>();
+    public DbSet<BankAccountStatusLookup> BankAccountStatusLookup => Set<BankAccountStatusLookup>();
+    public DbSet<StatementDeliveryMethodLookup> StatementDeliveryMethodLookup => Set<StatementDeliveryMethodLookup>();
+    public DbSet<RiskToleranceLookup> RiskToleranceLookup => Set<RiskToleranceLookup>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,7 +65,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.ReferralCode).IsUnique();
 
             entity.HasMany(e => e.Portfolios)
-                  .WithOne()
+                  .WithOne(p => p.Investor)
                   .HasForeignKey(p => p.InvestorId)
                   .OnDelete(DeleteBehavior.Cascade);
 
@@ -101,7 +101,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
 
             entity.HasMany(e => e.Trades)
-                  .WithOne()
+                  .WithOne(t => t.Portfolio)
                   .HasForeignKey(t => t.PortfolioId)
                   .OnDelete(DeleteBehavior.Cascade);
 
@@ -119,17 +119,11 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.EntityType);
         });
 
-        // ── InvestorPreferences (1-to-1 with Investor) ────────────────────────
+        // ── InvestorPreferences (1-to-1) ──────────────────────────────────────
         modelBuilder.Entity<InvestorPreferences>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.InvestorId).IsUnique();
-        });
-
-        // ── SuspiciousActivityReport ──────────────────────────────────────────
-        modelBuilder.Entity<SuspiciousActivityReport>(entity =>
-        {
-            entity.HasKey(e => e.Id);
         });
     }
 }
