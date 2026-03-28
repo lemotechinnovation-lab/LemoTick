@@ -67,14 +67,12 @@ stages:
       - job: BuildImage
         displayName: Lint · Docker build & push
         steps:
-          - task: UsePythonVersion@0
-            displayName: Use Python 3.11
-            inputs:
-              versionSpec: '3.11'
+          - script: python3 --version
+            displayName: Verify Python version
 
           - script: |
-              pip install flake8
-              flake8 lemotickautostart/src \
+              python3 -m pip install flake8
+              python3 -m flake8 lemotickautostart/src \
                 --max-line-length=120 \
                 --exclude=__pycache__,.git \
                 --ignore=E501,W503
