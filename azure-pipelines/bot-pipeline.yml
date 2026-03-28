@@ -47,7 +47,9 @@ pr:
       - deployment/docker/Dockerfile.bot
 
 pool:
-  vmImage: ubuntu-latest
+  name: Default
+  demands:
+    - agent.name -equals lemotick-vm
 
 variables:
   DOCKER_REGISTRY: docker.io

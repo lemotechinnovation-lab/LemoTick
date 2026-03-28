@@ -43,7 +43,9 @@ pr:
       - admin-dashboard/**
 
 pool:
-  vmImage: ubuntu-latest
+  name: Default
+  demands:
+    - agent.name -equals lemotick-vm
 
 variables:
   NODE_VERSION: '20.x'
