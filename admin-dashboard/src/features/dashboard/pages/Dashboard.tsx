@@ -1,9 +1,9 @@
 import ModernAreaChart from '@/components/charts/ModernAreaChart';
 import ModernBarChart from '@/components/charts/ModernBarChart';
 import ModernDonutChart from '@/components/charts/ModernDonutChart';
-import { MetricCard, ProgressBar, QuickAction, StatCard, StatusBadge, TableCell, TableRow } from '@/components/dashboard/DashboardComponents';
+import { ProgressBar, StatusBadge, TableCell, TableRow } from '@/components/dashboard/DashboardComponents';
 import { LiveBadge, PageHeader } from '@/components/ui/PageHeader';
-import { ContentSection, PageCard, PageContainer, PageGrid, PageSection } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, PageSection } from '@/components/ui/PageLayoutEnhanced';
 import {
   Activity,
   AlertTriangle,
@@ -188,356 +188,418 @@ function Dashboard() {
         }
       />
 
-      {/* Stats Grid - Enhanced with New Components */}
+      {/* Stats Grid - Enhanced with Glassmorphism */}
       <PageSection spacing="normal">
-        <PageGrid cols={4} gap="sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Account Balance */}
-          <StatCard
-            label="Account Balance"
-            value={formatCurrency(userStats.totalBalance)}
-            change={`${userStats.profitChange >= 0 ? '+' : ''}${userStats.profitChange.toFixed(1)}%`}
-            changeType={userStats.profitChange >= 0 ? 'positive' : 'negative'}
-            icon={Wallet}
-            iconColor="text-blue-400"
-            iconBgFrom="from-blue-500/20"
-            iconBgTo="to-blue-600/20"
-            trend={userStats.profitChange >= 0 ? 'up' : 'down'}
-          />
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-brand-blue/20 to-[#4A7FFF]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <Wallet className="w-6 h-6 text-brand-blue group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${userStats.profitChange >= 0 ? 'bg-green-500/20 text-green-400 border border-green-400/30' : 'bg-red-500/20 text-red-400 border border-red-400/30'}`}>
+                {userStats.profitChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(1)}%
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Account Balance</p>
+              <p className="text-2xl font-bold text-white mb-1">{formatCurrency(userStats.totalBalance)}</p>
+              <p className="text-xs text-gray-500">Updated just now</p>
+            </div>
+          </div>
 
           {/* Total Profit */}
-          <StatCard
-            label="Total Profit"
-            value={formatCurrency(userStats.totalProfit)}
-            change={`${userStats.profitChange >= 0 ? '+' : ''}${userStats.profitChange.toFixed(1)}%`}
-            changeType={userStats.profitChange >= 0 ? 'positive' : 'negative'}
-            icon={TrendingUp}
-            iconColor="text-green-400"
-            iconBgFrom="from-green-500/20"
-            iconBgTo="to-emerald-500/20"
-            trend={userStats.profitChange >= 0 ? 'up' : 'down'}
-          />
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${userStats.profitChange >= 0 ? 'bg-green-500/20 text-green-400 border border-green-400/30' : 'bg-red-500/20 text-red-400 border border-red-400/30'}`}>
+                {userStats.profitChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(1)}%
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Total Profit</p>
+              <p className="text-2xl font-bold text-green-400 mb-1">{formatCurrency(userStats.totalProfit)}</p>
+              <p className="text-xs text-gray-500">This month</p>
+            </div>
+          </div>
 
           {/* Win Rate */}
-          <StatCard
-            label="Win Rate"
-            value={`${userStats.winRate.toFixed(1)}%`}
-            change={`${userStats.totalTrades} trades`}
-            changeType="positive"
-            icon={Activity}
-            iconColor="text-purple-400"
-            iconBgFrom="from-purple-500/20"
-            iconBgTo="to-violet-500/20"
-          />
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-6 h-6 text-purple-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-400/30">
+                {userStats.totalTrades} trades
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Win Rate</p>
+              <p className="text-2xl font-bold text-purple-400 mb-1">{userStats.winRate.toFixed(1)}%</p>
+              <p className="text-xs text-gray-500">Above average</p>
+            </div>
+          </div>
 
           {/* Active Bots */}
-          <StatCard
-            label="Active Bots"
-            value={userStats.activeBots.toString()}
-            change={userStats.botsChange > 0 ? `+${userStats.botsChange} new` : 'Running'}
-            changeType={userStats.botsChange > 0 ? 'positive' : 'neutral'}
-            icon={Bot}
-            iconColor="text-orange-400"
-            iconBgFrom="from-orange-500/20"
-            iconBgTo="to-amber-500/20"
-          />
-        </PageGrid>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-accent-orange/30 shadow-xl shadow-accent-orange/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-accent-orange/20 to-[#FFB84D]/20 flex items-center justify-center shadow-lg border border-accent-orange/30 group-hover:scale-110 transition-transform">
+                <Bot className="w-6 h-6 text-accent-orange group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-400/30">
+                {userStats.botsChange > 0 ? `+${userStats.botsChange}` : 'Running'}
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Active Bots</p>
+              <p className="text-2xl font-bold text-accent-orange mb-1">{userStats.activeBots}</p>
+              <p className="text-xs text-gray-500">All operational</p>
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Account Status & Compliance */}
+      {/* Account Status & Compliance - Enhanced */}
       <PageSection spacing="normal">
-        <PageGrid cols={3} gap="sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Account Status */}
-          <MetricCard
-            title="Account Status"
-            value="Active"
-            subtitle="Tier II - R50,000"
-            icon={CheckCircle}
-            iconColor="text-green-400"
-            iconBgFrom="from-green-500/20"
-            iconBgTo="to-emerald-500/20"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">Status</span>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
+                <CheckCircle className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
               <StatusBadge status="active" pulse={true} />
             </div>
-          </MetricCard>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Account Status</p>
+              <p className="text-2xl font-bold text-green-400 mb-1">Active</p>
+              <p className="text-xs text-gray-500">Tier II - R50,000</p>
+            </div>
+          </div>
 
           {/* Drawdown Monitor */}
-          <MetricCard
-            title="Drawdown Monitor"
-            value="3.2%"
-            subtitle="of 5% maximum"
-            icon={AlertTriangle}
-            iconColor="text-yellow-400"
-            iconBgFrom="from-yellow-500/20"
-            iconBgTo="to-orange-500/20"
-            trend={{ value: "Safe zone", direction: "neutral" }}
-          >
-            <ProgressBar
-              label="Current Drawdown"
-              current={3.2}
-              max={5}
-              unit="%"
-              colorScheme="yellow"
-              warning={true}
-            />
-          </MetricCard>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-yellow-400/30 shadow-xl shadow-yellow-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center shadow-lg border border-yellow-400/30 group-hover:scale-110 transition-transform">
+                <AlertTriangle className="w-6 h-6 text-yellow-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-400/30">
+                Safe zone
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Drawdown Monitor</p>
+              <p className="text-2xl font-bold text-yellow-400 mb-1">3.2%</p>
+              <p className="text-xs text-gray-500 mb-3">of 5% maximum</p>
+              <ProgressBar
+                label="Current Drawdown"
+                current={3.2}
+                max={5}
+                unit="%"
+                colorScheme="yellow"
+                warning={true}
+              />
+            </div>
+          </div>
 
           {/* Profit Target */}
-          <MetricCard
-            title="Profit Target"
-            value="8.5%"
-            subtitle="of 10% target"
-            icon={TrendingUp}
-            iconColor="text-green-400"
-            iconBgFrom="from-green-500/20"
-            iconBgTo="to-emerald-500/20"
-            trend={{ value: "On track", direction: "up" }}
-          >
-            <ProgressBar
-              label="Progress to Target"
-              current={8.5}
-              max={10}
-              unit="%"
-              colorScheme="green"
-            />
-          </MetricCard>
-        </PageGrid>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-400/30">
+                <TrendingUp className="w-3 h-3" />
+                On track
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Profit Target</p>
+              <p className="text-2xl font-bold text-green-400 mb-1">8.5%</p>
+              <p className="text-xs text-gray-500 mb-3">of 10% target</p>
+              <ProgressBar
+                label="Progress to Target"
+                current={8.5}
+                max={10}
+                unit="%"
+                colorScheme="green"
+              />
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Advanced Trading Metrics */}
+      {/* Advanced Trading Metrics - Enhanced */}
       <PageSection spacing="normal">
-        <ContentSection title="Advanced Trading Metrics" description="Key performance indicators for professional traders">
-          <PageGrid cols={4} gap="sm">
-            {/* Sharpe Ratio */}
-            <PageCard padding="md" hover>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6]/20 to-[#A78BFA]/20 rounded-lg flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-[#8B5CF6]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-400 mb-0.5">Sharpe Ratio</div>
-                  <div className="text-lg font-bold text-white">2.15</div>
-                </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-white mb-1">Advanced Trading Metrics</h2>
+          <p className="text-sm text-gray-400">Key performance indicators for professional traders</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Sharpe Ratio */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#8B5CF6]/20 to-[#A78BFA]/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-5 h-5 text-[#8B5CF6] group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               </div>
-              <div className="flex items-center justify-between pt-3 mt-3">
-                <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"></div>
-                <span className="text-xs text-gray-400 relative z-10 bg-card px-2">Rating</span>
-                <span className="text-xs font-semibold text-green-400 relative z-10 bg-card px-2">Excellent</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Sharpe Ratio</div>
+                <div className="text-lg font-bold text-white">2.15</div>
               </div>
-            </PageCard>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Rating</span>
+              <span className="text-xs font-semibold text-green-400">Excellent</span>
+            </div>
+          </div>
 
-            {/* Max Drawdown */}
-            <PageCard padding="md" hover>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#EF4444]/20 to-[#F87171]/20 rounded-lg flex items-center justify-center shrink-0">
-                  <ArrowDownRight className="w-5 h-5 text-[#EF4444]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-400 mb-0.5">Max Drawdown</div>
-                  <div className="text-lg font-bold text-white">8.5%</div>
-                </div>
+          {/* Max Drawdown */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#EF4444]/20 to-[#F87171]/20 flex items-center justify-center shadow-lg border border-red-500/30 group-hover:scale-110 transition-transform">
+                <ArrowDownRight className="w-5 h-5 text-[#EF4444] group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               </div>
-              <div className="flex items-center justify-between pt-3 mt-3">
-                <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"></div>
-                <span className="text-xs text-gray-400 relative z-10 bg-card px-2">Status</span>
-                <span className="text-xs font-semibold text-green-400 relative z-10 bg-card px-2">Safe</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Max Drawdown</div>
+                <div className="text-lg font-bold text-white">8.5%</div>
               </div>
-            </PageCard>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Status</span>
+              <span className="text-xs font-semibold text-green-400">Safe</span>
+            </div>
+          </div>
 
-            {/* Profit Factor */}
-            <PageCard padding="md" hover>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#4A90E2]/20 rounded-lg flex items-center justify-center shrink-0">
-                  <BarChart3 className="w-5 h-5 text-[#2F6BFF]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-400 mb-0.5">Profit Factor</div>
-                  <div className="text-lg font-bold text-white">2.65</div>
-                </div>
+          {/* Profit Factor */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#2F6BFF]/20 to-[#4A90E2]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-5 h-5 text-[#2F6BFF] group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               </div>
-              <div className="flex items-center justify-between pt-3 mt-3">
-                <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"></div>
-                <span className="text-xs text-gray-400 relative z-10 bg-card px-2">Target</span>
-                <span className="text-xs font-semibold text-gray-400 relative z-10 bg-card px-2">&gt;2.0</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Profit Factor</div>
+                <div className="text-lg font-bold text-white">2.65</div>
               </div>
-            </PageCard>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Target</span>
+              <span className="text-xs font-semibold text-gray-400">&gt;2.0</span>
+            </div>
+          </div>
 
-            {/* Total Trades */}
-            <PageCard padding="md" hover>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#06B6D4]/20 to-[#22D3EE]/20 rounded-lg flex items-center justify-center shrink-0">
-                  <Activity className="w-5 h-5 text-[#06B6D4]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-gray-400 mb-0.5">Total Trades</div>
-                  <div className="text-lg font-bold text-white">{userStats.totalTrades}</div>
-                </div>
+          {/* Total Trades */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-cyan-500/20 shadow-xl shadow-cyan-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#06B6D4]/20 to-[#22D3EE]/20 flex items-center justify-center shadow-lg border border-cyan-500/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-5 h-5 text-[#06B6D4] group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
               </div>
-              <div className="flex items-center justify-between pt-3 mt-3">
-                <div className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-700/50 to-transparent"></div>
-                <span className="text-xs text-gray-400 relative z-10 bg-card px-2">Active</span>
-                <span className="text-xs font-semibold text-primary relative z-10 bg-card px-2">{userStats.activeTrades}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Total Trades</div>
+                <div className="text-lg font-bold text-white">{userStats.totalTrades}</div>
               </div>
-            </PageCard>
-          </PageGrid>
-        </ContentSection>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Active</span>
+              <span className="text-xs font-semibold text-primary">{userStats.activeTrades}</span>
+            </div>
+          </div>
+        </div>
       </PageSection>
 
       {/* Quick Actions - Enhanced */}
       <PageSection spacing="normal">
-        <ContentSection title="Quick Actions" description="Common tasks and shortcuts">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <QuickAction
-              icon={TrendingUp}
-              label="New Trade"
-              onClick={() => navigate('/trade')}
-              variant="primary"
-            />
-            <QuickAction
-              icon={Bot}
-              label="My Robots"
-              onClick={() => navigate('/my-robots')}
-              variant="secondary"
-            />
-            <QuickAction
-              icon={BarChart3}
-              label="Portfolio"
-              onClick={() => navigate('/portfolio')}
-              variant="success"
-            />
-            <QuickAction
-              icon={DollarSign}
-              label="Transactions"
-              onClick={() => navigate('/transactions')}
-              variant="secondary"
-            />
-          </div>
-        </ContentSection>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-white mb-1">Quick Actions</h2>
+          <p className="text-sm text-gray-400">Common tasks and shortcuts</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickActions.map((action, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(action.link)}
+              className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up"
+              style={{ animationDelay: `${idx * 50}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform mb-3 mx-auto`}>
+                <action.icon className="w-6 h-6 text-white group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <p className="text-sm font-bold text-white text-center group-hover:text-brand-blue transition-colors">{action.title}</p>
+            </button>
+          ))}
+        </div>
       </PageSection>
 
       {/* Recent Trades - Enhanced Table */}
       <PageSection spacing="normal">
-        <ContentSection
-          title="Recent Trades"
-          description="Your latest trading activity"
-          actions={
-            <Link to="/trade" className="text-[#2F6BFF] hover:text-[#FFA62B] text-xs sm:text-sm font-semibold transition-colors shrink-0">
-              View All →
-            </Link>
-          }
-        >
-          <PageCard padding="none" hover={false}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead>
-                  <tr className="bg-gradient-to-r from-primary/5 to-transparent">
-                    <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Pair</th>
-                    <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Type</th>
-                    <th className="text-right px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Profit/Loss</th>
-                    <th className="text-center px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Status</th>
-                    <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentTrades.map((trade, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="text-white font-bold">{trade.pair}</TableCell>
-                      <TableCell>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Buy'
-                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                          : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          }`}>
-                          {trade.type}
-                        </span>
-                      </TableCell>
-                      <TableCell align="right" className={`font-bold ${trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
-                      </TableCell>
-                      <TableCell align="center">
-                        <StatusBadge
-                          status={trade.status === 'open' ? 'active' : 'inactive'}
-                          label={trade.status}
-                        />
-                      </TableCell>
-                      <TableCell className="text-gray-400">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          {trade.time}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </tbody>
-              </table>
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div>
+              <h2 className="text-lg font-bold text-white mb-1">Recent Trades</h2>
+              <p className="text-sm text-gray-400">Your latest trading activity</p>
             </div>
-          </PageCard>
-        </ContentSection>
+            <Link to="/trade" className="text-brand-blue hover:text-accent-orange text-sm font-semibold transition-colors flex items-center gap-1 group/link">
+              <span>View All</span>
+              <span className="group-hover/link:translate-x-1 inline-block transition-transform">→</span>
+            </Link>
+          </div>
+          <div className="overflow-x-auto relative z-10">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="bg-gradient-to-r from-primary/5 to-transparent">
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Pair</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Type</th>
+                  <th className="text-right px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Profit/Loss</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Status</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTrades.map((trade, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-white font-bold">{trade.pair}</TableCell>
+                    <TableCell>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Buy'
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
+                        {trade.type}
+                      </span>
+                    </TableCell>
+                    <TableCell align="right" className={`font-bold ${trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <StatusBadge
+                        status={trade.status === 'open' ? 'active' : 'inactive'}
+                        label={trade.status}
+                      />
+                    </TableCell>
+                    <TableCell className="text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {trade.time}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Performance Overview */}
+      {/* Performance Overview - Enhanced */}
       <PageSection spacing="normal">
-        <PageGrid cols={2} gap="sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trading Activity */}
-          <PageCard>
-            <ContentSection title="Trading Activity">
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Total Trades</span>
-                  <span className="text-sm sm:text-base text-white font-bold">{userStats.totalTrades}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Active Trades</span>
-                  <span className="text-sm sm:text-base text-white font-bold">{userStats.activeTrades}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Win Rate</span>
-                  <span className="text-sm sm:text-base text-green-400 font-bold">{userStats.winRate.toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Active Bots</span>
-                  <span className="text-sm sm:text-base text-white font-bold">{userStats.activeBots}</span>
-                </div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
               </div>
-            </ContentSection>
-          </PageCard>
+              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trading Activity</h3>
+            </div>
+            <div className="space-y-3 sm:space-y-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Total Trades</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.totalTrades}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Active Trades</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.activeTrades}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Win Rate</span>
+                <span className="text-sm sm:text-base text-green-400 font-bold">{userStats.winRate.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Active Bots</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.activeBots}</span>
+              </div>
+            </div>
+          </div>
 
           {/* Account Summary */}
-          <PageCard>
-            <ContentSection title="Account Summary">
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Account Balance</span>
-                  <span className="text-sm sm:text-base text-white font-bold truncate ml-2">{formatCurrency(userStats.totalBalance)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Total Profit</span>
-                  <span className="text-sm sm:text-base text-green-400 font-bold truncate ml-2">{formatCurrency(userStats.totalProfit)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Today's Change</span>
-                  <span className={`text-sm sm:text-base font-bold ${userStats.profitChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(2)}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base text-gray-400">Account Type</span>
-                  <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full text-xs sm:text-sm text-primary font-semibold shrink-0">
-                    Live
-                  </span>
-                </div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
+                <Wallet className="w-5 h-5 text-green-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
               </div>
-            </ContentSection>
-          </PageCard>
-        </PageGrid>
+              <h3 className="text-lg font-bold text-white group-hover:text-green-400 transition-colors">Account Summary</h3>
+            </div>
+            <div className="space-y-3 sm:space-y-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Account Balance</span>
+                <span className="text-sm sm:text-base text-white font-bold truncate ml-2">{formatCurrency(userStats.totalBalance)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Total Profit</span>
+                <span className="text-sm sm:text-base text-green-400 font-bold truncate ml-2">{formatCurrency(userStats.totalProfit)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Today's Change</span>
+                <span className={`text-sm sm:text-base font-bold ${userStats.profitChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(2)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Account Type</span>
+                <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full text-xs sm:text-sm text-primary font-semibold shrink-0">
+                  Live
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Performance Charts */}
+      {/* Performance Charts - Enhanced */}
       <PageSection spacing="normal">
-        <PageGrid cols={2} gap="sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trading Volume Chart */}
-          <PageCard padding="md">
-            <ContentSection title="Trading Volume (Last 7 Days)">
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trading Volume (Last 7 Days)</h3>
+            </div>
+            <div className="relative z-10">
               <ModernBarChart
                 data={[
                   { label: 'Mon', value: 24, color: '#2F6BFF' },
@@ -552,12 +614,20 @@ function Dashboard() {
                 showValues={true}
                 animate={true}
               />
-            </ContentSection>
-          </PageCard>
+            </div>
+          </div>
 
           {/* Asset Allocation */}
-          <PageCard padding="md">
-            <ContentSection title="Asset Allocation">
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-5 h-5 text-purple-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">Asset Allocation</h3>
+            </div>
+            <div className="relative z-10">
               <ModernDonutChart
                 data={[
                   { label: 'Forex', value: 45, color: '#2F6BFF' },
@@ -572,18 +642,26 @@ function Dashboard() {
                 centerText="Total"
                 centerValue="100%"
               />
-            </ContentSection>
-          </PageCard>
-        </PageGrid>
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Performance Trends */}
+      {/* Performance Trends - Enhanced */}
       <PageSection spacing="normal">
-        <PageCard padding="md">
-          <ContentSection
-            title="Account Balance Trend (30 Days)"
-            description="Your account performance over the last month"
-          >
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Account Balance Trend (30 Days)</h3>
+              <p className="text-sm text-gray-400">Your account performance over the last month</p>
+            </div>
+          </div>
+          <div className="relative z-10">
             <ModernAreaChart
               data={[
                 50000, 50500, 51200, 50800, 51500, 52100, 51800, 52500,
@@ -598,20 +676,27 @@ function Dashboard() {
               showGrid={true}
               animate={true}
             />
-          </ContentSection>
-        </PageCard>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Trade Distribution & Statistics */}
+      {/* Trade Distribution & Statistics - Enhanced */}
       <PageSection spacing="normal">
-        <PageGrid cols={2} gap="sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trade Distribution */}
-          <PageCard padding="md">
-            <ContentSection
-              title="Trade Distribution"
-              description="Pie chart visualization"
-              actions={<Activity className="w-5 h-5 text-[#2F6BFF]" />}
-            >
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trade Distribution</h3>
+                <p className="text-sm text-gray-400">Pie chart visualization</p>
+              </div>
+            </div>
+            <div className="relative z-10">
               <ModernDonutChart
                 data={[
                   { label: 'Winning Trades', value: 97, color: '#10B981' },
@@ -625,14 +710,14 @@ function Dashboard() {
                 centerValue="142"
               />
               <div className="mt-6 space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 border border-green-400/30 shadow-lg shadow-green-500/20">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     <span className="text-sm text-white">Winning Trades</span>
                   </div>
                   <span className="text-sm font-semibold text-white">97 (68.3%)</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-400/30 shadow-lg shadow-red-500/20">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <span className="text-sm text-white">Losing Trades</span>
@@ -640,179 +725,195 @@ function Dashboard() {
                   <span className="text-sm font-semibold text-white">45 (31.7%)</span>
                 </div>
               </div>
-            </ContentSection>
-          </PageCard>
+            </div>
+          </div>
 
           {/* Trade Statistics */}
-          <PageCard padding="md">
-            <ContentSection
-              title="Trade Statistics"
-              actions={<BarChart3 className="w-5 h-5 text-[#2F6BFF]" />}
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
-                  <span className="text-sm text-white">Average Win</span>
-                  <span className="text-sm font-semibold text-green-400">R 850,00</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
-                  <span className="text-sm text-white">Average Loss</span>
-                  <span className="text-sm font-semibold text-red-400">R 320,00</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
-                  <span className="text-sm text-white">Best Trade</span>
-                  <span className="text-sm font-semibold text-green-400">R 2 450,00</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
-                  <span className="text-sm text-white">Worst Trade</span>
-                  <span className="text-sm font-semibold text-red-400">R -890,00</span>
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#35335e]/90">
-                  <span className="text-sm text-white">Avg Trade Duration</span>
-                  <span className="text-sm font-semibold text-white">4.2 hours</span>
-                </div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
+                <BarChart3 className="w-5 h-5 text-purple-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
               </div>
-            </ContentSection>
-          </PageCard>
-        </PageGrid>
+              <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">Trade Statistics</h3>
+            </div>
+            <div className="space-y-3 relative z-10">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Average Win</span>
+                <span className="text-sm font-semibold text-green-400">R 850,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Average Loss</span>
+                <span className="text-sm font-semibold text-red-400">R 320,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Best Trade</span>
+                <span className="text-sm font-semibold text-green-400">R 2 450,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Worst Trade</span>
+                <span className="text-sm font-semibold text-red-400">R -890,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Avg Trade Duration</span>
+                <span className="text-sm font-semibold text-white">4.2 hours</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Best & Worst Trades */}
+      {/* Best & Worst Trades - Enhanced */}
       <PageSection spacing="normal">
-        <PageGrid cols={2} gap="sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Top 5 Best Trades */}
-          <PageCard padding="md">
-            <ContentSection
-              title="Top 5 Best Trades"
-              actions={<TrendingUp className="w-4 h-4 text-green-400" />}
-            >
-              <div className="space-y-2">
-                {[
-                  { pair: 'BTC/USD', type: 'Buy', profit: 2450, date: '2024-03-15', duration: '6h 30m' },
-                  { pair: 'EUR/USD', type: 'Sell', profit: 1850, date: '2024-03-14', duration: '4h 15m' },
-                  { pair: 'ETH/USD', type: 'Buy', profit: 1620, date: '2024-03-13', duration: '5h 45m' },
-                  { pair: 'GBP/USD', type: 'Buy', profit: 1450, date: '2024-03-12', duration: '3h 20m' },
-                  { pair: 'XAU/USD', type: 'Sell', profit: 1280, date: '2024-03-11', duration: '7h 10m' },
-                ].map((trade, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-card/20 hover:bg-card/30 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-green-400">#{index + 1}</span>
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-white">{trade.pair}</div>
-                        <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
-                      </div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-5 h-5 text-green-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <h3 className="text-lg font-bold text-white group-hover:text-green-400 transition-colors">Top 5 Best Trades</h3>
+            </div>
+            <div className="space-y-2 relative z-10">
+              {[
+                { pair: 'BTC/USD', type: 'Buy', profit: 2450, date: '2024-03-15', duration: '6h 30m' },
+                { pair: 'EUR/USD', type: 'Sell', profit: 1850, date: '2024-03-14', duration: '4h 15m' },
+                { pair: 'ETH/USD', type: 'Buy', profit: 1620, date: '2024-03-13', duration: '5h 45m' },
+                { pair: 'GBP/USD', type: 'Buy', profit: 1450, date: '2024-03-12', duration: '3h 20m' },
+                { pair: 'XAU/USD', type: 'Sell', profit: 1280, date: '2024-03-11', duration: '7h 10m' },
+              ].map((trade, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 transition-all border border-green-400/30 shadow-lg hover:shadow-xl hover:shadow-green-500/20 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center shrink-0 border border-green-400/30">
+                      <span className="text-xs font-bold text-green-400">#{index + 1}</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-green-400">R {trade.profit.toLocaleString()},00</div>
-                      <StatusBadge
-                        status={trade.type === 'Buy' ? 'success' : 'error'}
-                        label={trade.type}
-                      />
+                    <div>
+                      <div className="text-xs font-bold text-white">{trade.pair}</div>
+                      <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </ContentSection>
-          </PageCard>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-green-400">R {trade.profit.toLocaleString()},00</div>
+                    <StatusBadge
+                      status={trade.type === 'Buy' ? 'success' : 'error'}
+                      label={trade.type}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Top 5 Worst Trades */}
-          <PageCard padding="md">
-            <ContentSection
-              title="Top 5 Worst Trades"
-              actions={<TrendingDown className="w-4 h-4 text-red-400" />}
-            >
-              <div className="space-y-2">
-                {[
-                  { pair: 'USD/JPY', type: 'Sell', profit: -890, date: '2024-03-10', duration: '2h 45m' },
-                  { pair: 'AUD/USD', type: 'Buy', profit: -720, date: '2024-03-09', duration: '3h 30m' },
-                  { pair: 'EUR/GBP', type: 'Sell', profit: -650, date: '2024-03-08', duration: '1h 55m' },
-                  { pair: 'USD/CAD', type: 'Buy', profit: -580, date: '2024-03-07', duration: '4h 20m' },
-                  { pair: 'NZD/USD', type: 'Sell', profit: -520, date: '2024-03-06', duration: '2h 15m' },
-                ].map((trade, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-card/20 hover:bg-card/30 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-red-400">#{index + 1}</span>
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-white">{trade.pair}</div>
-                        <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
-                      </div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 flex items-center justify-center shadow-lg border border-red-500/30 group-hover:scale-110 transition-transform">
+                <TrendingDown className="w-5 h-5 text-red-400 group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors">Top 5 Worst Trades</h3>
+            </div>
+            <div className="space-y-2 relative z-10">
+              {[
+                { pair: 'USD/JPY', type: 'Sell', profit: -890, date: '2024-03-10', duration: '2h 45m' },
+                { pair: 'AUD/USD', type: 'Buy', profit: -720, date: '2024-03-09', duration: '3h 30m' },
+                { pair: 'EUR/GBP', type: 'Sell', profit: -650, date: '2024-03-08', duration: '1h 55m' },
+                { pair: 'USD/CAD', type: 'Buy', profit: -580, date: '2024-03-07', duration: '4h 20m' },
+                { pair: 'NZD/USD', type: 'Sell', profit: -520, date: '2024-03-06', duration: '2h 15m' },
+              ].map((trade, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all border border-red-400/30 shadow-lg hover:shadow-xl hover:shadow-red-500/20 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center shrink-0 border border-red-400/30">
+                      <span className="text-xs font-bold text-red-400">#{index + 1}</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-red-400">R {trade.profit.toLocaleString()},00</div>
-                      <StatusBadge
-                        status={trade.type === 'Buy' ? 'success' : 'error'}
-                        label={trade.type}
-                      />
+                    <div>
+                      <div className="text-xs font-bold text-white">{trade.pair}</div>
+                      <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </ContentSection>
-          </PageCard>
-        </PageGrid>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-red-400">R {trade.profit.toLocaleString()},00</div>
+                    <StatusBadge
+                      status={trade.type === 'Buy' ? 'success' : 'error'}
+                      label={trade.type}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </PageSection>
 
-      {/* Live Activity Logs */}
+      {/* Live Activity Logs - Enhanced */}
       <PageSection spacing="normal">
-        <PageCard padding="md">
-          <ContentSection
-            title="Live Activity Logs"
-            description="Real-time bot activity and trade execution"
-            actions={
-              <StatusBadge status="active" label="LIVE" pulse={true} />
-            }
-          >
-            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
-              {[
-                { time: '19:49:53', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
-                { time: '19:49:43', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
-                { time: '14:32:15', bot: 'Scalper Bot Alpha', message: 'Trade executed: BUY R_100 at 1.2345 - Profit: +R12.50', type: 'success' },
-                { time: '14:30:42', bot: 'Trend Follower Beta', message: 'Signal detected: Bullish trend on R_75', type: 'info' },
-                { time: '14:28:33', bot: 'Scalper Bot Alpha', message: 'Trade closed: SELL R_100 at 1.2389 - Profit: +R8.75', type: 'success' },
-                { time: '14:25:18', bot: 'Range Trader Gamma', message: 'Bot paused: Daily loss limit reached (-R340.50)', type: 'warning' },
-                { time: '14:22:05', bot: 'Trend Follower Beta', message: 'Trade failed: Insufficient balance', type: 'error' },
-              ].map((log, index) => {
-                const typeStyles = {
-                  info: 'bg-gradient-to-r from-primary/10 to-transparent',
-                  success: 'bg-gradient-to-r from-green-500/10 to-transparent',
-                  warning: 'bg-gradient-to-r from-yellow-500/10 to-transparent',
-                  error: 'bg-gradient-to-r from-red-500/10 to-transparent',
-                };
-                const iconColors = {
-                  info: 'text-primary',
-                  success: 'text-green-400',
-                  warning: 'text-yellow-400',
-                  error: 'text-red-400',
-                };
-                const statusMap = {
-                  info: 'pending' as const,
-                  success: 'success' as const,
-                  warning: 'warning' as const,
-                  error: 'error' as const,
-                };
-                return (
-                  <div
-                    key={index}
-                    className={`flex items-start gap-3 p-3 rounded-xl ${typeStyles[log.type as keyof typeof typeStyles]} hover:bg-opacity-80 transition-all`}
-                  >
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Clock className={`w-4 h-4 ${iconColors[log.type as keyof typeof iconColors]}`} />
-                      <span className="text-xs font-mono text-gray-400 font-medium">{log.time}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-white mb-1">{log.bot}</div>
-                      <div className="text-xs text-gray-300 font-medium">{log.message}</div>
-                    </div>
-                    <StatusBadge status={statusMap[log.type as keyof typeof statusMap]} />
-                  </div>
-                );
-              })}
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
+                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Live Activity Logs</h3>
+                <p className="text-sm text-gray-400">Real-time bot activity and trade execution</p>
+              </div>
             </div>
-          </ContentSection>
-        </PageCard>
+            <StatusBadge status="active" label="LIVE" pulse={true} />
+          </div>
+          <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative z-10">
+            {[
+              { time: '19:49:53', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
+              { time: '19:49:43', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
+              { time: '14:32:15', bot: 'Scalper Bot Alpha', message: 'Trade executed: BUY R_100 at 1.2345 - Profit: +R12.50', type: 'success' },
+              { time: '14:30:42', bot: 'Trend Follower Beta', message: 'Signal detected: Bullish trend on R_75', type: 'info' },
+              { time: '14:28:33', bot: 'Scalper Bot Alpha', message: 'Trade closed: SELL R_100 at 1.2389 - Profit: +R8.75', type: 'success' },
+              { time: '14:25:18', bot: 'Range Trader Gamma', message: 'Bot paused: Daily loss limit reached (-R340.50)', type: 'warning' },
+              { time: '14:22:05', bot: 'Trend Follower Beta', message: 'Trade failed: Insufficient balance', type: 'error' },
+            ].map((log, index) => {
+              const typeStyles = {
+                info: 'bg-gradient-to-r from-primary/10 to-transparent border-brand-blue/30 shadow-brand-blue/20',
+                success: 'bg-gradient-to-r from-green-500/10 to-transparent border-green-400/30 shadow-green-500/20',
+                warning: 'bg-gradient-to-r from-yellow-500/10 to-transparent border-yellow-400/30 shadow-yellow-500/20',
+                error: 'bg-gradient-to-r from-red-500/10 to-transparent border-red-400/30 shadow-red-500/20',
+              };
+              const iconColors = {
+                info: 'text-primary',
+                success: 'text-green-400',
+                warning: 'text-yellow-400',
+                error: 'text-red-400',
+              };
+              const statusMap = {
+                info: 'pending' as const,
+                success: 'success' as const,
+                warning: 'warning' as const,
+                error: 'error' as const,
+              };
+              return (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 p-3 rounded-xl ${typeStyles[log.type as keyof typeof typeStyles]} hover:bg-opacity-80 transition-all border shadow-lg animate-fade-in-up`}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Clock className={`w-4 h-4 ${iconColors[log.type as keyof typeof iconColors]}`} />
+                    <span className="text-xs font-mono text-gray-400 font-medium">{log.time}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-white mb-1">{log.bot}</div>
+                    <div className="text-xs text-gray-300 font-medium">{log.message}</div>
+                  </div>
+                  <StatusBadge status={statusMap[log.type as keyof typeof statusMap]} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </PageSection>
     </PageContainer>
   );
