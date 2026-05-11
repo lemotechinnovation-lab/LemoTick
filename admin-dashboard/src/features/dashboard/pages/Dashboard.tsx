@@ -164,10 +164,10 @@ function Dashboard() {
 
   // Quick actions
   const quickActions = [
-    { title: 'New Trade', icon: TrendingUp, link: '/trade', color: 'from-[#2F6BFF] to-[#3B82F6]' },
-    { title: 'My Robots', icon: Bot, link: '/my-robots', color: 'from-[#8B5CF6] to-[#A78BFA]' },
-    { title: 'Portfolio', icon: BarChart3, link: '/portfolio', color: 'from-[#10B981] to-[#34D399]' },
-    { title: 'Transactions', icon: DollarSign, link: '/transactions', color: 'from-[#F59E0B] to-[#FBBF24]' },
+    { title: 'New Trade', icon: TrendingUp, link: '/trade', color: 'from-[#2F6BFF] to-[#3B82F6]', iconColor: 'text-[#2F6BFF]', borderColor: 'border-[#2F6BFF]/30', shadowColor: 'shadow-[#2F6BFF]/20' },
+    { title: 'My Robots', icon: Bot, link: '/my-robots', color: 'from-[#8B5CF6] to-[#A78BFA]', iconColor: 'text-[#8B5CF6]', borderColor: 'border-[#8B5CF6]/30', shadowColor: 'shadow-[#8B5CF6]/20' },
+    { title: 'Portfolio', icon: BarChart3, link: '/portfolio', color: 'from-[#10B981] to-[#34D399]', iconColor: 'text-[#10B981]', borderColor: 'border-[#10B981]/30', shadowColor: 'shadow-[#10B981]/20' },
+    { title: 'Transactions', icon: DollarSign, link: '/transactions', color: 'from-[#F59E0B] to-[#FBBF24]', iconColor: 'text-[#F59E0B]', borderColor: 'border-[#F59E0B]/30', shadowColor: 'shadow-[#F59E0B]/20' },
   ];
 
   return (
@@ -443,15 +443,15 @@ function Dashboard() {
             <button
               key={idx}
               onClick={() => navigate(action.link)}
-              className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up"
+              className={`glass-card-elevated p-5 rounded-2xl smooth-hover border ${action.borderColor} shadow-xl ${action.shadowColor} backdrop-blur-xl relative overflow-hidden group animate-fade-in-up`}
               style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform mb-3 mx-auto`}>
-                <action.icon className="w-6 h-6 text-white group-hover:animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border ${action.borderColor} group-hover:scale-110 transition-transform mb-3 mx-auto`}>
+                <action.icon className={`w-6 h-6 ${action.iconColor} group-hover:animate-pulse`} />
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
               </div>
-              <p className="text-sm font-bold text-white text-center group-hover:text-brand-blue transition-colors">{action.title}</p>
+              <p className={`text-sm font-bold text-center transition-colors ${action.iconColor} group-hover:text-white`}>{action.title}</p>
             </button>
           ))}
         </div>
