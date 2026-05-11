@@ -171,7 +171,15 @@ function Dashboard() {
   ];
 
   return (
-    <PageContainer maxWidth="xl">
+    <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-brand-blue/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-accent-orange/15 rounded-full blur-3xl animate-float-delayed"></div>
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-purple-500/15 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-green-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+      </div>
+
       {/* Page Header */}
       <PageHeader
         title="DASHBOARD"
