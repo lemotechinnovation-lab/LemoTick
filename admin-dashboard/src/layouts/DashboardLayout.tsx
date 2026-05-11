@@ -44,7 +44,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     }, []);
 
     return (
-        <div className="flex h-screen overflow-hidden w-full max-w-full bg-gradient-to-r from-[#c5c5d0] via-[#9090a8] to-[#6b6b88]">
+        <div className="flex h-screen overflow-hidden w-full max-w-full bg-gradient-to-r from-[#e8e8f0] via-[#d0d0e0] to-[#b8b8d0]">
             {/* Sidebar */}
             <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
@@ -62,20 +62,9 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 {/* Main - Scrollable content area */}
                 <main className="flex-1 relative overflow-y-auto overflow-x-hidden w-full max-w-full">
-                    {/* Subtle background pattern */}
-                    <div
-                        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-                        style={{
-                            backgroundImage:
-                                "radial-gradient(circle at 2px 2px, rgba(255,255,255,0.3) 1px, transparent 0)",
-                            backgroundSize: "32px 32px",
-                        }}
-                    />
-
                     <div className={`relative w-full max-w-full h-full ${window.location.pathname === '/trade' || window.location.pathname === '/my-robots' ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
                         {children}
                     </div>
-
                 </main>
 
             </div>

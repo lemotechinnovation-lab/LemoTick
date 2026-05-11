@@ -53,7 +53,6 @@ import TimelinePageEnhanced from './features/social/pages/TimelinePageEnhanced';
 import UserProfilePageEnhanced from './features/social/pages/UserProfilePageEnhanced';
 
 // Other
-import { ParticleBackground } from './components/common/ParticleBackground';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PublicRoute from './components/routes/PublicRoute';
 import { Toaster } from './components/ui/toaster';
@@ -93,7 +92,7 @@ function App() {
 
   return (
     <>
-      <ParticleBackground />
+      {/* <ParticleBackground /> */}
       <div className="w-full h-full overflow-x-hidden">
         <Routes>
           {/* Public routes */}
