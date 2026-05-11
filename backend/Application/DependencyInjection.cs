@@ -4,6 +4,7 @@ using FluentValidation;
 using System.Reflection;
 using InvestorManagementSystem.Application.Mappings;
 using InvestorManagementSystem.Application.Services;
+using InvestorManagementSystem.Application.Interfaces;
 
 namespace InvestorManagementSystem.Application;
 
@@ -30,6 +31,9 @@ public static class DependencyInjection
         // Bot Management Services
         services.AddSingleton<IBotManagementService, BotManagementService>();
         services.AddSingleton<IBotConfigurationService, BotConfigurationService>();
+
+        // Social Networking Service
+        services.AddScoped<ISocialService, SocialService>();
 
         return services;
     }

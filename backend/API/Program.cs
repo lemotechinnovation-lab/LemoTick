@@ -43,7 +43,7 @@ builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-// Add CORS
+// Add CORS with WebSocket support
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -55,7 +55,8 @@ builder.Services.AddCors(options =>
                 "https://localhost:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials();  // Important for auth cookies/tokens
+              .AllowCredentials()  // Important for auth cookies/tokens
+              .SetIsOriginAllowed(_ => true);  // Allow WebSocket connections
     });
 });
 
@@ -75,7 +76,10 @@ builder.Services.AddScoped<IRealTimeNotificationService, InvestorManagementSyste
 // Add Real-Time Trading Broadcast Service
 builder.Services.AddSingleton<InvestorManagementSystem.API.Services.ITradingBroadcastService, InvestorManagementSystem.API.Services.TradingBroadcastService>();
 
-// Add JWT Authentication
+// Add Real-Time Social Broadcast Service
+builder.Services.AddScoped<InvestorManagementSystem.API.Services.ISocialBroadcastService, InvestorManagementSystem.API.Services.SocialBroadcastService>();
+
+// Add JWT Authentication with SignalR support
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -88,6 +92,27 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+        };
+
+        // Configure SignalR authentication
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is for our hub...
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/notificationHub") ||
+                     path.StartsWithSegments("/tradingHub") ||
+                     path.StartsWithSegments("/socialHub")))
+                {
+                    // Read the token out of the query string
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -124,9 +149,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Map SignalR Hub
+// Map SignalR Hubs
 app.MapHub<InvestorManagementSystem.API.Hubs.NotificationHub>("/notificationHub");
 app.MapHub<InvestorManagementSystem.API.Hubs.TradingHub>("/tradingHub");
+app.MapHub<InvestorManagementSystem.API.Hubs.SocialHub>("/socialHub");
 
 // Ensure database is created
 using (var scope = app.Services.CreateScope())

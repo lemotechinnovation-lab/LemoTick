@@ -46,8 +46,13 @@ export const ParticleBackground = () => {
 
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(30, 109, 227, ${particle.opacity})`;
+            // Elegant blue particles for light background
+            ctx.fillStyle = `rgba(47, 107, 255, ${particle.opacity * 0.4})`;
             ctx.fill();
+
+            // Add subtle glow effect for elegance
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = `rgba(47, 107, 255, ${particle.opacity * 0.3})`;
         };
 
         const connectParticles = () => {
@@ -61,8 +66,9 @@ export const ParticleBackground = () => {
 
                     if (distance < 150) {
                         ctx.beginPath();
-                        ctx.strokeStyle = `rgba(30, 109, 227, ${0.1 * (1 - distance / 150)})`;
-                        ctx.lineWidth = 1;
+                        // Soft connection lines with elegant blue tint
+                        ctx.strokeStyle = `rgba(47, 107, 255, ${0.12 * (1 - distance / 150)})`;
+                        ctx.lineWidth = 0.8;
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
                         ctx.stroke();
@@ -108,7 +114,7 @@ export const ParticleBackground = () => {
     return (
         <canvas
             ref={canvasRef}
-            className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-60 z-0"
+            className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-40 z-0"
         />
     );
 };

@@ -1,5 +1,9 @@
-import { Building2, DollarSign, Eye, EyeOff, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
+import ModernBarChart from '@/components/charts/ModernBarChart';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ContentSection, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { Activity, Building2, DollarSign, Eye, EyeOff, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { LinkAccountModal, ManageAccountModal, ViewAccountModal } from '../components/BankAccountModals';
 
 export interface BankAccount {
@@ -75,53 +79,28 @@ export default function BankAccountsPage() {
     ]);
 
     const handleRefresh = async () => {
-        const refreshToast = validationToast.customValidation(
-            'Refreshing bank account data...',
-            {
-                loadingMessage: 'Syncing with banks...',
-                successMessage: 'Bank accounts updated!',
-                errorMessage: 'Failed to refresh accounts',
-                duration: 3000,
-                delay: 1000,
-            }
-        );
-
         setIsRefreshing(true);
-
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Simulate success/failure
-            const success = Math.random() > 0.1; // 90% success rate
-
-            if (success) {
-                refreshToast.success('Bank accounts refreshed successfully!');
-            } else {
-                refreshToast.error('Failed to refresh some accounts. Please try again.');
-            }
-        } catch (error) {
-            validationToast.networkError();
-        } finally {
-            setIsRefreshing(false);
-        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        toast.success('Bank accounts refreshed successfully!');
+        setIsRefreshing(false);
     };
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'active': return 'text-green-400 bg-green-500/20';
-            case 'pending': return 'text-yellow-400 bg-yellow-500/20';
-            case 'suspended': return 'text-orange-400 bg-orange-500/20';
-            case 'closed': return 'text-red-400 bg-red-500/20';
-            default: return 'text-gray-400 bg-gray-500/20';
+            case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
+            case 'pending': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+            case 'suspended': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
+            case 'closed': return 'bg-red-500/20 text-red-400 border-red-500/30';
+            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
         }
     };
 
     const getAccountTypeColor = (type: string) => {
         switch (type) {
-            case 'checking': return 'text-[#2F6BFF] bg-[#2F6BFF]/20';
-            case 'savings': return 'text-green-400 bg-green-500/20';
-            case 'business': return 'text-[#FFA62B] bg-[#FFA62B]/20';
-            default: return 'text-gray-400 bg-gray-500/20';
+            case 'checking': return 'bg-[#2F6BFF]/20 text-[#2F6BFF] border-[#2F6BFF]/30';
+            case 'savings': return 'bg-green-500/20 text-green-400 border-green-500/30';
+            case 'business': return 'bg-[#FFA62B]/20 text-[#FFA62B] border-[#FFA62B]/30';
+            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
         }
     };
 
@@ -130,206 +109,230 @@ export default function BankAccountsPage() {
     const totalDeposits = accounts.reduce((sum, acc) => sum + acc.totalDeposits, 0);
     const totalWithdrawals = accounts.reduce((sum, acc) => sum + acc.totalWithdrawals, 0);
 
-    return (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
-            {/* Page header with gradient background */}
-            <div className="relative mb-4 p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 via-[#16124A] to-[#FFA62B]/10 border border-[#2F6BFF]/20">
-                <div className="sm:flex sm:justify-between sm:items-center">
-                    <div className="mb-2 sm:mb-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                            <div className="p-1.5 bg-[#2F6BFF]/20 rounded-lg">
-                                <Building2 size={16} className="text-[#2F6BFF]" />
-                            </div>
-                            <h1 className="text-body-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Bank Accounts</h1>
-                        </div>
-                        <p className="text-micro text-gray-300 ml-8">Link and manage your bank accounts</p>
-                    </div>
+    // Generate deposit vs withdrawal comparison data
+    const accountComparisonData = accounts.map(acc => ({
+        label: acc.accountName.split(' ')[0],
+        value: acc.balance,
+        color: '#10B981',
+    }));
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
+    return (
+        <PageContainer maxWidth="xl">
+            <PageHeader
+                title="BANK ACCOUNTS"
+                description="Link and manage your bank accounts"
+                icon={Building2}
+                actions={
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] disabled:opacity-50 transition-all duration-300 text-micro"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] disabled:opacity-50 transition-all duration-300 text-sm font-semibold"
                         >
-                            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-                            <span>Refresh</span>
+                            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                            <span className="hidden sm:inline">Refresh</span>
                         </button>
                         <button
                             onClick={() => setShowBalances(!showBalances)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] transition-all duration-300 text-micro"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] transition-all duration-300 text-sm font-semibold"
                         >
-                            {showBalances ? <EyeOff size={14} /> : <Eye size={14} />}
-                            <span>{showBalances ? 'Hide' : 'Show'}</span>
+                            {showBalances ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            <span className="hidden sm:inline">{showBalances ? 'Hide' : 'Show'}</span>
                         </button>
                         <button
                             onClick={() => setIsLinkModalOpen(true)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] hover:from-[#2557c9] hover:to-[#2F6BFF] text-white transition-all duration-300 shadow-brand hover-lift text-micro"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
                         >
-                            <Plus size={14} />
+                            <Plus className="w-4 h-4" />
                             <span>Link Account</span>
                         </button>
                     </div>
-                </div>
-            </div>
+                }
+            />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
-                {/* Active Accounts */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/5 rounded-full blur-xl group-hover:bg-[#2F6BFF]/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-[#2F6BFF]/20 to-[#2F6BFF]/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <Building2 size={14} className="text-[#2F6BFF]" />
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-medium">Active</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">{activeAccounts}/{accounts.length}</div>
-                        <div className="text-[10px] text-gray-400">Bank Accounts</div>
+            <Stack spacing="lg">
+                <PageGrid cols={4}>
+                    <StatsCard
+                        icon={<Building2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={`${activeAccounts}/${accounts.length}`}
+                        label="Bank Accounts"
+                        iconColor="text-[#2F6BFF]"
+                    />
+                    <StatsCard
+                        icon={<DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={showBalances ? `${totalBalance.toLocaleString()}` : '••••••'}
+                        label="Total Balance"
+                        iconColor="text-[#10B981]"
+                    />
+                    <StatsCard
+                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={showBalances ? `${totalDeposits.toLocaleString()}` : '••••••'}
+                        label="Total Deposits"
+                        iconColor="text-[#10B981]"
+                    />
+                    <StatsCard
+                        icon={<TrendingDown className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={showBalances ? `${totalWithdrawals.toLocaleString()}` : '••••••'}
+                        label="Total Withdrawals"
+                        iconColor="text-[#F59E0B]"
+                    />
+                </PageGrid>
+
+                <ContentSection title="Account Balances" description="Compare balances across your linked accounts">
+                    <div className="h-64">
+                        <ModernBarChart
+                            data={accountComparisonData}
+                            showValues={true}
+                            animate={true}
+                        />
                     </div>
-                </div>
+                </ContentSection>
 
-                {/* Total Balance */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/5 rounded-full blur-xl group-hover:bg-[#2F6BFF]/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-[#2F6BFF]/20 to-[#2F6BFF]/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <DollarSign size={14} className="text-[#2F6BFF]" />
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-medium">Balance</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
-                            {showBalances ? `$${totalBalance.toLocaleString()}` : '••••••'}
-                        </div>
-                        <div className="text-[10px] text-gray-400">Total Balance</div>
-                    </div>
-                </div>
+                {/* Bank Accounts - 3 COLUMN GRID */}
+                <ContentSection title="Your Bank Accounts">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+                        {accounts.map((account) => (
+                            <div
+                                key={account.id}
+                                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                {/* Total Deposits */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-green-500/30 hover:border-green-500/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/5 rounded-full blur-xl group-hover:bg-green-500/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <TrendingUp size={14} className="text-green-400" />
-                            </div>
-                            <span className="text-[10px] text-green-400 font-medium">Deposits</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-green-400 font-tabular">
-                            {showBalances ? `$${totalDeposits.toLocaleString()}` : '••••••'}
-                        </div>
-                        <div className="text-[10px] text-gray-400">Total Deposits</div>
-                    </div>
-                </div>
+                                <div className="relative p-5">
+                                    {/* Header */}
+                                    <div className="flex items-start gap-3 mb-4">
+                                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#2F6BFF]/30 group-hover:shadow-[#2F6BFF]/50 transition-all duration-300 group-hover:scale-110">
+                                            <Building2 className="w-6 h-6 text-white" />
+                                        </div>
 
-                {/* Total Withdrawals */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-[#FFA62B]/30 hover:border-[#FFA62B]/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#FFA62B]/5 rounded-full blur-xl group-hover:bg-[#FFA62B]/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-[#FFA62B]/20 to-[#FFA62B]/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <TrendingDown size={14} className="text-[#FFA62B]" />
-                            </div>
-                            <span className="text-[10px] text-[#FFA62B] font-medium">Withdrawals</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
-                            {showBalances ? `$${totalWithdrawals.toLocaleString()}` : '••••••'}
-                        </div>
-                        <div className="text-[10px] text-gray-400">Total Withdrawals</div>
-                    </div>
-                </div>
-            </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#2F6BFF] transition-colors duration-300 truncate">
+                                                {account.accountName}
+                                            </h3>
+                                            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                                                {account.isDefault && (
+                                                    <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] text-white shadow-lg shadow-[#2F6BFF]/30 animate-pulse">
+                                                        ⭐ DEFAULT
+                                                    </span>
+                                                )}
+                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getAccountTypeColor(account.accountType)}`}>
+                                                    {account.accountType.toUpperCase()}
+                                                </span>
+                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getStatusColor(account.status)}`}>
+                                                    {account.status.toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="text-xs text-gray-400 truncate">
+                                                <span className="font-medium text-gray-300">{account.bankName}</span>
+                                                <span className="mx-1">•</span>
+                                                <span className="font-mono">{account.accountNumber}</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-            {/* Bank Accounts List */}
-            <div className="space-y-1.5">
-                {accounts.map((account) => (
-                    <div
-                        key={account.id}
-                        className="bg-gradient-to-br from-[#0B0633] to-[#16124A] rounded-lg border border-[#2F6BFF]/30 shadow-xl overflow-hidden hover:border-[#2F6BFF]/60 transition-all duration-300"
-                    >
-                        <div className="p-2">
-                            <div className="flex items-start justify-between mb-1.5">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                        <h3 className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.accountName}</h3>
-                                        {account.isDefault && (
-                                            <span className="px-1 py-0.5 rounded text-[9px] font-semibold text-[#2F6BFF] bg-[#2F6BFF]/20">
-                                                DEFAULT
+                                    {/* Balance */}
+                                    <div className="relative mb-4">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/20 to-[#059669]/20 rounded-xl blur-lg" />
+                                        <div className="relative px-4 py-3 rounded-xl bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 border border-[#10B981]/30 backdrop-blur-sm">
+                                            <div className="text-[10px] font-semibold text-[#10B981] mb-0.5 tracking-wider uppercase">Balance</div>
+                                            <div className="text-2xl font-black text-white tracking-tight">
+                                                {showBalances ? `$${account.balance.toLocaleString()}` : '••••••'}
+                                            </div>
+                                            <div className="text-xs font-medium text-gray-400">{account.currency}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Metrics */}
+                                    <div className="grid grid-cols-2 gap-2 mb-4">
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#10B981]/10 to-[#059669]/5 border border-[#10B981]/20 hover:border-[#10B981]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#10B981]/10 rounded-full blur-xl group-hover/metric:bg-[#10B981]/20 transition-all duration-300" />
+                                            <div className="relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase">Deposits</div>
+                                                </div>
+                                                <div className="text-base font-bold text-[#10B981] truncate">
+                                                    {showBalances ? `$${account.totalDeposits.toLocaleString()}` : '••••'}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F59E0B]/10 rounded-full blur-xl group-hover/metric:bg-[#F59E0B]/20 transition-all duration-300" />
+                                            <div className="relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <TrendingDown className="w-3 h-3 text-[#F59E0B]" />
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase">Withdrawals</div>
+                                                </div>
+                                                <div className="text-base font-bold text-[#F59E0B] truncate">
+                                                    {showBalances ? `$${account.totalWithdrawals.toLocaleString()}` : '••••'}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 to-[#1E40AF]/5 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/10 rounded-full blur-xl group-hover/metric:bg-[#2F6BFF]/20 transition-all duration-300" />
+                                            <div className="relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <Activity className="w-3 h-3 text-[#2F6BFF]" />
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase">Activity</div>
+                                                </div>
+                                                <div className="text-base font-bold text-white truncate">
+                                                    {account.lastTransaction}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#8B5CF6]/10 to-[#7C3AED]/5 border border-[#8B5CF6]/20 hover:border-[#8B5CF6]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8B5CF6]/10 rounded-full blur-xl group-hover/metric:bg-[#8B5CF6]/20 transition-all duration-300" />
+                                            <div className="relative">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <Building2 className="w-3 h-3 text-[#8B5CF6]" />
+                                                    <div className="text-[10px] font-semibold text-gray-400 uppercase">Type</div>
+                                                </div>
+                                                <div className="text-base font-bold text-white capitalize truncate">
+                                                    {account.accountType}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-stretch gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setSelectedAccount(account);
+                                                setIsViewModalOpen(true);
+                                            }}
+                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A]/50 backdrop-blur-sm text-gray-300 hover:text-white hover:border-[#2F6BFF] transition-all duration-300 text-xs font-bold hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/10 to-[#2F6BFF]/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+                                            <span className="relative flex items-center justify-center gap-1.5">
+                                                <Eye className="w-3.5 h-3.5" />
+                                                View
                                             </span>
-                                        )}
-                                        <span className={`px-1 py-0.5 rounded text-[9px] font-semibold ${getAccountTypeColor(account.accountType)}`}>
-                                            {account.accountType.toUpperCase()}
-                                        </span>
-                                        <span className={`px-1 py-0.5 rounded text-[9px] font-semibold ${getStatusColor(account.status)}`}>
-                                            {account.status.toUpperCase()}
-                                        </span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedAccount(account);
+                                                setIsManageModalOpen(true);
+                                            }}
+                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#2F6BFF] bg-size-200 bg-pos-0 hover:bg-pos-100 text-white transition-all duration-500 shadow-lg shadow-[#2F6BFF]/30 hover:shadow-xl hover:shadow-[#2F6BFF]/50 text-xs font-bold hover:scale-[1.02]"
+                                        >
+                                            <span className="relative flex items-center justify-center gap-1.5">
+                                                <Building2 className="w-3.5 h-3.5" />
+                                                Manage
+                                            </span>
+                                        </button>
                                     </div>
-                                    <div className="flex items-center gap-2 text-[9px] text-gray-400">
-                                        <span>{account.bankName}</span>
-                                        <span>•</span>
-                                        <span>{account.accountNumber}</span>
-                                        <span>•</span>
-                                        <span>Added: {account.createdAt}</span>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-micro font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
-                                        {showBalances ? `$${account.balance.toLocaleString()}` : '••••••'}
-                                    </div>
-                                    <div className="text-[9px] text-gray-400">{account.currency}</div>
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5 pt-1.5 border-t border-[#2F6BFF]/20">
-                                <div>
-                                    <div className="text-[9px] text-gray-400 mb-0.5">Total Deposits</div>
-                                    <div className="text-[10px] text-green-400 font-semibold">
-                                        {showBalances ? `$${account.totalDeposits.toLocaleString()}` : '••••••'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-[9px] text-gray-400 mb-0.5">Total Withdrawals</div>
-                                    <div className="text-[10px] text-[#FFA62B] font-semibold">
-                                        {showBalances ? `$${account.totalWithdrawals.toLocaleString()}` : '••••••'}
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="text-[9px] text-gray-400 mb-0.5">Last Transaction</div>
-                                    <div className="text-[10px] text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.lastTransaction}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[9px] text-gray-400 mb-0.5">Account Type</div>
-                                    <div className="text-[10px] text-white font-semibold capitalize">{account.accountType}</div>
-                                </div>
-                                <div className="flex items-end justify-end gap-1">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedAccount(account);
-                                            setIsViewModalOpen(true);
-                                        }}
-                                        className="px-1.5 py-0.5 rounded bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-[9px] font-semibold transition-colors"
-                                    >
-                                        View
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedAccount(account);
-                                            setIsManageModalOpen(true);
-                                        }}
-                                        className="px-1.5 py-0.5 rounded bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-[9px] font-semibold transition-colors"
-                                    >
-                                        Manage
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </ContentSection>
+            </Stack>
 
-            {/* Modals */}
             <LinkAccountModal
                 isOpen={isLinkModalOpen}
                 onClose={() => setIsLinkModalOpen(false)}
@@ -350,8 +353,6 @@ export default function BankAccountsPage() {
                     setSelectedAccount(null);
                 }}
             />
-        </div >
+        </PageContainer>
     );
 }
-
-

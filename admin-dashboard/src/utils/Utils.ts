@@ -15,8 +15,7 @@ export const getCssVariable = (variable) => {
 
   // If the CSS variable is not found or empty, return a fallback
   if (!value) {
-    console.warn(`CSS Variable ${variable} not found, using fallback`);
-    // Return fallback colors based on common variable names
+    // Silently return fallback colors based on common variable names
     const fallbacks = {
       '--color-gray-100': '#efdede',
       '--color-gray-400': '#9ca3af',
@@ -24,6 +23,10 @@ export const getCssVariable = (variable) => {
       '--color-gray-700': '#374151',
       '--color-gray-800': '#1f2937',
       '--color-white': '#efdede',
+      '--color-text-primary': '#FFFFFF',
+      '--color-text-secondary': '#B9BDC7',
+      '--color-card': '#35335e',
+      '--color-border': 'rgba(47, 107, 255, 0.2)',
     };
     return fallbacks[variable] || '#efdede';
   }

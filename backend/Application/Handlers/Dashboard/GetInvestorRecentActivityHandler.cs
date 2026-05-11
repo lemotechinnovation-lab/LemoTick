@@ -89,13 +89,15 @@ public class GetInvestorRecentActivityHandler : IRequestHandler<GetInvestorRecen
                 Id = n.Id,
                 Title = n.Title,
                 Message = n.Message,
-                Type = n.Type,
-                Priority = n.Priority,
+                Type = Enum.Parse<NotificationType>(n.Type, true),
+                Icon = n.Icon,
+                IconColor = n.IconColor,
+                Link = n.Link,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt,
-                ReadAt = n.ReadAt,
-                ActionUrl = n.ActionUrl,
-                ActionText = n.ActionText
+                Metadata = string.IsNullOrEmpty(n.MetadataJson)
+                    ? null
+                    : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(n.MetadataJson)
             })
             .ToList();
 

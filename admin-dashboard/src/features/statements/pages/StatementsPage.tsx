@@ -1,3 +1,6 @@
+import ModernAreaChart from '@/components/charts/ModernAreaChart';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ContentSection, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
 import { Calendar, ChevronLeft, ChevronRight, Download, Eye, FileText, Filter, RefreshCw, Search } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -185,271 +188,256 @@ export default function StatementsPage() {
     const totalMonthly = statements.filter(s => s.type === 'monthly').length;
     const totalQuarterly = statements.filter(s => s.type === 'quarterly').length;
 
-    return (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
-            {/* Page header */}
-            <div className="relative mb-4 p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 via-[#16124A] to-[#FFA62B]/10 border border-[#2F6BFF]/20">
-                <div className="sm:flex sm:justify-between sm:items-center">
-                    <div className="mb-2 sm:mb-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                            <div className="p-1.5 bg-[#2F6BFF]/20 rounded-lg">
-                                <FileText size={16} className="text-[#2F6BFF]" />
-                            </div>
-                            <h1 className="text-body-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Statements</h1>
-                        </div>
-                        <p className="text-micro text-gray-300 ml-8">Access and download your financial statements</p>
-                    </div>
+    // Generate statement size trend data
+    const statementSizeData = statements.slice(0, 6).reverse().map(stmt =>
+        parseFloat(stmt.fileSize.replace(' MB', ''))
+    );
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
+    return (
+        <PageContainer maxWidth="xl">
+            {/* Page Header */}
+            <PageHeader
+                title="STATEMENTS"
+                description="Access and download your financial statements"
+                icon={FileText}
+                actions={
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] disabled:opacity-50 transition-all duration-300 text-micro"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] disabled:opacity-50 transition-all duration-300 text-sm font-semibold"
                         >
-                            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             <span>Refresh</span>
                         </button>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] transition-all duration-300 text-micro"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] transition-all duration-300 text-sm font-semibold"
                         >
-                            <Filter size={14} />
+                            <Filter className="w-4 h-4" />
                             <span>Filters</span>
                         </button>
                     </div>
-                </div>
-            </div>
+                }
+            />
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
-                {/* Available Statements */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-green-500/30 hover:border-green-500/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/5 rounded-full blur-xl group-hover:bg-green-500/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <FileText size={14} className="text-green-400" />
-                            </div>
-                            <span className="text-[10px] text-green-400 font-medium">Available</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-green-400 font-tabular">{totalAvailable}</div>
-                        <div className="text-[10px] text-gray-400">Ready to Download</div>
-                    </div>
-                </div>
-
-                {/* Processing */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-yellow-500/30 hover:border-yellow-500/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/5 rounded-full blur-xl group-hover:bg-yellow-500/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <RefreshCw size={14} className="text-yellow-400" />
-                            </div>
-                            <span className="text-[10px] text-yellow-400 font-medium">Processing</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">{totalProcessing}</div>
-                        <div className="text-[10px] text-gray-400">Being Generated</div>
-                    </div>
-                </div>
-
-                {/* Monthly Statements */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/5 rounded-full blur-xl group-hover:bg-[#2F6BFF]/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-[#2F6BFF]/20 to-[#2F6BFF]/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <Calendar size={14} className="text-[#2F6BFF]" />
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-medium">Monthly</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">{totalMonthly}</div>
-                        <div className="text-[10px] text-gray-400">Monthly Reports</div>
-                    </div>
-                </div>
-
-                {/* Quarterly Statements */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-2 border border-purple-500/30 hover:border-purple-500/60 transition-all duration-300 hover-lift group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-purple-500/5 rounded-full blur-xl group-hover:bg-purple-500/10 transition-all duration-300"></div>
-                    <div className="relative">
-                        <div className="flex items-center justify-between mb-1">
-                            <div className="p-0.5 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded group-hover:scale-110 transition-transform duration-300">
-                                <Calendar size={14} className="text-purple-400" />
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-medium">Quarterly</span>
-                        </div>
-                        <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">{totalQuarterly}</div>
-                        <div className="text-[10px] text-gray-400">Quarterly Reports</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Search and Filters */}
-            <div className="mb-3 space-y-2">
-                {/* Search Bar */}
-                <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => {
-                            setSearchQuery(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                        placeholder="Search by period or statement ID..."
-                        className="w-full pl-9 pr-3 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+            <Stack spacing="lg">
+                {/* Stats Cards */}
+                <PageGrid cols={4}>
+                    {/* Available Statements */}
+                    <StatsCard
+                        icon={<FileText className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={totalAvailable.toString()}
+                        label="Ready to Download"
+                        iconColor="text-[#10B981]"
                     />
-                </div>
 
-                {/* Filter Options */}
-                {showFilters && (
-                    <div className="grid grid-cols-2 gap-2 p-2 bg-[#0B0633] border border-gray-700/50 rounded-md animate-fadeIn">
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Type</label>
-                            <select
-                                value={selectedType}
-                                onChange={(e) => handleFilterChange(setSelectedType, e.target.value)}
-                                className="w-full px-2 py-1 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="all">All Types</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="quarterly">Quarterly</option>
-                                <option value="annual">Annual</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Status</label>
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => handleFilterChange(setSelectedStatus, e.target.value)}
-                                className="w-full px-2 py-1 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="all">All Status</option>
-                                <option value="available">Available</option>
-                                <option value="processing">Processing</option>
-                                <option value="pending">Pending</option>
-                            </select>
-                        </div>
+                    {/* Processing */}
+                    <StatsCard
+                        icon={<RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={totalProcessing.toString()}
+                        label="Being Generated"
+                        iconColor="text-[#F59E0B]"
+                    />
+
+                    {/* Monthly Statements */}
+                    <StatsCard
+                        icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={totalMonthly.toString()}
+                        label="Monthly Reports"
+                        iconColor="text-[#2F6BFF]"
+                    />
+
+                    {/* Quarterly Statements */}
+                    <StatsCard
+                        icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
+                        value={totalQuarterly.toString()}
+                        label="Quarterly Reports"
+                        iconColor="text-[#8B5CF6]"
+                    />
+                </PageGrid>
+
+                {/* Statement Size Trend */}
+                <ContentSection title="Statement File Sizes" description="File size trends across recent statements">
+                    <div className="h-64">
+                        <ModernAreaChart
+                            data={statementSizeData}
+                            color="#8B5CF6"
+                            gradientFrom="#8B5CF6"
+                            gradientTo="#A78BFA"
+                            showGrid={true}
+                            animate={true}
+                        />
                     </div>
-                )}
-            </div>
+                </ContentSection>
 
-            {/* Statements Table */}
-            <div className="bg-gradient-to-br from-[#0B0633] to-[#16124A] rounded-lg border border-[#2F6BFF]/30 shadow-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-[#16124A] border-b border-[#2F6BFF]/30">
-                                <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Period</th>
-                                <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Type</th>
-                                <th className="px-2 py-1.5 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-                                <th className="px-2 py-1.5 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Transactions</th>
-                                <th className="px-2 py-1.5 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Opening</th>
-                                <th className="px-2 py-1.5 text-right text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Closing</th>
-                                <th className="px-2 py-1.5 text-center text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Size</th>
-                                <th className="px-2 py-1.5 text-center text-[10px] font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#2F6BFF]/20">
-                            {paginatedStatements.map((statement) => (
-                                <tr key={statement.id} className="hover:bg-[#16124A]/50 transition-colors duration-200">
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                        <div className="text-[10px] text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{statement.period}</div>
-                                        <div className="text-[9px] text-gray-400">{statement.startDate} - {statement.endDate}</div>
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${getTypeColor(statement.type)}`}>
-                                            {statement.type.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${getStatusColor(statement.status)}`}>
-                                            {statement.status.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="px-2 py-2 text-right whitespace-nowrap">
-                                        <div className="text-[10px] text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{statement.totalTransactions}</div>
-                                    </td>
-                                    <td className="px-2 py-2 text-right whitespace-nowrap">
-                                        <div className="text-[10px] text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">${statement.openingBalance.toLocaleString()}</div>
-                                    </td>
-                                    <td className="px-2 py-2 text-right whitespace-nowrap">
-                                        <div className="text-[10px] text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">${statement.closingBalance.toLocaleString()}</div>
-                                    </td>
-                                    <td className="px-2 py-2 text-center whitespace-nowrap">
-                                        <div className="text-[10px] text-gray-400">{statement.fileSize}</div>
-                                    </td>
-                                    <td className="px-2 py-2 text-center whitespace-nowrap">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <button
-                                                onClick={() => handleView(statement)}
-                                                disabled={statement.status !== 'available'}
-                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-[9px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                <Eye size={10} />
-                                                <span>View</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleDownload(statement)}
-                                                disabled={statement.status !== 'available'}
-                                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/20 hover:bg-green-500/30 text-green-400 text-[9px] font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                            >
-                                                <Download size={10} />
-                                                <span>Download</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                {/* Search and Filters */}
+                <div className="space-y-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            placeholder="Search by period or statement ID..."
+                            className="w-full pl-12 pr-4 py-3 bg-[#16124A]/50 border border-[#2F6BFF]/20 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                        />
+                    </div>
 
-                    {paginatedStatements.length === 0 && (
-                        <div className="text-center py-8 text-gray-400 text-micro">
-                            No statements found matching your criteria
+                    {/* Filter Options */}
+                    {showFilters && (
+                        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6 bg-[#16124A]/50 border border-[#2F6BFF]/20 rounded-xl animate-fadeIn w-full max-w-full">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-300 mb-2">Statement Type</label>
+                                <select
+                                    value={selectedType}
+                                    onChange={(e) => handleFilterChange(setSelectedType, e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/20 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                                >
+                                    <option value="all">All Types</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="annual">Annual</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-300 mb-2">Status</label>
+                                <select
+                                    value={selectedStatus}
+                                    onChange={(e) => handleFilterChange(setSelectedStatus, e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/20 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="available">Available</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
                         </div>
                     )}
-                </div>
 
-                {/* Pagination */}
-                {filteredStatements.length > 0 && (
-                    <div className="flex items-center justify-between px-3 py-2 border-t border-[#2F6BFF]/30 bg-[#16124A]">
-                        <div className="text-[10px] text-gray-400">
-                            Showing {startIndex + 1} to {Math.min(endIndex, filteredStatements.length)} of {filteredStatements.length} statements
+                    {/* Statements Table */}
+                    <div className="bg-[#16124A]/50 rounded-2xl border border-[#2F6BFF]/20 shadow-xl overflow-hidden mt-4">
+                        <div className="overflow-x-auto w-full">
+                            <table className="w-full min-w-[600px]">
+                                <thead>
+                                    <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Period</th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Type</th>
+                                        <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+                                        <th className="px-4 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Transactions</th>
+                                        <th className="px-4 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Opening</th>
+                                        <th className="px-4 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Closing</th>
+                                        <th className="px-4 py-4 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Size</th>
+                                        <th className="px-4 py-4 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#2F6BFF]/10">
+                                    {paginatedStatements.map((statement) => (
+                                        <tr key={statement.id} className="hover:bg-[#2F6BFF]/5 transition-colors duration-200">
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-white font-semibold">{statement.period}</div>
+                                                <div className="text-xs text-gray-400">{statement.startDate} - {statement.endDate}</div>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(statement.type)}`}>
+                                                    {statement.type.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(statement.status)}`}>
+                                                    {statement.status.toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 text-right whitespace-nowrap">
+                                                <div className="text-sm text-white font-semibold">{statement.totalTransactions}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-right whitespace-nowrap">
+                                                <div className="text-sm text-white font-semibold">${statement.openingBalance.toLocaleString()}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-right whitespace-nowrap">
+                                                <div className="text-sm text-white font-semibold">${statement.closingBalance.toLocaleString()}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-center whitespace-nowrap">
+                                                <div className="text-sm text-gray-400">{statement.fileSize}</div>
+                                            </td>
+                                            <td className="px-4 py-4 text-center whitespace-nowrap">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <button
+                                                        onClick={() => handleView(statement)}
+                                                        disabled={statement.status !== 'available'}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-xs font-semibold transition-all duration-200 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                        <span>View</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDownload(statement)}
+                                                        disabled={statement.status !== 'available'}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs font-semibold transition-all duration-200 border border-green-500/30 hover:border-green-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                        <span>Download</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            {paginatedStatements.length === 0 && (
+                                <div className="text-center py-12 text-gray-400 text-sm">
+                                    No statements found matching your criteria
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                disabled={currentPage === 1}
-                                className="p-1 rounded bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#1E1854] hover:text-[#efdede] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-                            >
-                                <ChevronLeft size={14} />
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+
+                        {/* Pagination */}
+                        {filteredStatements.length > 0 && (
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/5 to-transparent">
+                                <div className="text-sm text-gray-400">
+                                    Showing {startIndex + 1} to {Math.min(endIndex, filteredStatements.length)} of {filteredStatements.length} statements
+                                </div>
+                                <div className="flex items-center gap-2">
                                     <button
-                                        key={page}
-                                        onClick={() => setCurrentPage(page)}
-                                        className={`px-2 py-0.5 rounded text-[10px] font-semibold transition-all duration-200 ${currentPage === page
-                                                ? 'bg-[#2F6BFF] text-white'
-                                                : 'bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#1E1854] hover:text-[#efdede]'
-                                            }`}
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-2 rounded-xl bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
                                     >
-                                        {page}
+                                        <ChevronLeft className="w-5 h-5" />
                                     </button>
-                                ))}
+                                    <div className="flex items-center gap-2">
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setCurrentPage(page)}
+                                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${currentPage === page
+                                                    ? 'bg-[#2F6BFF] text-white shadow-lg'
+                                                    : 'bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white'
+                                                    }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 rounded-xl bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                                className="p-1 rounded bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#1E1854] hover:text-[#efdede] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-                            >
-                                <ChevronRight size={14} />
-                            </button>
-                        </div>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
+                </div>
+            </Stack>
+        </PageContainer>
     );
 }

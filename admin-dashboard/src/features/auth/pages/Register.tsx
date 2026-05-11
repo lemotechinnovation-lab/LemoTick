@@ -1,6 +1,6 @@
 import { validateWithToast, validationToast } from '@/lib/validation-toast';
 import { useAuthStore } from '@features/auth/stores/authStore';
-import { AlertCircle, CheckCircle, IdCard, Lock, Mail, Phone } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle, IdCard, Lock, Mail, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../../services/authService';
@@ -102,7 +102,7 @@ function Register() {
     };
 
     const steps = [
-        { number: 1, title: 'Personal Info' },
+        { number: 1, title: 'Personal' },
         { number: 2, title: 'Verification' },
         { number: 3, title: 'Security' },
     ];
@@ -117,14 +117,14 @@ function Register() {
                         <img
                             src="/src/images/logo-full@2x.png"
                             alt="LemoTick"
-                            className="h-48 w-auto object-contain mx-auto mb-6 brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(30,109,227,0.5)] hover:drop-shadow-[0_0_30px_rgba(30,109,227,0.7)] hover:scale-105 transition-all duration-300 scale-110"
-                            style={{ imageRendering: 'crisp-edges' }}
+                            className="h-48 w-auto object-contain mx-auto mb-3 sm:mb-4 sm:mb-6 brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(30,109,227,0.5)] hover:drop-shadow-[0_0_30px_rgba(30,109,227,0.7)] hover:scale-105 transition-all duration-300 scale-110"
+                            style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '300px' }}
                         />
 
                         {/* Tagline with better styling */}
-                        <div className="mb-8 px-6">
-                            <div className="inline-block px-6 py-3 bg-gradient-to-r from-[#2F6BFF]/10 via-[#2F6BFF]/20 to-[#FFA62B]/10 border border-[#2F6BFF]/30 rounded-full backdrop-blur-sm">
-                                <p className="text-xl font-semibold bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#FFA62B] bg-clip-text text-transparent">
+                        <div className="mb-3 sm:mb-4 sm:mb-6 sm:mb-8 w-full max-w-full px-4 sm:px-6">
+                            <div className="inline-block px-4 sm:px-6 py-3 bg-gradient-to-r from-[#2F6BFF]/10 via-[#2F6BFF]/20 to-[#FFA62B]/10 border border-[#2F6BFF]/30 rounded-full backdrop-blur-sm">
+                                <p className="text-base sm:text-lg sm:text-xl font-semibold bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#FFA62B] bg-clip-text text-transparent">
                                     Smart Trading, Simplified
                                 </p>
                             </div>
@@ -204,8 +204,19 @@ function Register() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-6 bg-[#0F0A2B]">
+            <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 py-4 sm:py-6 bg-[#0F0A2B]">
                 <div className="w-full max-w-md animate-slideUp">
+                    {/* Back Button */}
+                    <button
+                        onClick={() => navigate('/')}
+                        className="group mb-3 sm:mb-4 flex items-center gap-2 text-gray-300 hover:text-white transition-all duration-300"
+                    >
+                        <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#16124A]/50 border border-[#2F6BFF]/20 group-hover:border-[#2F6BFF]/50 group-hover:bg-[#2F6BFF]/10 transition-all duration-300">
+                            <ArrowLeft className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium">Back</span>
+                    </button>
+
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex justify-center mb-4">
                         <img
@@ -217,7 +228,7 @@ function Register() {
                     </div>
 
                     <div className="mb-4">
-                        <h2 className="text-3xl font-bold mb-1 bg-gradient-to-r from-[#efdede] to-[#E6E9F2] bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
+                        <h2 className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold mb-1 bg-gradient-to-r from-[#efdede] to-[#E6E9F2] bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
                             Create Account
                         </h2>
                         <p className="text-sm text-gray-300">
@@ -230,23 +241,23 @@ function Register() {
 
                     {/* Progress Steps */}
                     <div className="mb-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between gap-2">
                             {steps.map((step, index) => (
-                                <div key={step.number} className="flex items-center flex-1">
-                                    <div className="flex flex-col items-center flex-1">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${currentStep >= step.number
+                                <div key={step.number} className="flex items-center" style={{ flex: index === steps.length - 1 ? '0 0 auto' : '1 1 0' }}>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className={`w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-md ${currentStep >= step.number
                                             ? 'bg-gradient-to-br from-[#2F6BFF] to-[#2557c9] text-white shadow-[#2F6BFF]/40'
                                             : 'bg-[#16124A]/50 text-gray-400 border border-[#2F6BFF]/20'
                                             }`}>
                                             {step.number}
                                         </div>
-                                        <span className={`text-xs mt-1 font-semibold ${currentStep >= step.number ? 'text-gray-100' : 'text-gray-400'
+                                        <span className={`text-xs font-semibold text-center whitespace-nowrap ${currentStep >= step.number ? 'text-gray-100' : 'text-gray-400'
                                             }`}>
                                             {step.title}
                                         </span>
                                     </div>
                                     {index < steps.length - 1 && (
-                                        <div className={`h-1 flex-1 mx-2 rounded transition-all ${currentStep > step.number ? 'bg-gradient-to-r from-[#2F6BFF] to-[#2557c9]' : 'bg-[#16124A]/50'
+                                        <div className={`h-0.5 flex-1 mx-3 rounded transition-all self-start mt-5 ${currentStep > step.number ? 'bg-gradient-to-r from-[#2F6BFF] to-[#2557c9]' : 'bg-[#16124A]/50'
                                             }`} />
                                     )}
                                 </div>
@@ -267,7 +278,7 @@ function Register() {
                         {/* Step 1: Personal Info */}
                         {currentStep === 1 && (
                             <div className="space-y-3 animate-fadeIn">
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                     <div>
                                         <label htmlFor="firstName" className="block text-xs font-semibold text-gray-100 mb-1.5">
                                             First name
@@ -308,8 +319,8 @@ function Register() {
                                         Email address
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Mail className="h-4 w-4 text-gray-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                         </div>
                                         <input
                                             id="email"
@@ -319,7 +330,7 @@ function Register() {
                                             required
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40"
+                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40 relative z-0"
                                             placeholder="you@example.com"
                                         />
                                     </div>
@@ -330,8 +341,8 @@ function Register() {
                                         Phone Number <span className="text-gray-400 text-xs">(optional)</span>
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Phone className="h-4 w-4 text-gray-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                         </div>
                                         <input
                                             id="phoneNumber"
@@ -340,7 +351,7 @@ function Register() {
                                             autoComplete="tel"
                                             value={formData.phoneNumber}
                                             onChange={handleChange}
-                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40"
+                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40 relative z-0"
                                             placeholder="+27 12 345 6789"
                                         />
                                     </div>
@@ -360,7 +371,7 @@ function Register() {
                         {/* Step 2: Verification */}
                         {currentStep === 2 && (
                             <div className="space-y-3 animate-fadeIn">
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                     <div>
                                         <label htmlFor="dateOfBirth" className="block text-xs font-semibold text-gray-100 mb-1.5">
                                             Date of Birth
@@ -398,8 +409,8 @@ function Register() {
                                         ID Number
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <IdCard className="h-4 w-4 text-gray-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <IdCard className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                         </div>
                                         <input
                                             id="idNumber"
@@ -408,7 +419,7 @@ function Register() {
                                             required
                                             value={formData.idNumber}
                                             onChange={handleChange}
-                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40"
+                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40 relative z-0"
                                             placeholder="ID or Passport Number"
                                         />
                                     </div>
@@ -442,8 +453,8 @@ function Register() {
                                         Password
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Lock className="h-4 w-4 text-gray-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <Lock className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                         </div>
                                         <input
                                             id="password"
@@ -453,7 +464,7 @@ function Register() {
                                             required
                                             value={formData.password}
                                             onChange={handleChange}
-                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40"
+                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40 relative z-0"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -465,8 +476,8 @@ function Register() {
                                         Confirm password
                                     </label>
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <CheckCircle className="h-4 w-4 text-gray-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                            <CheckCircle className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                         </div>
                                         <input
                                             id="confirmPassword"
@@ -476,7 +487,7 @@ function Register() {
                                             required
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
-                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40"
+                                            className="appearance-none block w-full pl-10 pr-3 py-2 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2F6BFF] focus:border-transparent transition-all text-sm hover:border-[#2F6BFF]/40 relative z-0"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -520,7 +531,7 @@ function Register() {
                     </form>
 
                     {currentStep === 1 && (
-                        <div className="mt-6">
+                        <div className="mt-4 sm:mt-6">
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="w-full border-t border-[#16124A]" />
@@ -532,7 +543,7 @@ function Register() {
                                 </div>
                             </div>
 
-                            <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                                 <button
                                     type="button"
                                     className="flex items-center justify-center py-2.5 px-4 border border-[#16124A] rounded-xl bg-[#16124A] text-gray-100 hover:bg-[#2F6BFF]/10 hover:border-[#2F6BFF] transition-all duration-300"

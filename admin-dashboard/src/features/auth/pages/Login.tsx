@@ -1,5 +1,5 @@
 import { useAuthStore } from '@features/auth/stores/authStore';
-import { AlertCircle, Lock, Mail } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Lock, Mail } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { validateWithToast, validationToast } from '../../../lib/validation-toast';
@@ -76,14 +76,14 @@ function Login() {
                         <img
                             src="/src/images/logo-full@2x.png"
                             alt="LemoTick"
-                            className="h-48 w-auto object-contain mx-auto mb-6 brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(30,109,227,0.5)] hover:drop-shadow-[0_0_30px_rgba(30,109,227,0.7)] hover:scale-105 transition-all duration-300 scale-110"
-                            style={{ imageRendering: 'crisp-edges' }}
+                            className="h-48 w-auto object-contain mx-auto mb-3 sm:mb-4 sm:mb-6 brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(30,109,227,0.5)] hover:drop-shadow-[0_0_30px_rgba(30,109,227,0.7)] hover:scale-105 transition-all duration-300 scale-110"
+                            style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '300px' }}
                         />
 
                         {/* Tagline with better styling */}
-                        <div className="mb-8 px-6">
-                            <div className="inline-block px-6 py-3 bg-gradient-to-r from-[#2F6BFF]/10 via-[#2F6BFF]/20 to-[#FFA62B]/10 border border-[#2F6BFF]/30 rounded-full backdrop-blur-sm">
-                                <p className="text-xl font-semibold bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#FFA62B] bg-clip-text text-transparent">
+                        <div className="mb-3 sm:mb-4 sm:mb-6 sm:mb-8 w-full max-w-full px-4 sm:px-6">
+                            <div className="inline-block px-4 sm:px-6 py-3 bg-gradient-to-r from-[#2F6BFF]/10 via-[#2F6BFF]/20 to-[#FFA62B]/10 border border-[#2F6BFF]/30 rounded-full backdrop-blur-sm">
+                                <p className="text-base sm:text-lg sm:text-xl font-semibold bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#FFA62B] bg-clip-text text-transparent">
                                     Smart Trading, Simplified
                                 </p>
                             </div>
@@ -163,20 +163,31 @@ function Login() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-8 bg-[#0F0A2B]">
+            <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8 bg-[#0F0A2B]">
                 <div className="w-full max-w-md animate-slideUp">
+                    {/* Back Button */}
+                    <button
+                        onClick={() => navigate('/')}
+                        className="group mb-3 sm:mb-4 flex items-center gap-2 text-gray-300 hover:text-white transition-all duration-300"
+                    >
+                        <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#16124A]/50 border border-[#2F6BFF]/20 group-hover:border-[#2F6BFF]/50 group-hover:bg-[#2F6BFF]/10 transition-all duration-300">
+                            <ArrowLeft className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium">Back</span>
+                    </button>
+
                     {/* Mobile Logo */}
-                    <div className="lg:hidden flex justify-center mb-6">
+                    <div className="lg:hidden flex justify-center mb-3 sm:mb-4 sm:mb-6">
                         <img
                             src="/src/images/logo-full@2x.png"
                             alt="LemoTick"
                             className="h-12 w-auto object-contain brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_12px_rgba(30,109,227,0.4)] scale-110"
-                            style={{ imageRendering: 'crisp-edges' }}
+                            style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto' }}
                         />
                     </div>
 
-                    <div className="mb-6">
-                        <h2 className="text-3xl font-bold mb-1 bg-gradient-to-r from-[#efdede] to-[#E6E9F2] bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
+                    <div className="mb-3 sm:mb-4 sm:mb-6">
+                        <h2 className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold mb-1 bg-gradient-to-r from-[#efdede] to-[#E6E9F2] bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">
                             Sign In
                         </h2>
                         <p className="text-sm text-gray-300">
@@ -188,7 +199,7 @@ function Login() {
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30 animate-slideDown backdrop-blur-sm">
+                        <div className="mb-3 sm:mb-4 p-3 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30 animate-slideDown backdrop-blur-sm">
                             <div className="flex items-center">
                                 <AlertCircle className="w-4 h-4 text-red-400 mr-2" />
                                 <p className="text-xs text-red-200">{error}</p>
@@ -241,7 +252,7 @@ function Login() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex items-center">
                                 <input
                                     id="remember-me"
@@ -283,7 +294,7 @@ function Login() {
                             </div>
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-3">
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-full">
                             <button
                                 type="button"
                                 className="group flex items-center justify-center py-2 px-3 border border-[#2F6BFF]/20 rounded-lg bg-[#16124A]/50 backdrop-blur-sm text-gray-100 hover:bg-[#2F6BFF]/10 hover:border-[#2F6BFF]/50 transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg hover:shadow-[#2F6BFF]/20"

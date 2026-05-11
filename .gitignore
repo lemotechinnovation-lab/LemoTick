@@ -340,3 +340,9 @@ docker-volumes/
 *.backup
 *.bak
 .claude/settings.local.json
+.kiro/specs/how-it-works-redesign/.config.kiro
+.kiro/specs/how-it-works-redesign/design.md
+.kiro/specs/how-it-works-redesign/requirements.md
+.gitignore
+.kiro/specs/how-it-works-redesign/tasks.md
+.kiro/specs/social-networking-feature/.config.kiro

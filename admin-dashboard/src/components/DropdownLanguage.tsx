@@ -62,7 +62,7 @@ function DropdownLanguage({ align }: DropdownLanguageProps) {
             </button>
 
             <Transition
-                className={`origin-top-right z-[9999] absolute top-full min-w-48 bg-gradient-to-br from-[#1A1547] to-[#16124A] border border-[#2F6BFF]/30 rounded-2xl shadow-2xl shadow-[#2F6BFF]/10 overflow-hidden mt-2 ${align === 'right' ? 'right-0' : 'left-0'}`}
+                className={`origin-top z-[9999] fixed sm:absolute top-16 sm:top-full left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 w-48 sm:w-auto sm:min-w-48 max-w-xs bg-gradient-to-br from-[#1A1547] to-[#16124A] border border-[#2F6BFF]/30 rounded-2xl shadow-2xl shadow-[#2F6BFF]/10 overflow-hidden mt-2 ${align === 'right' ? 'sm:right-0' : 'sm:left-0'}`}
                 show={dropdownOpen}
                 enter="transition ease-out duration-200 transform"
                 enterStart="opacity-0 -translate-y-2"

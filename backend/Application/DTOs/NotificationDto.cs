@@ -1,35 +1,51 @@
-using InvestorManagementSystem.Core.Entities;
+using System;
+using System.Collections.Generic;
 
 namespace InvestorManagementSystem.Application.DTOs;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Notification DTOs
+// ═══════════════════════════════════════════════════════════════════════════
+
+public enum NotificationType
+{
+    TradeAlert,
+    KycUpdate,
+    Deposit,
+    Withdrawal,
+    System,
+    Social,
+    FriendRequest,
+    Message
+}
 
 public class NotificationDto
 {
     public Guid Id { get; set; }
-    public Guid InvestorId { get; set; }
+    public NotificationType Type { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
-    public NotificationType Type { get; set; }
-    public NotificationPriority Priority { get; set; }
+    public string? Icon { get; set; }
+    public string? IconColor { get; set; }
+    public string? Link { get; set; }
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime? ReadAt { get; set; }
-    public string? ActionUrl { get; set; }
-    public string? ActionText { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
 }
 
 public class CreateNotificationDto
 {
-    public Guid InvestorId { get; set; }
+    public NotificationType Type { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
-    public NotificationType Type { get; set; }
-    public NotificationPriority Priority { get; set; } = NotificationPriority.Normal;
-    public string? ActionUrl { get; set; }
-    public string? ActionText { get; set; }
+    public string? Icon { get; set; }
+    public string? IconColor { get; set; }
+    public string? Link { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
 }
 
-public class MarkNotificationAsReadDto
+public class NotificationStatsDto
 {
-    public Guid NotificationId { get; set; }
+    public int TotalCount { get; set; }
+    public int UnreadCount { get; set; }
 }
-

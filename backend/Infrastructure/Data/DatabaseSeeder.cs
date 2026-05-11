@@ -56,173 +56,173 @@ public class DatabaseSeeder
         if (await _context.InvestorStatusLookup.AnyAsync()) return;
 
         _context.InvestorStatusLookup.AddRange(
-            new InvestorStatusLookup { Name = "Pending",     Description = "Awaiting approval",    DisplayOrder = 1 },
-            new InvestorStatusLookup { Name = "Active",      Description = "Active investor",       DisplayOrder = 2 },
-            new InvestorStatusLookup { Name = "Suspended",   Description = "Account suspended",     DisplayOrder = 3 },
-            new InvestorStatusLookup { Name = "Closed",      Description = "Account closed",        DisplayOrder = 4 },
-            new InvestorStatusLookup { Name = "KYC Required",Description = "KYC documents needed",  DisplayOrder = 5 }
+            new InvestorStatusLookup { Name = "Pending", Description = "Awaiting approval", DisplayOrder = 1 },
+            new InvestorStatusLookup { Name = "Active", Description = "Active investor", DisplayOrder = 2 },
+            new InvestorStatusLookup { Name = "Suspended", Description = "Account suspended", DisplayOrder = 3 },
+            new InvestorStatusLookup { Name = "Closed", Description = "Account closed", DisplayOrder = 4 },
+            new InvestorStatusLookup { Name = "KYC Required", Description = "KYC documents needed", DisplayOrder = 5 }
         );
 
         _context.UserRoleLookup.AddRange(
-            new UserRoleLookup { Name = "Investor",           Description = "Regular investor",        DisplayOrder = 1 },
-            new UserRoleLookup { Name = "Administrator",      Description = "System administrator",    DisplayOrder = 2 },
-            new UserRoleLookup { Name = "ComplianceOfficer",  Description = "Compliance oversight",    DisplayOrder = 3 },
-            new UserRoleLookup { Name = "Support",            Description = "Customer support",        DisplayOrder = 4 },
-            new UserRoleLookup { Name = "Auditor",            Description = "Read-only auditor",       DisplayOrder = 5 }
+            new UserRoleLookup { Name = "Investor", Description = "Regular investor", DisplayOrder = 1 },
+            new UserRoleLookup { Name = "Administrator", Description = "System administrator", DisplayOrder = 2 },
+            new UserRoleLookup { Name = "ComplianceOfficer", Description = "Compliance oversight", DisplayOrder = 3 },
+            new UserRoleLookup { Name = "Support", Description = "Customer support", DisplayOrder = 4 },
+            new UserRoleLookup { Name = "Auditor", Description = "Read-only auditor", DisplayOrder = 5 }
         );
 
         _context.PortfolioStatusLookup.AddRange(
-            new PortfolioStatusLookup { Name = "Active",       DisplayOrder = 1 },
-            new PortfolioStatusLookup { Name = "Suspended",    DisplayOrder = 2 },
-            new PortfolioStatusLookup { Name = "Closed",       DisplayOrder = 3 },
+            new PortfolioStatusLookup { Name = "Active", DisplayOrder = 1 },
+            new PortfolioStatusLookup { Name = "Suspended", DisplayOrder = 2 },
+            new PortfolioStatusLookup { Name = "Closed", DisplayOrder = 3 },
             new PortfolioStatusLookup { Name = "Under Review", DisplayOrder = 4 }
         );
 
         _context.RiskLevelLookup.AddRange(
-            new RiskLevelLookup { Name = "Low",       DisplayOrder = 1 },
-            new RiskLevelLookup { Name = "Medium",    DisplayOrder = 2 },
-            new RiskLevelLookup { Name = "High",      DisplayOrder = 3 },
+            new RiskLevelLookup { Name = "Low", DisplayOrder = 1 },
+            new RiskLevelLookup { Name = "Medium", DisplayOrder = 2 },
+            new RiskLevelLookup { Name = "High", DisplayOrder = 3 },
             new RiskLevelLookup { Name = "Very High", DisplayOrder = 4 }
         );
 
         _context.TradeTypeLookup.AddRange(
             new TradeTypeLookup { Name = "Binary Option", DisplayOrder = 1 },
-            new TradeTypeLookup { Name = "CFD",           DisplayOrder = 2 },
-            new TradeTypeLookup { Name = "Forex",         DisplayOrder = 3 },
-            new TradeTypeLookup { Name = "Crypto",        DisplayOrder = 4 },
-            new TradeTypeLookup { Name = "Stock",         DisplayOrder = 5 }
+            new TradeTypeLookup { Name = "CFD", DisplayOrder = 2 },
+            new TradeTypeLookup { Name = "Forex", DisplayOrder = 3 },
+            new TradeTypeLookup { Name = "Crypto", DisplayOrder = 4 },
+            new TradeTypeLookup { Name = "Stock", DisplayOrder = 5 }
         );
 
         _context.TradeDirectionLookup.AddRange(
-            new TradeDirectionLookup { Name = "Buy",  DisplayOrder = 1 },
+            new TradeDirectionLookup { Name = "Buy", DisplayOrder = 1 },
             new TradeDirectionLookup { Name = "Sell", DisplayOrder = 2 },
             new TradeDirectionLookup { Name = "Rise", DisplayOrder = 3 },
             new TradeDirectionLookup { Name = "Fall", DisplayOrder = 4 }
         );
 
         _context.TradeStatusLookup.AddRange(
-            new TradeStatusLookup { Name = "Open",      DisplayOrder = 1 },
-            new TradeStatusLookup { Name = "Closed",    DisplayOrder = 2 },
+            new TradeStatusLookup { Name = "Open", DisplayOrder = 1 },
+            new TradeStatusLookup { Name = "Closed", DisplayOrder = 2 },
             new TradeStatusLookup { Name = "Cancelled", DisplayOrder = 3 },
-            new TradeStatusLookup { Name = "Expired",   DisplayOrder = 4 },
-            new TradeStatusLookup { Name = "Failed",    DisplayOrder = 5 }
+            new TradeStatusLookup { Name = "Expired", DisplayOrder = 4 },
+            new TradeStatusLookup { Name = "Failed", DisplayOrder = 5 }
         );
 
         _context.TransactionTypeLookup.AddRange(
-            new TransactionTypeLookup { Name = "Deposit",    DisplayOrder = 1 },
+            new TransactionTypeLookup { Name = "Deposit", DisplayOrder = 1 },
             new TransactionTypeLookup { Name = "Withdrawal", DisplayOrder = 2 },
-            new TransactionTypeLookup { Name = "Profit",     DisplayOrder = 3 },
-            new TransactionTypeLookup { Name = "Fee",        DisplayOrder = 4 }
+            new TransactionTypeLookup { Name = "Profit", DisplayOrder = 3 },
+            new TransactionTypeLookup { Name = "Fee", DisplayOrder = 4 }
         );
 
         _context.TransactionStatusLookup.AddRange(
-            new TransactionStatusLookup { Name = "Pending",   DisplayOrder = 1 },
+            new TransactionStatusLookup { Name = "Pending", DisplayOrder = 1 },
             new TransactionStatusLookup { Name = "Completed", DisplayOrder = 2 },
-            new TransactionStatusLookup { Name = "Failed",    DisplayOrder = 3 },
-            new TransactionStatusLookup { Name = "Reversed",  DisplayOrder = 4 }
+            new TransactionStatusLookup { Name = "Failed", DisplayOrder = 3 },
+            new TransactionStatusLookup { Name = "Reversed", DisplayOrder = 4 }
         );
 
         _context.NotificationTypeLookup.AddRange(
-            new NotificationTypeLookup { Name = "Trade Alert",  DisplayOrder = 1 },
-            new NotificationTypeLookup { Name = "System",       DisplayOrder = 2 },
-            new NotificationTypeLookup { Name = "KYC",          DisplayOrder = 3 },
-            new NotificationTypeLookup { Name = "Payment",      DisplayOrder = 4 }
+            new NotificationTypeLookup { Name = "Trade Alert", DisplayOrder = 1 },
+            new NotificationTypeLookup { Name = "System", DisplayOrder = 2 },
+            new NotificationTypeLookup { Name = "KYC", DisplayOrder = 3 },
+            new NotificationTypeLookup { Name = "Payment", DisplayOrder = 4 }
         );
 
         _context.NotificationPriorityLookup.AddRange(
-            new NotificationPriorityLookup { Name = "Low",      DisplayOrder = 1 },
-            new NotificationPriorityLookup { Name = "Normal",   DisplayOrder = 2 },
-            new NotificationPriorityLookup { Name = "High",     DisplayOrder = 3 },
+            new NotificationPriorityLookup { Name = "Low", DisplayOrder = 1 },
+            new NotificationPriorityLookup { Name = "Normal", DisplayOrder = 2 },
+            new NotificationPriorityLookup { Name = "High", DisplayOrder = 3 },
             new NotificationPriorityLookup { Name = "Critical", DisplayOrder = 4 }
         );
 
         _context.DocumentTypeLookup.AddRange(
-            new DocumentTypeLookup { Name = "ID Document",    DisplayOrder = 1 },
+            new DocumentTypeLookup { Name = "ID Document", DisplayOrder = 1 },
             new DocumentTypeLookup { Name = "Proof of Address", DisplayOrder = 2 },
             new DocumentTypeLookup { Name = "Bank Statement", DisplayOrder = 3 },
             new DocumentTypeLookup { Name = "Tax Certificate", DisplayOrder = 4 }
         );
 
         _context.DocumentStatusLookup.AddRange(
-            new DocumentStatusLookup { Name = "Pending",  DisplayOrder = 1 },
+            new DocumentStatusLookup { Name = "Pending", DisplayOrder = 1 },
             new DocumentStatusLookup { Name = "Approved", DisplayOrder = 2 },
             new DocumentStatusLookup { Name = "Rejected", DisplayOrder = 3 }
         );
 
         _context.SARStatusLookup.AddRange(
-            new SARStatusLookup { Name = "Open",       DisplayOrder = 1 },
+            new SARStatusLookup { Name = "Open", DisplayOrder = 1 },
             new SARStatusLookup { Name = "Under Review", DisplayOrder = 2 },
-            new SARStatusLookup { Name = "Closed",     DisplayOrder = 3 },
-            new SARStatusLookup { Name = "Escalated",  DisplayOrder = 4 }
+            new SARStatusLookup { Name = "Closed", DisplayOrder = 3 },
+            new SARStatusLookup { Name = "Escalated", DisplayOrder = 4 }
         );
 
         _context.FeeTypeLookup.AddRange(
-            new FeeTypeLookup { Name = "Management",   DisplayOrder = 1 },
-            new FeeTypeLookup { Name = "Performance",  DisplayOrder = 2 },
-            new FeeTypeLookup { Name = "Withdrawal",   DisplayOrder = 3 }
+            new FeeTypeLookup { Name = "Management", DisplayOrder = 1 },
+            new FeeTypeLookup { Name = "Performance", DisplayOrder = 2 },
+            new FeeTypeLookup { Name = "Withdrawal", DisplayOrder = 3 }
         );
 
         _context.FeeStatusLookup.AddRange(
-            new FeeStatusLookup { Name = "Pending",   DisplayOrder = 1 },
-            new FeeStatusLookup { Name = "Charged",   DisplayOrder = 2 },
-            new FeeStatusLookup { Name = "Waived",    DisplayOrder = 3 }
+            new FeeStatusLookup { Name = "Pending", DisplayOrder = 1 },
+            new FeeStatusLookup { Name = "Charged", DisplayOrder = 2 },
+            new FeeStatusLookup { Name = "Waived", DisplayOrder = 3 }
         );
 
         _context.WithdrawalStatusLookup.AddRange(
-            new WithdrawalStatusLookup { Name = "Pending",   DisplayOrder = 1 },
-            new WithdrawalStatusLookup { Name = "Approved",  DisplayOrder = 2 },
-            new WithdrawalStatusLookup { Name = "Rejected",  DisplayOrder = 3 },
+            new WithdrawalStatusLookup { Name = "Pending", DisplayOrder = 1 },
+            new WithdrawalStatusLookup { Name = "Approved", DisplayOrder = 2 },
+            new WithdrawalStatusLookup { Name = "Rejected", DisplayOrder = 3 },
             new WithdrawalStatusLookup { Name = "Completed", DisplayOrder = 4 }
         );
 
         _context.ReferralStatusLookup.AddRange(
-            new ReferralStatusLookup { Name = "Pending",  DisplayOrder = 1 },
-            new ReferralStatusLookup { Name = "Active",   DisplayOrder = 2 },
-            new ReferralStatusLookup { Name = "Expired",  DisplayOrder = 3 }
+            new ReferralStatusLookup { Name = "Pending", DisplayOrder = 1 },
+            new ReferralStatusLookup { Name = "Active", DisplayOrder = 2 },
+            new ReferralStatusLookup { Name = "Expired", DisplayOrder = 3 }
         );
 
         _context.CommissionStatusLookup.AddRange(
             new CommissionStatusLookup { Name = "Pending", DisplayOrder = 1 },
-            new CommissionStatusLookup { Name = "Paid",    DisplayOrder = 2 },
-            new CommissionStatusLookup { Name = "Voided",  DisplayOrder = 3 }
+            new CommissionStatusLookup { Name = "Paid", DisplayOrder = 2 },
+            new CommissionStatusLookup { Name = "Voided", DisplayOrder = 3 }
         );
 
         _context.PaymentTypeLookup.AddRange(
-            new PaymentTypeLookup { Name = "Deposit",    DisplayOrder = 1 },
+            new PaymentTypeLookup { Name = "Deposit", DisplayOrder = 1 },
             new PaymentTypeLookup { Name = "Withdrawal", DisplayOrder = 2 }
         );
 
         _context.PaymentMethodLookup.AddRange(
-            new PaymentMethodLookup { Name = "PayFast",      DisplayOrder = 1 },
+            new PaymentMethodLookup { Name = "PayFast", DisplayOrder = 1 },
             new PaymentMethodLookup { Name = "Bank Transfer", DisplayOrder = 2 },
-            new PaymentMethodLookup { Name = "Credit Card",  DisplayOrder = 3 }
+            new PaymentMethodLookup { Name = "Credit Card", DisplayOrder = 3 }
         );
 
         _context.PaymentStatusLookup.AddRange(
-            new PaymentStatusLookup { Name = "Pending",   DisplayOrder = 1 },
+            new PaymentStatusLookup { Name = "Pending", DisplayOrder = 1 },
             new PaymentStatusLookup { Name = "Completed", DisplayOrder = 2 },
-            new PaymentStatusLookup { Name = "Failed",    DisplayOrder = 3 }
+            new PaymentStatusLookup { Name = "Failed", DisplayOrder = 3 }
         );
 
         _context.BankAccountTypeLookup.AddRange(
-            new BankAccountTypeLookup { Name = "Cheque",  DisplayOrder = 1 },
+            new BankAccountTypeLookup { Name = "Cheque", DisplayOrder = 1 },
             new BankAccountTypeLookup { Name = "Savings", DisplayOrder = 2 }
         );
 
         _context.BankAccountStatusLookup.AddRange(
-            new BankAccountStatusLookup { Name = "Active",    DisplayOrder = 1 },
+            new BankAccountStatusLookup { Name = "Active", DisplayOrder = 1 },
             new BankAccountStatusLookup { Name = "Suspended", DisplayOrder = 2 }
         );
 
         _context.StatementDeliveryMethodLookup.AddRange(
-            new StatementDeliveryMethodLookup { Name = "Email",   DisplayOrder = 1 },
-            new StatementDeliveryMethodLookup { Name = "Portal",  DisplayOrder = 2 }
+            new StatementDeliveryMethodLookup { Name = "Email", DisplayOrder = 1 },
+            new StatementDeliveryMethodLookup { Name = "Portal", DisplayOrder = 2 }
         );
 
         _context.RiskToleranceLookup.AddRange(
             new RiskToleranceLookup { Name = "Conservative", DisplayOrder = 1 },
-            new RiskToleranceLookup { Name = "Moderate",     DisplayOrder = 2 },
-            new RiskToleranceLookup { Name = "Aggressive",   DisplayOrder = 3 }
+            new RiskToleranceLookup { Name = "Moderate", DisplayOrder = 2 },
+            new RiskToleranceLookup { Name = "Aggressive", DisplayOrder = 3 }
         );
 
         await _context.SaveChangesAsync();
@@ -373,17 +373,37 @@ public class DatabaseSeeder
     {
         if (await _context.Notifications.AnyAsync()) return;
 
-        var faker = new Faker<Notification>()
-            .RuleFor(n => n.Id, _ => Guid.NewGuid())
-            .RuleFor(n => n.InvestorId, f => f.PickRandom(investors).Id)
-            .RuleFor(n => n.Title, f => f.Lorem.Sentence(4))
-            .RuleFor(n => n.Message, f => f.Lorem.Paragraph())
-            .RuleFor(n => n.Type, f => f.PickRandom<NotificationType>())
-            .RuleFor(n => n.Priority, f => f.PickRandom<NotificationPriority>())
-            .RuleFor(n => n.IsRead, f => f.Random.Bool())
-            .RuleFor(n => n.CreatedAt, f => f.Date.Past(1));
+        var faker = new Faker();
+        var notifications = new List<Notification>();
+        var types = new[] { "trade_alert", "kyc_update", "deposit", "withdrawal", "system", "social" };
+        var titles = new[] {
+            "Trade Executed Successfully",
+            "KYC Document Approved",
+            "Deposit Confirmed",
+            "Withdrawal Processed",
+            "System Maintenance Notice",
+            "New Friend Request"
+        };
 
-        var notifications = faker.Generate(count);
+        for (int i = 0; i < count; i++)
+        {
+            var type = faker.PickRandom(types);
+            notifications.Add(new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = faker.PickRandom(investors).Id,
+                Type = type,
+                Title = faker.PickRandom(titles),
+                Message = faker.Lorem.Paragraph(),
+                Icon = null,
+                IconColor = null,
+                Link = null,
+                IsRead = faker.Random.Bool(),
+                CreatedAt = faker.Date.Past(1),
+                MetadataJson = null
+            });
+        }
+
         await _context.Notifications.AddRangeAsync(notifications);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Seeded {Count} notifications", notifications.Count);

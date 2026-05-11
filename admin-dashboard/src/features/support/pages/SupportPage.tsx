@@ -1,4 +1,6 @@
-import { ChevronDown, ChevronRight, Headphones, Mail, MessageCircle, Phone, Plus, Search } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer, PageGrid, PageSection } from '@/components/ui/PageLayoutEnhanced';
+import { Clock, Headphones, Mail, MessageCircle, Phone, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -119,147 +121,171 @@ export default function SupportPage() {
     );
 
     return (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
-            {/* Page header */}
-            <div className="relative mb-4 p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 via-[#16124A] to-[#FFA62B]/10 border border-[#2F6BFF]/20">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                    <div className="p-1.5 bg-[#2F6BFF]/20 rounded-lg">
-                        <Headphones size={16} className="text-[#2F6BFF]" />
-                    </div>
-                    <h1 className="text-body-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Support Center</h1>
+        <PageContainer maxWidth="xl">
+            <PageHeader
+                title="SUPPORT CENTER"
+                description="Get help and find answers to your questions"
+                icon={Headphones}
+            />
+
+            {/* Contact Options */}
+            <PageSection>
+                <PageGrid cols={3}>
+                    <button
+                        onClick={() => toast.success('Opening live chat...')}
+                        className="p-4 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover:transform hover:scale-[1.02] text-left"
+                    >
+                        <MessageCircle className="w-5 h-5 text-[#2F6BFF] mb-2" />
+                        <div className="text-xs font-semibold text-white mb-1">Live Chat</div>
+                        <div className="text-xs text-gray-400">Average wait: 2 min</div>
+                    </button>
+
+                    <button
+                        onClick={() => toast.success('Opening email form...')}
+                        className="p-4 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover:transform hover:scale-[1.02] text-left"
+                    >
+                        <Mail className="w-5 h-5 text-[#2F6BFF] mb-2" />
+                        <div className="text-xs font-semibold text-white mb-1">Email Support</div>
+                        <div className="text-xs text-gray-400">Response in 24h</div>
+                    </button>
+
+                    <button
+                        onClick={() => toast.success('Calling support...')}
+                        className="p-4 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover:transform hover:scale-[1.02] text-left"
+                    >
+                        <Phone className="w-5 h-5 text-[#2F6BFF] mb-2" />
+                        <div className="text-xs font-semibold text-white mb-1">Phone Support</div>
+                        <div className="text-xs text-gray-400">Mon-Fri 9AM-5PM</div>
+                    </button>
+                </PageGrid>
+            </PageSection>
+
+            {/* Support Tickets - 3 COLUMN GRID */}
+            <PageSection>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-base font-semibold text-white uppercase">My Support Tickets</h2>
+                    <button
+                        onClick={() => setShowNewTicketModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>New Ticket</span>
+                    </button>
                 </div>
-                <p className="text-micro text-gray-300 ml-8">Get help and find answers to your questions</p>
-            </div>
 
-            <div className="grid grid-cols-12 gap-4">
-                {/* Left Column - Contact & Tickets */}
-                <div className="col-span-8 space-y-4">
-                    {/* Contact Options */}
-                    <div className="grid grid-cols-3 gap-3">
-                        <button
-                            onClick={() => toast.success('Opening live chat...')}
-                            className="p-3 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift"
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 mb-8">
+                    {tickets.map((ticket) => (
+                        <div
+                            key={ticket.id}
+                            className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1 cursor-pointer"
                         >
-                            <MessageCircle size={20} className="text-[#2F6BFF] mb-2" />
-                            <div className="text-xs font-semibold text-white mb-0.5">Live Chat</div>
-                            <div className="text-[9px] text-gray-400">Average wait: 2 min</div>
-                        </button>
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-                        <button
-                            onClick={() => toast.success('Opening email form...')}
-                            className="p-3 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift"
-                        >
-                            <Mail size={20} className="text-[#2F6BFF] mb-2" />
-                            <div className="text-xs font-semibold text-white mb-0.5">Email Support</div>
-                            <div className="text-[9px] text-gray-400">Response in 24h</div>
-                        </button>
+                            <div className="relative p-5">
+                                {/* Header */}
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#2F6BFF]/30 group-hover:shadow-[#2F6BFF]/50 transition-all duration-300 group-hover:scale-110">
+                                        <Headphones className="w-6 h-6 text-white" />
+                                    </div>
 
-                        <button
-                            onClick={() => toast.success('Calling support...')}
-                            className="p-3 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift"
-                        >
-                            <Phone size={20} className="text-[#2F6BFF] mb-2" />
-                            <div className="text-xs font-semibold text-white mb-0.5">Phone Support</div>
-                            <div className="text-[9px] text-gray-400">Mon-Fri 9AM-5PM</div>
-                        </button>
-                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <span className="text-xs text-gray-400 font-mono">{ticket.id}</span>
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getStatusColor(ticket.status)}`}>
+                                                {ticket.status.toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-base font-bold text-white mb-2 group-hover:text-[#2F6BFF] transition-colors duration-300 line-clamp-2">
+                                            {ticket.subject}
+                                        </h3>
+                                    </div>
+                                </div>
 
-                    {/* Support Tickets */}
-                    <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 p-3">
-                        <div className="flex items-center justify-between mb-3">
-                            <h2 className="text-small-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">My Support Tickets</h2>
-                            <button
-                                onClick={() => setShowNewTicketModal(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] text-white rounded-lg text-[10px] font-semibold hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300"
-                            >
-                                <Plus size={12} />
-                                <span>New Ticket</span>
-                            </button>
-                        </div>
+                                {/* Metrics */}
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 to-[#1E40AF]/5 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                        <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/10 rounded-full blur-xl group-hover/metric:bg-[#2F6BFF]/20 transition-all duration-300" />
+                                        <div className="relative">
+                                            <div className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Category</div>
+                                            <div className="text-sm font-bold text-white truncate">{ticket.category}</div>
+                                        </div>
+                                    </div>
 
-                        <div className="space-y-2">
-                            {tickets.map((ticket) => (
-                                <div
-                                    key={ticket.id}
-                                    className="p-2.5 bg-[#0B0633] rounded-lg border border-gray-700/30 hover:border-[#2F6BFF]/30 transition-all duration-300 cursor-pointer"
-                                >
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[10px] text-gray-400 font-mono">{ticket.id}</span>
-                                                <span className={`px-2 py-0.5 rounded-full border text-[9px] font-semibold ${getStatusColor(ticket.status)}`}>
-                                                    {ticket.status.toUpperCase()}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-xs font-semibold text-white mb-1">{ticket.subject}</h3>
-                                            <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                                                <span>{ticket.category}</span>
-                                                <span>•</span>
-                                                <span className={getPriorityColor(ticket.priority)}>
-                                                    {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)} Priority
-                                                </span>
+                                    <div className={`group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br ${ticket.priority === 'high' ? 'from-[#EF4444]/10 to-[#DC2626]/5 border-[#EF4444]/20 hover:border-[#EF4444]/40' : ticket.priority === 'medium' ? 'from-[#F59E0B]/10 to-[#D97706]/5 border-[#F59E0B]/20 hover:border-[#F59E0B]/40' : 'from-[#10B981]/10 to-[#059669]/5 border-[#10B981]/20 hover:border-[#10B981]/40'} border backdrop-blur-sm transition-all duration-300 hover:scale-105`}>
+                                        <div className={`absolute top-0 right-0 w-16 h-16 ${ticket.priority === 'high' ? 'bg-[#EF4444]/10 group-hover/metric:bg-[#EF4444]/20' : ticket.priority === 'medium' ? 'bg-[#F59E0B]/10 group-hover/metric:bg-[#F59E0B]/20' : 'bg-[#10B981]/10 group-hover/metric:bg-[#10B981]/20'} rounded-full blur-xl transition-all duration-300`} />
+                                        <div className="relative">
+                                            <div className="text-[10px] font-semibold text-gray-400 uppercase mb-1">Priority</div>
+                                            <div className={`text-sm font-bold ${getPriorityColor(ticket.priority)} capitalize truncate`}>
+                                                {ticket.priority}
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-[9px] text-gray-400 mb-0.5">Last update</div>
-                                            <div className="text-[10px] text-gray-300">{ticket.lastUpdate}</div>
+                                    </div>
+
+                                    <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#8B5CF6]/10 to-[#7C3AED]/5 border border-[#8B5CF6]/20 hover:border-[#8B5CF6]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105 col-span-2">
+                                        <div className="absolute top-0 right-0 w-16 h-16 bg-[#8B5CF6]/10 rounded-full blur-xl group-hover/metric:bg-[#8B5CF6]/20 transition-all duration-300" />
+                                        <div className="relative">
+                                            <div className="flex items-center gap-1.5 mb-1">
+                                                <Clock className="w-3 h-3 text-[#8B5CF6]" />
+                                                <div className="text-[10px] font-semibold text-gray-400 uppercase">Last Update</div>
+                                            </div>
+                                            <div className="text-sm font-bold text-white">{ticket.lastUpdate}</div>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+
+                                {/* Action */}
+                                <button className="w-full group/btn relative overflow-hidden px-3 py-2.5 rounded-lg bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#2F6BFF] bg-size-200 bg-pos-0 hover:bg-pos-100 text-white transition-all duration-500 shadow-lg shadow-[#2F6BFF]/30 hover:shadow-xl hover:shadow-[#2F6BFF]/50 text-xs font-bold hover:scale-[1.02]">
+                                    <span className="relative flex items-center justify-center gap-1.5">
+                                        <MessageCircle className="w-3.5 h-3.5" />
+                                        View Ticket
+                                    </span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Right Column - FAQ */}
-                <div className="col-span-4">
-                    <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 p-3">
-                        <h2 className="text-small-dashboard font-bold text-[#efdede] mb-3">Frequently Asked Questions</h2>
+                {/* FAQ Header */}
+                <h2 className="text-base font-semibold text-white uppercase mb-4">Frequently Asked Questions</h2>
 
-                        {/* Search */}
-                        <div className="mb-3 relative">
-                            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search FAQs..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-8 pr-2.5 py-1.5 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg text-[11px] text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF]"
-                            />
-                        </div>
-
-                        {/* FAQ List */}
-                        <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                            {filteredFAQs.map((faq) => (
-                                <div
-                                    key={faq.id}
-                                    className="bg-[#0B0633] rounded-lg border border-gray-700/30 overflow-hidden"
+                {/* FAQ Section - Clean Minimalist Style - 3 COLUMNS */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B0633] via-[#16124A] to-[#0B0633] border border-[#2F6BFF]/20 p-8">
+                    {/* FAQ Items - 3 COLUMN GRID */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-1">
+                        {faqs.map((faq) => (
+                            <div
+                                key={faq.id}
+                                className="group relative overflow-hidden rounded-lg border border-transparent hover:border-[#2F6BFF]/30 transition-all duration-300"
+                            >
+                                <button
+                                    onClick={() => setExpandedFAQ(expandedFAQ === faq.id ? null : faq.id)}
+                                    className="w-full px-4 py-4 flex items-center justify-between gap-4 text-left bg-transparent hover:bg-[#16124A]/50 transition-all duration-300"
                                 >
-                                    <button
-                                        onClick={() => setExpandedFAQ(expandedFAQ === faq.id ? null : faq.id)}
-                                        className="w-full p-2.5 flex items-start justify-between gap-2 hover:bg-[#1E1854] transition-all duration-300"
-                                    >
-                                        <span className="text-[11px] font-semibold text-white text-left">{faq.question}</span>
-                                        {expandedFAQ === faq.id ? (
-                                            <ChevronDown size={14} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                                        ) : (
-                                            <ChevronRight size={14} className="text-gray-400 flex-shrink-0 mt-0.5" />
-                                        )}
-                                    </button>
-                                    {expandedFAQ === faq.id && (
-                                        <div className="px-2.5 pb-2.5">
-                                            <p className="text-[10px] text-gray-300 leading-relaxed">{faq.answer}</p>
-                                            <span className="inline-block mt-2 px-2 py-0.5 bg-[#2F6BFF]/20 text-[#2F6BFF] rounded text-[9px] font-semibold">
-                                                {faq.category}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <div className="w-1 h-1 rounded-full bg-gray-600 group-hover:bg-[#2F6BFF] transition-colors duration-300 shrink-0" />
+                                        <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors duration-300">
+                                            {faq.question}
+                                        </span>
+                                    </div>
+                                    <div className={`shrink-0 transition-transform duration-300 ${expandedFAQ === faq.id ? 'rotate-45' : ''}`}>
+                                        <Plus className="w-4 h-4 text-gray-500 group-hover:text-[#2F6BFF]" />
+                                    </div>
+                                </button>
+
+                                {/* Expanded Answer */}
+                                {expandedFAQ === faq.id && (
+                                    <div className="px-4 pb-4 pl-11 animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <p className="text-sm text-gray-400 leading-relaxed">
+                                            {faq.answer}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            </PageSection>
 
             {/* New Ticket Modal */}
             {showNewTicketModal && (
@@ -268,30 +294,30 @@ export default function SupportPage() {
                         className="fixed inset-0 bg-black/50 z-40"
                         onClick={() => setShowNewTicketModal(false)}
                     />
-                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-50 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg border border-[#2F6BFF]/30 shadow-2xl p-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-small-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Create Support Ticket</h3>
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-50 bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl border border-[#2F6BFF]/30 shadow-2xl p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-semibold text-white uppercase">Create Support Ticket</h3>
                             <button
                                 onClick={() => setShowNewTicketModal(false)}
-                                className="text-gray-400 hover:text-[#efdede] transition-colors"
+                                className="text-gray-400 hover:text-white transition-colors"
                             >
-                                <Plus size={16} className="rotate-45" />
+                                <Plus className="w-5 h-5 rotate-45" />
                             </button>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <div>
-                                <label className="text-[10px] text-gray-400 mb-1 block">Subject</label>
+                                <label className="text-sm text-gray-300 mb-2 block font-semibold">Subject</label>
                                 <input
                                     type="text"
                                     placeholder="Brief description of your issue"
-                                    className="w-full px-3 py-2 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF]"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF]"
                                 />
                             </div>
 
                             <div>
-                                <label className="text-[10px] text-gray-400 mb-1 block">Category</label>
-                                <select className="w-full px-3 py-2 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg text-xs text-white focus:outline-none focus:border-[#2F6BFF]">
+                                <label className="text-sm text-gray-300 mb-2 block font-semibold">Category</label>
+                                <select className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF]">
                                     <option>Technical</option>
                                     <option>Billing</option>
                                     <option>Account</option>
@@ -301,8 +327,8 @@ export default function SupportPage() {
                             </div>
 
                             <div>
-                                <label className="text-[10px] text-gray-400 mb-1 block">Priority</label>
-                                <select className="w-full px-3 py-2 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg text-xs text-white focus:outline-none focus:border-[#2F6BFF]">
+                                <label className="text-sm text-gray-300 mb-2 block font-semibold">Priority</label>
+                                <select className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF]">
                                     <option>Low</option>
                                     <option>Medium</option>
                                     <option>High</option>
@@ -310,27 +336,27 @@ export default function SupportPage() {
                             </div>
 
                             <div>
-                                <label className="text-[10px] text-gray-400 mb-1 block">Description</label>
+                                <label className="text-sm text-gray-300 mb-2 block font-semibold">Description</label>
                                 <textarea
                                     placeholder="Provide detailed information about your issue"
                                     rows={4}
-                                    className="w-full px-3 py-2 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] resize-none"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] resize-none"
                                 />
                             </div>
 
-                            <div className="flex gap-2 pt-2">
+                            <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={() => {
                                         toast.success('Support ticket created successfully');
                                         setShowNewTicketModal(false);
                                     }}
-                                    className="flex-1 px-4 py-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] text-white rounded-lg text-xs font-semibold hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300"
+                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300"
                                 >
                                     Create Ticket
                                 </button>
                                 <button
                                     onClick={() => setShowNewTicketModal(false)}
-                                    className="px-4 py-2 bg-[#0B0633] text-gray-300 rounded-lg text-xs font-semibold hover:bg-[#1E1854] transition-all duration-300"
+                                    className="px-4 py-3 bg-[#0B0633] text-gray-300 rounded-xl text-sm font-semibold hover:bg-[#1E1854] transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
@@ -339,6 +365,6 @@ export default function SupportPage() {
                     </div>
                 </>
             )}
-        </div>
+        </PageContainer>
     );
 }

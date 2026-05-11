@@ -45,34 +45,41 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl shadow-brand-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn border border-[#2F6BFF]/30">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-[#2F6BFF]/30">
                 {/* Header */}
-                <div className="flex items-center justify-between p-3 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 via-transparent to-[#FFA62B]/10">
-                    <h2 className="text-small-dashboard text-[#efdede] font-bold">Add Trading Account</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-red-500/20 rounded-md transition-all duration-200 hover:scale-110">
-                        <X size={16} className="text-gray-300 hover:text-red-400" />
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent sticky top-0 z-10 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-lg flex items-center justify-center">
+                            <Settings className="w-5 h-5 text-[#2F6BFF]" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Add Trading Account</h2>
+                    </div>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center hover:bg-red-500/20 rounded-lg transition-all duration-200">
+                        <X className="w-5 h-5 text-gray-300 hover:text-red-400" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-3 space-y-3">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Account Type */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Account Type</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Account Type</h3>
                         <select
                             name="accountType"
                             value={formData.accountType}
                             onChange={handleChange}
-                            className="w-full px-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                            className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                         >
                             <option value="demo">Demo Account</option>
                             <option value="live">Live Account</option>
                         </select>
                         {formData.accountType === 'live' && (
-                            <div className="flex items-start gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/30">
-                                <AlertCircle size={12} className="text-red-400 mt-0.5 flex-shrink-0" />
-                                <p className="text-[10px] text-red-400 leading-relaxed">
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+                                <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center shrink-0">
+                                    <AlertCircle className="w-4 h-4 text-red-400" />
+                                </div>
+                                <p className="text-sm text-red-400 leading-relaxed">
                                     Live account will use real money. Make sure you understand the risks involved.
                                 </p>
                             </div>
@@ -80,10 +87,10 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                     </div>
 
                     {/* API Credentials */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">API Credentials</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">API Credentials</h3>
                         <div>
-                            <label className="block text-micro text-gray-200 mb-1">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 API Token <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -92,12 +99,12 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                                 value={formData.apiToken}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                 placeholder="Enter your API token"
                             />
                         </div>
                         <div>
-                            <label className="block text-micro text-gray-200 mb-1">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
                                 App ID <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -106,20 +113,20 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                                 value={formData.appId}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                 placeholder="Enter your App ID"
                             />
                         </div>
                     </div>
 
                     {/* Account Settings */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Account Settings</h3>
-                        <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Account Settings</h3>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-micro text-gray-200 mb-1">Initial Balance</label>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Initial Balance</label>
                                 <div className="relative">
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-micro">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                                     <input
                                         type="number"
                                         name="initialBalance"
@@ -127,17 +134,17 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                                         onChange={handleChange}
                                         min="0"
                                         step="0.01"
-                                        className="w-full pl-6 pr-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                        className="w-full pl-8 pr-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-micro text-gray-200 mb-1">Currency</label>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Currency</label>
                                 <select
                                     name="currency"
                                     value={formData.currency}
                                     onChange={handleChange}
-                                    className="w-full px-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                 >
                                     <option value="USD">USD</option>
                                     <option value="EUR">EUR</option>
@@ -148,44 +155,44 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                     </div>
 
                     {/* Risk Management */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Risk Management</h3>
-                        <div className="grid grid-cols-3 gap-2">
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Risk Management</h3>
+                        <div className="grid grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-micro text-gray-200 mb-1">Max Daily Loss</label>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Max Daily Loss</label>
                                 <div className="relative">
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-micro">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                                     <input
                                         type="number"
                                         name="maxDailyLoss"
                                         value={formData.maxDailyLoss}
                                         onChange={handleChange}
                                         min="0"
-                                        className="w-full pl-6 pr-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                        className="w-full pl-8 pr-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-micro text-gray-200 mb-1">Max Daily Profit</label>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Max Daily Profit</label>
                                 <div className="relative">
-                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-micro">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                                     <input
                                         type="number"
                                         name="maxDailyProfit"
                                         value={formData.maxDailyProfit}
                                         onChange={handleChange}
                                         min="0"
-                                        className="w-full pl-6 pr-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                        className="w-full pl-8 pr-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-micro text-gray-200 mb-1">Risk Level</label>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">Risk Level</label>
                                 <select
                                     name="riskLevel"
                                     value={formData.riskLevel}
                                     onChange={handleChange}
-                                    className="w-full px-2.5 py-1.5 bg-[#0B0633] border border-gray-700/50 rounded-md text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors duration-200"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] focus:ring-2 focus:ring-[#2F6BFF]/50 transition-all"
                                 >
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
@@ -197,17 +204,17 @@ export function AddAccountModal({ isOpen, onClose }: AddAccountModalProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-700/50">
+                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#2F6BFF]/30">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 text-white rounded-md transition-colors duration-200 text-micro"
+                            className="px-6 py-3 bg-[#16124A] border border-[#2F6BFF]/30 hover:bg-[#1E1854] hover:border-[#2F6BFF] text-white rounded-xl transition-all duration-300 text-sm font-semibold"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-3 py-1.5 bg-[#2F6BFF] hover:bg-[#2557c9] text-white rounded-md transition-colors duration-200 text-micro"
+                            className="px-6 py-3 bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
                         >
                             Add Account
                         </button>
@@ -222,108 +229,110 @@ export function ViewAccountModal({ isOpen, account, onClose }: ViewAccountModalP
     if (!isOpen || !account) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl shadow-brand-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn border border-[#2F6BFF]/30">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-[#2F6BFF]/30">
                 {/* Header */}
-                <div className="flex items-center justify-between p-3 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 via-transparent to-[#FFA62B]/10">
-                    <div className="flex items-center gap-2">
-                        <Eye size={16} className="text-[#2F6BFF]" />
-                        <h2 className="text-small-dashboard text-[#efdede] font-bold">Account Details</h2>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent sticky top-0 z-10 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-lg flex items-center justify-center">
+                            <Eye className="w-5 h-5 text-[#2F6BFF]" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Account Details</h2>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-red-500/20 rounded-md transition-all duration-200 hover:scale-110">
-                        <X size={16} className="text-gray-300 hover:text-red-400" />
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center hover:bg-red-500/20 rounded-lg transition-all duration-200">
+                        <X className="w-5 h-5 text-gray-300 hover:text-red-400" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-3 space-y-3">
+                <div className="p-6 space-y-6">
                     {/* Account Info */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Account Information</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Account ID</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.accountId}</div>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Account Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Account ID</div>
+                                <div className="text-sm font-semibold text-white">{account.accountId}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Account Type</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.accountType.toUpperCase()}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Account Type</div>
+                                <div className="text-sm font-semibold text-white">{account.accountType.toUpperCase()}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Status</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.status.toUpperCase()}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Status</div>
+                                <div className="text-sm font-semibold text-white">{account.status.toUpperCase()}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Currency</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.currency}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Currency</div>
+                                <div className="text-sm font-semibold text-white">{account.currency}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Balance Info */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Balance & Performance</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Current Balance</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">${account.balance.toLocaleString()}</div>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Balance & Performance</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Current Balance</div>
+                                <div className="text-lg font-bold text-white">${account.balance.toLocaleString()}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Net Profit</div>
-                                <div className={`text-micro font-semibold ${account.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Net Profit</div>
+                                <div className={`text-lg font-bold ${account.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                     ${account.netProfit.toFixed(2)}
                                 </div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Total Profit</div>
-                                <div className="text-micro text-green-400 font-semibold">${account.totalProfit.toFixed(2)}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Total Profit</div>
+                                <div className="text-lg font-bold text-green-400">${account.totalProfit.toFixed(2)}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Total Loss</div>
-                                <div className="text-micro text-red-400 font-semibold">${account.totalLoss.toFixed(2)}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Total Loss</div>
+                                <div className="text-lg font-bold text-red-400">${account.totalLoss.toFixed(2)}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Trading Stats */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Trading Statistics</h3>
-                        <div className="grid grid-cols-3 gap-2">
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Total Trades</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.totalTrades}</div>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Trading Statistics</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Total Trades</div>
+                                <div className="text-lg font-bold text-white">{account.totalTrades}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Win Rate</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.winRate}%</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Win Rate</div>
+                                <div className="text-lg font-bold text-white">{account.winRate}%</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Open Positions</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.openPositions}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Open Positions</div>
+                                <div className="text-lg font-bold text-white">{account.openPositions}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Dates */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Activity</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Created</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.createdAt}</div>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Activity</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Created</div>
+                                <div className="text-sm font-semibold text-white">{account.createdAt}</div>
                             </div>
-                            <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
-                                <div className="text-[10px] text-gray-400 mb-0.5">Last Activity</div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.lastActivity}</div>
+                            <div className="p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
+                                <div className="text-xs text-gray-400 mb-1">Last Activity</div>
+                                <div className="text-sm font-semibold text-white">{account.lastActivity}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Close Button */}
-                    <div className="flex items-center justify-end pt-2 border-t border-gray-700/50">
+                    <div className="flex items-center justify-end pt-4 border-t border-[#2F6BFF]/30">
                         <button
                             onClick={onClose}
-                            className="px-3 py-1.5 bg-[#2F6BFF] hover:bg-[#2557c9] text-white rounded-md transition-colors duration-200 text-micro"
+                            className="px-6 py-3 bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
                         >
                             Close
                         </button>
@@ -343,83 +352,87 @@ export function ManageAccountModal({ isOpen, account, onClose }: ManageAccountMo
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-xl shadow-brand-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-scaleIn border border-[#2F6BFF]/30">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-[#2F6BFF]/30">
                 {/* Header */}
-                <div className="flex items-center justify-between p-3 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 via-transparent to-[#FFA62B]/10">
-                    <div className="flex items-center gap-2">
-                        <Settings size={16} className="text-[#2F6BFF]" />
-                        <h2 className="text-small-dashboard text-[#efdede] font-bold">Manage Account</h2>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent sticky top-0 z-10 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-lg flex items-center justify-center">
+                            <Settings className="w-5 h-5 text-[#2F6BFF]" />
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Manage Account</h2>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-red-500/20 rounded-md transition-all duration-200 hover:scale-110">
-                        <X size={16} className="text-gray-300 hover:text-red-400" />
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center hover:bg-red-500/20 rounded-lg transition-all duration-200">
+                        <X className="w-5 h-5 text-gray-300 hover:text-red-400" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-3 space-y-3">
+                <div className="p-6 space-y-6">
                     {/* Account Info */}
-                    <div className="p-3 bg-[#0B0633] border border-gray-700/50 rounded-md">
+                    <div className="p-6 bg-[#0B0633]/50 border border-[#2F6BFF]/20 rounded-xl">
                         <div className="flex items-center justify-between">
                             <div>
-                                <div className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{account.accountId}</div>
-                                <div className="text-[10px] text-gray-400 mt-0.5">
+                                <div className="text-lg font-semibold text-white mb-1">{account.accountId}</div>
+                                <div className="text-sm text-gray-400">
                                     {account.accountType.toUpperCase()} • {account.status.toUpperCase()}
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-small-dashboard text-[#efdede] font-bold">${account.balance.toLocaleString()}</div>
-                                <div className="text-[10px] text-gray-400">{account.currency}</div>
+                                <div className="text-2xl font-bold text-white">${account.balance.toLocaleString()}</div>
+                                <div className="text-sm text-gray-400">{account.currency}</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="space-y-2">
-                        <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Account Actions</h3>
+                    <div className="space-y-3">
+                        <h3 className="text-lg font-semibold text-white">Account Actions</h3>
 
                         <button
                             onClick={() => handleAction(account.status === 'active' ? 'paused' : 'activated')}
-                            className="w-full flex items-center gap-2 p-2 bg-[#0B0633] border border-gray-700/50 hover:border-[#2F6BFF]/50 rounded-md transition-all text-left"
+                            className="w-full flex items-center gap-4 p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 hover:border-[#2F6BFF] rounded-xl transition-all text-left"
                         >
-                            {account.status === 'active' ? (
-                                <>
-                                    <Pause size={14} className="text-yellow-400" />
-                                    <div>
-                                        <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Pause Account</div>
-                                        <div className="text-[10px] text-gray-400">Temporarily suspend trading</div>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <Play size={14} className="text-green-400" />
-                                    <div>
-                                        <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Activate Account</div>
-                                        <div className="text-[10px] text-gray-400">Resume trading activities</div>
-                                    </div>
-                                </>
-                            )}
+                            <div className={`w-10 h-10 ${account.status === 'active' ? 'bg-yellow-500/20' : 'bg-green-500/20'} rounded-lg flex items-center justify-center`}>
+                                {account.status === 'active' ? (
+                                    <Pause className="w-5 h-5 text-yellow-400" />
+                                ) : (
+                                    <Play className="w-5 h-5 text-green-400" />
+                                )}
+                            </div>
+                            <div>
+                                <div className="text-sm font-semibold text-white">
+                                    {account.status === 'active' ? 'Pause Account' : 'Activate Account'}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                    {account.status === 'active' ? 'Temporarily suspend trading' : 'Resume trading activities'}
+                                </div>
+                            </div>
                         </button>
 
                         <button
                             onClick={() => handleAction('credentials updated')}
-                            className="w-full flex items-center gap-2 p-2 bg-[#0B0633] border border-gray-700/50 hover:border-[#2F6BFF]/50 rounded-md transition-all text-left"
+                            className="w-full flex items-center gap-4 p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 hover:border-[#2F6BFF] rounded-xl transition-all text-left"
                         >
-                            <Lock size={14} className="text-[#2F6BFF]" />
+                            <div className="w-10 h-10 bg-[#2F6BFF]/20 rounded-lg flex items-center justify-center">
+                                <Lock className="w-5 h-5 text-[#2F6BFF]" />
+                            </div>
                             <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Update Credentials</div>
-                                <div className="text-[10px] text-gray-400">Change API token and App ID</div>
+                                <div className="text-sm font-semibold text-white">Update Credentials</div>
+                                <div className="text-xs text-gray-400">Change API token and App ID</div>
                             </div>
                         </button>
 
                         <button
                             onClick={() => handleAction('settings updated')}
-                            className="w-full flex items-center gap-2 p-2 bg-[#0B0633] border border-gray-700/50 hover:border-[#2F6BFF]/50 rounded-md transition-all text-left"
+                            className="w-full flex items-center gap-4 p-4 bg-[#0B0633]/50 border border-[#2F6BFF]/20 hover:border-[#2F6BFF] rounded-xl transition-all text-left"
                         >
-                            <Settings size={14} className="text-[#2F6BFF]" />
+                            <div className="w-10 h-10 bg-[#2F6BFF]/20 rounded-lg flex items-center justify-center">
+                                <Settings className="w-5 h-5 text-[#2F6BFF]" />
+                            </div>
                             <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Risk Settings</div>
-                                <div className="text-[10px] text-gray-400">Adjust risk management parameters</div>
+                                <div className="text-sm font-semibold text-white">Risk Settings</div>
+                                <div className="text-xs text-gray-400">Adjust risk management parameters</div>
                             </div>
                         </button>
 
@@ -429,21 +442,23 @@ export function ManageAccountModal({ isOpen, account, onClose }: ManageAccountMo
                                     handleAction('deleted');
                                 }
                             }}
-                            className="w-full flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/30 hover:border-red-500/50 rounded-md transition-all text-left"
+                            className="w-full flex items-center gap-4 p-4 bg-red-500/10 border border-red-500/30 hover:border-red-500 rounded-xl transition-all text-left"
                         >
-                            <Trash2 size={14} className="text-red-400" />
+                            <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                <Trash2 className="w-5 h-5 text-red-400" />
+                            </div>
                             <div>
-                                <div className="text-micro text-red-400 font-semibold">Delete Account</div>
-                                <div className="text-[10px] text-gray-400">Permanently remove this account</div>
+                                <div className="text-sm font-semibold text-red-400">Delete Account</div>
+                                <div className="text-xs text-gray-400">Permanently remove this account</div>
                             </div>
                         </button>
                     </div>
 
                     {/* Close Button */}
-                    <div className="flex items-center justify-end pt-2 border-t border-gray-700/50">
+                    <div className="flex items-center justify-end pt-4 border-t border-[#2F6BFF]/30">
                         <button
                             onClick={onClose}
-                            className="px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 text-white rounded-md transition-colors duration-200 text-micro"
+                            className="px-6 py-3 bg-[#16124A] border border-[#2F6BFF]/30 hover:bg-[#1E1854] hover:border-[#2F6BFF] text-white rounded-xl transition-all duration-300 text-sm font-semibold"
                         >
                             Close
                         </button>

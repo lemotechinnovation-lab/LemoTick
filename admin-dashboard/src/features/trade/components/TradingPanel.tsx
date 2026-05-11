@@ -1,7 +1,7 @@
+import { validateWithToast, validationToast } from '@/lib/validation-toast';
 import { ChevronRight, Clock, DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import TradeTypesModal from './TradeTypesModal';
-import { validateWithToast, validationToast } from '@/lib/validation-toast';
 
 interface Position {
     id: string;
@@ -106,7 +106,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
     const payout = parseFloat(stake) * 1.95;
 
     return (
-        <div className="flex flex-col h-full bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] border-l border-[#2F6BFF]/30 relative overflow-hidden">
+        <div className="flex flex-col h-full bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] relative overflow-hidden min-h-0">
             {/* Animated Background Effects */}
             <div className="absolute inset-0 opacity-30 pointer-events-none">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#2F6BFF] rounded-full blur-3xl animate-pulse"></div>
@@ -114,28 +114,28 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
             </div>
 
             {/* Trade Type Header */}
-            <div className="px-3 py-2 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent relative z-10">
+            <div className="px-2 py-2 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent relative z-10 shrink-0">
                 <button
                     onClick={() => setIsTradeTypesModalOpen(true)}
-                    className="w-full flex items-center justify-between text-left bg-gradient-to-r from-[#16124A] to-[#1E1854] hover:from-[#1E1854] hover:to-[#16124A] rounded-lg px-3 py-2 transition-all duration-300 group border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/50 hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                    className="w-full flex items-center justify-between text-left bg-gradient-to-r from-[#16124A] to-[#1E1854] hover:from-[#1E1854] hover:to-[#16124A] rounded-lg px-2 py-2 transition-all duration-300 group border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/50 hover:shadow-lg hover:shadow-[#2F6BFF]/20"
                 >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                         <div className="flex gap-1">
                             <span className="text-sm">📈</span>
                             <span className="text-sm">📉</span>
                         </div>
-                        <span className="text-white text-small-dashboard font-semibold">Rise/Fall</span>
+                        <span className="text-white text-xs font-semibold">Rise/Fall</span>
                     </div>
-                    <ChevronRight className="w-3 h-3 text-gray-200 group-hover:text-[#2F6BFF] transition-colors" />
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-200 group-hover:text-[#2F6BFF] transition-colors" />
                 </button>
             </div>
 
             {/* Trade Type Selector */}
-            <div className="px-3 py-2 border-b border-[#2F6BFF]/30 relative z-10">
+            <div className="px-2 py-2 border-b border-[#2F6BFF]/30 relative z-10 shrink-0">
                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => setTradeType('Rise')}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-body-dashboard font-bold transition-all duration-300 relative overflow-hidden group ${tradeType === 'Rise'
+                        className={`flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 relative overflow-hidden group ${tradeType === 'Rise'
                             ? 'bg-gradient-to-r from-[#2F6BFF] via-[#4A5FD9] to-[#2F6BFF] text-white shadow-xl shadow-[#2F6BFF]/50 scale-105'
                             : 'bg-gradient-to-r from-[#16124A] to-[#1E1854] text-gray-100 hover:from-[#1E1854] hover:to-[#16124A] hover:scale-105 border border-[#2F6BFF]/20'
                             }`}
@@ -148,7 +148,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                     </button>
                     <button
                         onClick={() => setTradeType('Fall')}
-                        className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-body-dashboard font-bold transition-all duration-300 relative overflow-hidden group ${tradeType === 'Fall'
+                        className={`flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 relative overflow-hidden group ${tradeType === 'Fall'
                             ? 'bg-gradient-to-r from-[#FFA62B] via-[#FF8C42] to-[#FFA62B] text-white shadow-xl shadow-[#FFA62B]/50 scale-105'
                             : 'bg-gradient-to-r from-[#16124A] to-[#1E1854] text-gray-100 hover:from-[#1E1854] hover:to-[#16124A] hover:scale-105 border border-[#2F6BFF]/20'
                             }`}
@@ -170,11 +170,11 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                 onTypeSelect={setSelectedTradeType}
             />
 
-            {/* Trade Parameters */}
-            <div className="flex-1 px-3 py-2 space-y-3 relative z-10">{/* Removed overflow-y-auto */}
+            {/* Trade Parameters - Scrollable Content */}
+            <div className="flex-1 px-2 py-2 space-y-2.5 relative z-10 overflow-y-auto min-h-0">{/* Added min-h-0 */}
                 {/* Stake */}
                 <div>
-                    <label className="block text-data-label text-gray-100 mb-1.5">
+                    <label className="block text-[10px] text-gray-100 mb-1">
                         <DollarSign className="w-3 h-3 inline mr-1" />
                         Stake
                     </label>
@@ -182,7 +182,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                         type="number"
                         value={stake}
                         onChange={(e) => setStake(e.target.value)}
-                        className="w-full px-3 py-1.5 bg-[#16124A] border border-[#2F6BFF]/30 rounded-lg text-white text-body-dashboard focus:outline-none focus:ring-2 focus:ring-[#2F6BFF]"
+                        className="w-full px-2 py-2 bg-[#16124A] border border-[#2F6BFF]/30 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#2F6BFF]"
                         placeholder="10.00"
                         min="1"
                         step="1"
@@ -192,7 +192,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                             <button
                                 key={amount}
                                 onClick={() => setStake(amount)}
-                                className="flex-1 px-2 py-1 text-small-dashboard bg-[#16124A] hover:bg-[#2F6BFF]/30 text-gray-100 rounded transition-colors"
+                                className="flex-1 px-1.5 py-1 text-[10px] bg-[#16124A] hover:bg-[#2F6BFF]/30 text-gray-100 rounded transition-colors"
                             >
                                 ${amount}
                             </button>
@@ -202,14 +202,14 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
 
                 {/* Duration */}
                 <div>
-                    <label className="block text-data-label text-gray-100 mb-1.5">
+                    <label className="block text-[10px] text-gray-100 mb-1">
                         <Clock className="w-3 h-3 inline mr-1" />
                         Duration
                     </label>
                     <div className="flex gap-1.5 mb-1.5">
                         <button
                             onClick={() => setDurationType('ticks')}
-                            className={`flex-1 px-3 py-1.5 rounded-lg text-small-dashboard font-medium transition-colors ${durationType === 'ticks'
+                            className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-colors ${durationType === 'ticks'
                                 ? 'bg-[#2F6BFF] text-white'
                                 : 'bg-[#16124A] text-gray-100 hover:bg-[#2F6BFF]/30'
                                 }`}
@@ -218,7 +218,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                         </button>
                         <button
                             onClick={() => setDurationType('minutes')}
-                            className={`flex-1 px-3 py-2 rounded-lg text-body-dashboard font-medium transition-colors ${durationType === 'minutes'
+                            className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-colors ${durationType === 'minutes'
                                 ? 'bg-[#2F6BFF] text-white'
                                 : 'bg-[#16124A] text-gray-100 hover:bg-[#2F6BFF]/30'
                                 }`}
@@ -230,7 +230,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                         type="number"
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
-                        className="w-full px-4 py-2 bg-[#16124A] border border-[#2F6BFF]/30 rounded-lg text-white text-body-dashboard focus:outline-none focus:ring-2 focus:ring-[#2F6BFF]"
+                        className="w-full px-2 py-2 bg-[#16124A] border border-[#2F6BFF]/30 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-[#2F6BFF]"
                         placeholder="5"
                         min="1"
                         step="1"
@@ -238,25 +238,27 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                 </div>
 
                 {/* Payout Info */}
-                <div className="bg-gradient-to-br from-[#16124A] via-[#1E1854] to-[#16124A] rounded-lg p-4 space-y-2 border border-[#2F6BFF]/20 shadow-lg">
-                    <div className="flex justify-between text-body-dashboard">
+                <div className="bg-gradient-to-br from-[#16124A] via-[#1E1854] to-[#16124A] rounded-lg p-2.5 space-y-1.5 border border-[#2F6BFF]/20 shadow-lg">
+                    <div className="flex justify-between text-xs">
                         <span className="text-gray-200">Stake</span>
                         <span className="text-white font-semibold font-tabular">${parseFloat(stake || '0').toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-body-dashboard">
+                    <div className="flex justify-between text-xs">
                         <span className="text-gray-200">Payout</span>
                         <span className="text-green-400 font-semibold font-tabular">${payout.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-body-dashboard pt-2 border-t border-[#2F6BFF]/30">
+                    <div className="flex justify-between text-xs pt-1.5 border-t border-[#2F6BFF]/30">
                         <span className="text-gray-200">Potential Profit</span>
                         <span className="text-green-400 font-bold font-tabular">${(payout - parseFloat(stake || '0')).toFixed(2)}</span>
                     </div>
                 </div>
+            </div>
 
-                {/* Trade Button */}
+            {/* Trade Button - Fixed at Bottom */}
+            <div className="p-2 border-t border-[#2F6BFF]/30 bg-gradient-to-t from-[#0B0633] to-transparent relative z-10 shrink-0">
                 <button
                     onClick={handleTrade}
-                    className={`w-full py-4 rounded-xl font-bold text-card-title transition-all duration-300 transform hover:scale-105 relative overflow-hidden group ${tradeType === 'Rise'
+                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 transform hover:scale-105 relative overflow-hidden group ${tradeType === 'Rise'
                         ? 'bg-gradient-to-r from-green-500 via-green-600 to-green-500 hover:from-green-600 hover:via-green-700 hover:to-green-600 text-white shadow-xl shadow-green-500/50'
                         : 'bg-gradient-to-r from-red-500 via-red-600 to-red-500 hover:from-red-600 hover:via-red-700 hover:to-red-600 text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] shadow-xl shadow-red-500/50'
                         }`}
@@ -272,13 +274,13 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
 
             {/* Open Positions */}
             {positions.length > 0 && (
-                <div className="border-t border-[#16124A] p-4">
-                    <h3 className="text-data-label text-gray-100 mb-3">Open Positions ({positions.length})</h3>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="border-t border-[#16124A] p-2 shrink-0 relative z-10 max-h-[200px] overflow-y-auto">
+                    <h3 className="text-[10px] text-gray-100 mb-2">Open Positions ({positions.length})</h3>
+                    <div className="space-y-1.5">
                         {positions.map((position) => (
                             <div
                                 key={position.id}
-                                className="bg-[#16124A]/50 rounded-lg p-3 text-body-dashboard"
+                                className="bg-[#16124A]/50 rounded-lg p-2 text-xs"
                             >
                                 <div className="flex justify-between items-center mb-1">
                                     <span className={`font-semibold ${position.type === 'Rise' ? 'text-green-400' : 'text-red-400'
@@ -287,7 +289,7 @@ export default function TradingPanel({ symbol, currentPrice, onTradePlaced, posi
                                     </span>
                                     <span className="text-gray-200 font-tabular">${position.stake.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-small-dashboard text-gray-200">
+                                <div className="flex justify-between text-[10px] text-gray-200">
                                     <span>Entry: <span className="font-tabular">{position.entryPrice.toFixed(5)}</span></span>
                                     <span className={`font-tabular ${position.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                         {position.profit >= 0 ? '+' : ''}{position.profit.toFixed(2)}

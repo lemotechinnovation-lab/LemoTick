@@ -25,6 +25,18 @@ public class ApplicationDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<InvestorPreferences> InvestorPreferences => Set<InvestorPreferences>();
 
+    // ── Social Networking entities ────────────────────────────────────────────
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
+    public DbSet<BlockedUser> BlockedUsers => Set<BlockedUser>();
+    public DbSet<FriendList> FriendLists => Set<FriendList>();
+    public DbSet<FriendListMember> FriendListMembers => Set<FriendListMember>();
+    public DbSet<PrivacySettings> PrivacySettings => Set<PrivacySettings>();
+
+    // ── Messaging entities ─────────────────────────────────────────────────────
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<Message> Messages => Set<Message>();
+
     // ── Lookup tables (named to match controller access patterns) ─────────────
     public DbSet<InvestorStatusLookup> InvestorStatusLookup => Set<InvestorStatusLookup>();
     public DbSet<UserRoleLookup> UserRoleLookup => Set<UserRoleLookup>();
@@ -76,7 +88,7 @@ public class ApplicationDbContext : DbContext
 
             entity.HasMany(e => e.Notifications)
                   .WithOne()
-                  .HasForeignKey(n => n.InvestorId)
+                  .HasForeignKey(n => n.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(e => e.KYCDocuments)
@@ -124,6 +136,161 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.InvestorId).IsUnique();
+        });
+
+        // ── UserProfile ───────────────────────────────────────────────────────
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Unique indexes
+            entity.HasIndex(e => e.InvestorId).IsUnique();
+            entity.HasIndex(e => e.Username).IsUnique();
+
+            // Regular indexes for performance
+            entity.HasIndex(e => e.OnlineStatus);
+            entity.HasIndex(e => e.LastSeenAt);
+
+            // 1:1 relationship with Investor
+            entity.HasOne(e => e.Investor)
+                  .WithOne()
+                  .HasForeignKey<UserProfile>(e => e.InvestorId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:Many relationship with Friendships (as Requester)
+            entity.HasMany(e => e.FriendshipsInitiated)
+                  .WithOne(f => f.Requester)
+                  .HasForeignKey(f => f.RequesterId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // 1:Many relationship with Friendships (as Recipient)
+            entity.HasMany(e => e.FriendshipsReceived)
+                  .WithOne(f => f.Recipient)
+                  .HasForeignKey(f => f.RecipientId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // 1:Many relationship with BlockedUsers (as Blocker)
+            entity.HasMany(e => e.BlockedUsers)
+                  .WithOne(b => b.Blocker)
+                  .HasForeignKey(b => b.BlockerId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // 1:Many relationship with BlockedUsers (as Blocked)
+            entity.HasMany(e => e.BlockedByUsers)
+                  .WithOne(b => b.Blocked)
+                  .HasForeignKey(b => b.BlockedId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Friendship ────────────────────────────────────────────────────────
+        modelBuilder.Entity<Friendship>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Composite indexes for efficient queries
+            entity.HasIndex(e => new { e.RequesterId, e.RecipientId });
+            entity.HasIndex(e => new { e.RecipientId, e.Status });
+            entity.HasIndex(e => new { e.RequesterId, e.Status });
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // Prevent duplicate friend requests
+            entity.HasIndex(e => new { e.RequesterId, e.RecipientId, e.Status })
+                  .IsUnique()
+                  .HasFilter("\"Status\" = 0 OR \"Status\" = 1"); // Pending or Accepted
+        });
+
+        // ── BlockedUser ───────────────────────────────────────────────────────
+        modelBuilder.Entity<BlockedUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Composite index for efficient queries
+            entity.HasIndex(e => new { e.BlockerId, e.BlockedId }).IsUnique();
+            entity.HasIndex(e => e.BlockedAt);
+        });
+
+        // ── FriendList ────────────────────────────────────────────────────────
+        modelBuilder.Entity<FriendList>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Index for owner queries
+            entity.HasIndex(e => e.OwnerId);
+            entity.HasIndex(e => e.CreatedAt);
+
+            // 1:Many relationship with UserProfile (Owner)
+            entity.HasOne(e => e.Owner)
+                  .WithMany()
+                  .HasForeignKey(e => e.OwnerId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // 1:Many relationship with FriendListMembers
+            entity.HasMany(e => e.Members)
+                  .WithOne(m => m.FriendList)
+                  .HasForeignKey(m => m.FriendListId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── FriendListMember ──────────────────────────────────────────────────
+        modelBuilder.Entity<FriendListMember>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Composite index to prevent duplicate members in same list
+            entity.HasIndex(e => new { e.FriendListId, e.FriendId }).IsUnique();
+            entity.HasIndex(e => e.AddedAt);
+
+            // Relationship with UserProfile (Friend)
+            entity.HasOne(e => e.Friend)
+                  .WithMany()
+                  .HasForeignKey(e => e.FriendId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── PrivacySettings (1-to-1) ──────────────────────────────────────────
+        modelBuilder.Entity<PrivacySettings>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Unique index for 1:1 relationship
+            entity.HasIndex(e => e.UserProfileId).IsUnique();
+
+            // 1:1 relationship with UserProfile
+            entity.HasOne(e => e.UserProfile)
+                  .WithOne()
+                  .HasForeignKey<PrivacySettings>(e => e.UserProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Conversation ──────────────────────────────────────────────────────
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Composite index for efficient queries
+            entity.HasIndex(e => new { e.User1Id, e.User2Id });
+            entity.HasIndex(e => e.UpdatedAt);
+
+            // Prevent duplicate conversations
+            entity.HasIndex(e => new { e.User1Id, e.User2Id }).IsUnique();
+        });
+
+        // ── Message ───────────────────────────────────────────────────────────
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.ConversationId);
+            entity.HasIndex(e => new { e.ConversationId, e.CreatedAt });
+            entity.HasIndex(e => new { e.ConversationId, e.IsRead });
+
+            // Relationship with Conversation
+            entity.HasOne(e => e.Conversation)
+                  .WithMany()
+                  .HasForeignKey(e => e.ConversationId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

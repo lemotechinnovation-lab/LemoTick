@@ -61,18 +61,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     },
 
     logout: () => {
-        // Show logout confirmation toast
-        const logoutToast = validationToast.customValidation(
-            'Signing you out...',
-            {
-                loadingMessage: 'Logging out...',
-                successMessage: 'Successfully logged out',
-                errorMessage: 'Logout completed',
-                duration: 2000,
-                delay: 500,
-            }
-        )
-
         // Perform logout - clear all data immediately
         authService.logout()
 
@@ -83,16 +71,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             error: null
         })
 
-        // Show success message
-        setTimeout(() => {
-            logoutToast.success('You have been successfully logged out')
-        }, 500)
+        // Show logout toast
+        validationToast.customValidation(
+            'Successfully logged out',
+            {
+                successMessage: 'You have been successfully logged out',
+                duration: 2000,
+            }
+        )
 
-        // Redirect to login after showing success message
-        setTimeout(() => {
-            // Force a complete page reload to ensure everything is cleared
-            window.location.href = '/login'
-        }, 1500)
+        // Redirect to landing page immediately
+        window.location.href = '/'
     },
 
     setUser: (user) => set({

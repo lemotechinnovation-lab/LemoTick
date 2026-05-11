@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=fallback');
 
 @import 'tailwindcss';
+@import '../styles/design-system.css';
+@import '../styles/ui-enhancements-2026.css';
 @import './additional-styles/utility-patterns.css' layer(components);
 
 @plugin "@tailwindcss/forms" {
@@ -9,6 +11,286 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant sidebar-expanded (&:is(.sidebar-expanded *));
+
+/* ============================================
+   GLOBAL WHITE TEXT - FORCE ALL TEXT TO WHITE
+   ============================================ */
+
+/* Force white text color globally for body text - but dark on light background */
+body,
+html,
+div,
+span,
+p,
+a,
+button,
+input,
+textarea,
+select,
+label,
+li,
+td,
+th,
+em,
+small {
+  color: #1a1a2e !important;
+}
+
+/* Headers use brand colors with enhanced visibility - darker for light background */
+h1, .h1 {
+  color: #d66a00 !important; /* Darker orange for main headers */
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h2, .h2 {
+  color: #d66a00 !important; /* Darker orange for secondary headers */
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  color: #2557c9 !important; /* Darker blue for subheaders */
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Strong/bold text inherits from parent */
+strong {
+  color: inherit !important;
+}
+
+/* Placeholder text */
+::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Input text */
+input,
+textarea,
+select {
+  color: #FFFFFF !important;
+}
+
+/* ============================================
+   GLOBAL CARD BACKGROUNDS - CONSISTENT COLOR
+   ============================================ */
+
+/* Dark cards for light background - high contrast */
+.card,
+[class*="card"],
+[class*="Card"],
+.bg-card,
+[class*="bg-card"],
+div[class*="rounded"],
+div[class*="shadow"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Specific bg-card variants */
+.bg-card,
+.bg-card\/90,
+.bg-card\/80,
+.bg-card\/70,
+.bg-card\/60,
+.bg-card\/50,
+.bg-card\/40,
+.bg-card\/30 {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Override any hardcoded background colors */
+[class*="bg-[#35335e]"],
+[class*="bg-[#16124A]"],
+[class*="bg-[#0B0633]"],
+[class*="bg-[#54527a]"],
+[class*="bg-slate"],
+[class*="bg-gray"],
+[class*="bg-purple"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+}
+
+/* Modal and dialog backgrounds */
+[role="dialog"],
+[class*="modal"],
+[class*="Modal"],
+[class*="dialog"],
+[class*="Dialog"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Dropdown and menu backgrounds */
+[class*="dropdown"],
+[class*="Dropdown"],
+[class*="menu"],
+[class*="Menu"],
+[role="menu"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Panel and sidebar backgrounds */
+[class*="panel"],
+[class*="Panel"],
+[class*="sidebar"],
+[class*="Sidebar"],
+.bg-chrome {
+  background-color: rgba(35, 35, 60, 0.98) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Form input backgrounds */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  background-color: rgba(42, 42, 72, 0.60) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Stat cards and metric cards - white text inside */
+[class*="stat"],
+[class*="Stat"],
+[class*="metric"],
+[class*="Metric"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  color: #FFFFFF !important;
+}
+
+/* Force white text inside cards */
+[class*="card"] *,
+[class*="Card"] *,
+[class*="bg-card"] *,
+[class*="stat"] *,
+[class*="Stat"] *,
+[class*="metric"] *,
+[class*="Metric"] * {
+  color: #FFFFFF !important;
+}
+
+/* Keep headers colored inside cards */
+[class*="card"] h1,
+[class*="card"] h2,
+[class*="card"] h3,
+[class*="card"] h4,
+[class*="card"] h5,
+[class*="card"] h6,
+[class*="Card"] h1,
+[class*="Card"] h2,
+[class*="Card"] h3,
+[class*="Card"] h4,
+[class*="Card"] h5,
+[class*="Card"] h6 {
+  color: inherit !important;
+}
+
+/* ============================================
+   LOGO TRANSPARENCY - SIDEBAR LOGO
+   ============================================ */
+
+/* Make sidebar logo images transparent */
+#sidebar img,
+[class*="sidebar"] img,
+[class*="Sidebar"] img {
+  background-color: transparent !important;
+  mix-blend-mode: normal;
+}
+
+/* Ensure logo container has no background */
+#sidebar a img,
+#sidebar .logo img,
+#sidebar [class*="logo"] img {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* CSS Custom Properties (CSS Variables) */
+:root {
+  /* Brand Colors - Light background with dark elevated components (Stripe style) */
+  --color-primary: #2F6BFF;
+  --color-accent: #FFA62B;
+  --color-dark: #1a2847;
+  --color-card: #35335e;  /* Card color for elevated components */
+  --color-text: #FFFFFF;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+  --color-border: rgba(47, 107, 255, 0.15);
+}
+
+/* Mobile viewport fixes */
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-width: 320px;
+  max-width: 100vw;
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+#root {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Prevent horizontal scroll on all elements */
+* {
+  box-sizing: border-box;
+}
+
+/* Force mobile scaling */
+@media (max-width: 640px) {
+  html {
+    font-size: 16px !important;
+  }
+  
+  body {
+    min-width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
 
 @theme {
   --shadow-sm: 0 1px 1px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02);
@@ -150,4 +432,205 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+}
+
+/* Custom utilities for modern card designs */
+@layer utilities {
+  /* Animated gradient background utilities */
+  .bg-size-200 {
+    background-size: 200% 200%;
+  }
+  
+  .bg-pos-0 {
+    background-position: 0% 50%;
+  }
+  
+  .bg-pos-100 {
+    background-position: 100% 50%;
+  }
+  
+  /* Glassmorphism backdrop blur */
+  .backdrop-blur-glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Premium card hover effects */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+}
+
+
+/* Public Page Header Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out forwards;
+}
+
+/* Enhanced Visual Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  33% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  66% {
+    transform: translateY(10px) translateX(-10px);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  33% {
+    transform: translateY(15px) translateX(-15px);
+  }
+  66% {
+    transform: translateY(-10px) translateX(10px);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) translateX(5px) scale(1.05);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 10s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+.animate-float-slow {
+  animation: float-slow 12s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
 }

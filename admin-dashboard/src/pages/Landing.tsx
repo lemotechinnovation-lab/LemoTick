@@ -1,537 +1,466 @@
+import { PageHeader } from '@/components/ui/PageHeader';
+import {
+    ContentWrapper,
+    PageContainer,
+    PageGrid,
+    PageSection,
+    Stack,
+    StatsCard
+} from '@/components/ui/PageLayoutEnhanced';
+import { Award, BarChart3, Globe, Settings, Shield, Smartphone, TrendingUp, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function Landing() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0F0A2B] via-[#0F0A2B] to-[#1A1450]/60 relative">
-            {/* Subtle background pattern */}
-            <div className="absolute inset-0 opacity-5" style={{
-                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(47, 107, 255, 0.15) 1px, transparent 0)',
-                backgroundSize: '32px 32px'
-            }}></div>
-
-            {/* Navigation */}
-            <nav className="fixed top-0 w-full bg-gradient-to-r from-[#1A1547]/95 via-[#1E1B52]/95 to-[#1A1547]/95 backdrop-blur-md border-b border-[#2F6BFF]/30 shadow-[0_4px_20px_rgba(30,109,227,0.15)] z-50 relative">
-                {/* Subtle glow effect at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2F6BFF]/50 to-transparent"></div>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <img
-                                src="/src/images/logo-full@2x.png"
-                                alt="LemoTick"
-                                className="h-14 w-auto max-w-[180px] object-contain brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_12px_rgba(30,109,227,0.4)] hover:drop-shadow-[0_0_16px_rgba(30,109,227,0.6)] hover:scale-[1.65] transition-all duration-200 scale-[1.6]"
-                                style={{ imageRendering: 'crisp-edges' }}
-                            />
+        <PageContainer noPadding>
+            {/* Hero Section */}
+            <PageSection spacing="normal" background="transparent">
+                <PageHeader variant="hero" title="">
+                    <Stack spacing="lg">
+                        {/* Problem Statement Badge */}
+                        <div className="inline-block animate-pulse">
+                            <span className="px-6 py-3 bg-gradient-to-r from-red-500/20 to-orange-500/20 border-2 border-red-500/40 rounded-full text-base text-red-400 font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                                ⚠️ Most Prop Firms Profit When You Fail
+                            </span>
                         </div>
-                        <div className="flex items-center space-x-4">
-                            <Link
-                                to="/login"
-                                className="text-gray-100 hover:text-[#2F6BFF] px-3 py-2 text-body-dashboard font-medium transition-colors"
-                            >
-                                Sign in
-                            </Link>
+
+                        {/* Main Headline */}
+                        <div className="space-y-4">
+                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tight">
+                                GET FUNDED.
+                                <br />
+                                <span className="bg-gradient-to-r from-[#2F6BFF] via-[#5B8FFF] to-[#FFA62B] bg-clip-text text-transparent">
+                                    KEEP 80%.
+                                </span>
+                                <br />
+                                SCALE TO R2.5M.
+                            </h1>
+                        </div>
+
+                        {/* Solution Badge */}
+                        <div className="inline-block">
+                            <span className="px-6 py-3 bg-gradient-to-r from-[#2F6BFF]/30 to-[#FFA62B]/30 border-2 border-[#2F6BFF]/50 rounded-full text-base text-white font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(47,107,255,0.3)]">
+                                ✨ South Africa's Most Transparent Prop Firm
+                            </span>
+                        </div>
+
+                        {/* Value Proposition */}
+                        <ContentWrapper maxWidth="normal" align="center">
+                            <p className="text-xl md:text-2xl text-gray-100 leading-relaxed font-semibold">
+                                <span className="text-white">One-step evaluation.</span>{' '}
+                                <span className="text-[#2F6BFF]">No hidden rules.</span>{' '}
+                                <span className="text-white">Bi-weekly payouts.</span>
+                            </p>
+                            <p className="text-lg md:text-xl text-gray-300 leading-relaxed font-medium mt-4">
+                                Pass our 10% profit target challenge and start trading with{' '}
+                                <span className="text-[#FFA62B] font-bold">real capital</span>.{' '}
+                                Keep <span className="text-[#2F6BFF] font-bold">80% of every rand</span> you earn.{' '}
+                                No phase two. No delays. No excuses.
+                            </p>
+                        </ContentWrapper>
+
+                        {/* Social Proof */}
+                        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400 font-medium">
+                            <div className="flex items-center gap-2">
+                                <div className="flex -space-x-2">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] border-2 border-dark"></div>
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FFA62B] to-[#FF6B6B] border-2 border-dark"></div>
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#8B5CF6] border-2 border-dark"></div>
+                                </div>
+                                <span className="text-white font-semibold">10,000+ Active Traders</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl">⭐</span>
+                                <span className="text-white font-semibold">4.8/5 Rating</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl">💰</span>
+                                <span className="text-white font-semibold">R2.5B+ Traded</span>
+                            </div>
+                        </div>
+
+                        {/* CTA Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
                             <Link
                                 to="/register"
-                                className="bg-gradient-to-r from-[#2F6BFF] to-[#2F6BFF] hover:from-[#2F6BFF] hover:to-[#FFA62B] text-white px-4 py-2 rounded-xl text-body-dashboard font-semibold transition-all duration-300 shadow-lg shadow-[#2F6BFF]/30"
+                                className="group relative bg-gradient-to-r from-[#2F6BFF] to-blue-500 hover:from-blue-500 hover:to-[#2F6BFF] text-white px-10 py-5 rounded-xl text-lg md:text-xl font-black shadow-[0_0_40px_rgba(47,107,255,0.4)] hover:shadow-[0_0_60px_rgba(47,107,255,0.6)] transition-all duration-300 transform hover:scale-105"
                             >
-                                Get Started
+                                <span className="relative z-10">Start Your Evaluation Now</span>
+                                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </Link>
+                            <Link
+                                to="/how-it-works"
+                                className="bg-card/40 hover:bg-card/60 backdrop-blur-sm border-2 border-[#2F6BFF]/40 hover:border-[#2F6BFF] text-white px-10 py-5 rounded-xl text-lg md:text-xl font-bold shadow-lg transition-all duration-300 transform hover:scale-105"
+                            >
+                                See How It Works →
                             </Link>
                         </div>
-                    </div>
-                </div>
-            </nav>
 
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-                {/* Animated gradient orbs */}
-                <div className="absolute top-20 left-10 w-72 h-72 bg-[#2F6BFF]/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#FFA62B]/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-
-                <div className="relative max-w-7xl mx-auto text-center z-10">
-                    <div className="inline-block mb-6">
-                        <span className="px-4 py-2 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-body-dashboard text-[#2F6BFF] font-semibold backdrop-blur-sm">
-                            🚀 Welcome to the Future of Trading
-                        </span>
-                    </div>
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                        <span className="block bg-gradient-to-r from-[#efdede] via-[#B8BEC9] to-[#efdede] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(160,167,181,0.4)]">
-                            Smart Trading Platform
-                        </span>
-                        <span className="block mt-3 bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#FFA62B] bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(47,107,255,0.5)]">
-                            Built for Modern Traders
-                        </span>
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-3xl mx-auto leading-relaxed">
-                        Trade with confidence. Track analytics, monitor performance, and make data-driven decisions with our
-                        <span className="text-[#2F6BFF] font-semibold"> intuitive trading platform</span>.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            to="/register"
-                            className="bg-gradient-to-r from-[#2F6BFF] to-[#2F6BFF] hover:from-[#2F6BFF] hover:to-[#FFA62B] text-white px-8 py-3 rounded-xl text-card-title font-semibold shadow-lg shadow-[#2F6BFF]/30 hover:shadow-[#2F6BFF]/50 transition-all duration-300 transform hover:scale-105"
-                        >
-                            Start Free Trial
-                        </Link>
-                        <Link
-                            to="/dashboard"
-                            className="bg-[#16124A] hover:bg-[#2F6BFF]/10 text-gray-100 px-8 py-3 rounded-xl text-card-title font-semibold border border-[#2F6BFF]/30 hover:border-[#2F6BFF] shadow-lg transition-all duration-300 transform hover:scale-105"
-                        >
-                            View Demo
-                        </Link>
-                    </div>
-                </div>
-            </section>
+                        {/* Trust Indicators */}
+                        <div className="flex flex-wrap items-center justify-center gap-8 pt-4">
+                            <div className="flex items-center gap-2 text-gray-400">
+                                <Shield className="w-5 h-5 text-green-400" />
+                                <span className="text-sm font-medium">Bank-Level Security</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-400">
+                                <Zap className="w-5 h-5 text-yellow-400" />
+                                <span className="text-sm font-medium">Instant Activation</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-400">
+                                <Award className="w-5 h-5 text-purple-400" />
+                                <span className="text-sm font-medium">99.9% Uptime</span>
+                            </div>
+                        </div>
+                    </Stack>
+                </PageHeader>
+            </PageSection>
 
             {/* Features Section */}
-            <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-[#16124A]/30">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-small-dashboard text-[#2F6BFF] font-semibold mb-4">
-                            Features
+            <PageSection spacing="normal" background="transparent">
+                <ContentWrapper maxWidth="normal" align="center">
+                    <Stack spacing="sm" className="mb-8">
+                        <span className="inline-block px-4 py-2 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-xs text-[#2F6BFF] font-bold">
+                            🚀 POWERFUL FEATURES
                         </span>
-                        <h2 className="text-page-title text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-4">
-                            Everything you need to succeed
+                        <h2 className="text-lg md:text-xl text-white font-bold tracking-tight">
+                            TRADE LIKE A PRO
                         </h2>
-                        <p className="text-card-title text-gray-200 max-w-2xl mx-auto">
-                            Powerful features designed to help you trade smarter and grow your portfolio faster
+                        <p className="text-sm text-gray-300 font-medium leading-relaxed max-w-3xl mx-auto">
+                            Everything you need to succeed in one powerful platform
                         </p>
+                    </Stack>
+                </ContentWrapper>
+
+                <PageGrid cols={3} gap="sm">
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <BarChart3 className="w-6 h-6 text-[#2F6BFF]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white">
+                                Real-Time Analytics
+                            </h3>
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                Track every trade with <span className="text-white font-bold">institutional-grade analytics</span>. Beautiful charts, live P&L, and performance insights at your fingertips.
+                            </p>
+                        </Stack>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {/* Feature 1 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <Users className="w-6 h-6 text-[#2F6BFF]" />
                             </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
-                                Real-time Analytics
-                            </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Track your metrics in real-time with beautiful, interactive charts and graphs.
-                            </p>
-                        </div>
-
-                        {/* Feature 2 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
+                            <h3 className="text-sm font-bold text-white">
                                 Automated Trading
                             </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Set up trading bots with custom strategies and let them work for you 24/7.
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                Deploy your <span className="text-white font-bold">custom trading bots</span> and EAs. Let algorithms work 24/7 while you sleep.
                             </p>
-                        </div>
-
-                        {/* Feature 3 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
-                                Secure & Reliable
-                            </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Enterprise-grade security with 99.9% uptime guarantee and data encryption.
-                            </p>
-                        </div>
-
-                        {/* Feature 4 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
-                                Advanced Indicators
-                            </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Access 20+ technical indicators and drawing tools for comprehensive analysis.
-                            </p>
-                        </div>
-
-                        {/* Feature 5 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
-                                Lightning Fast
-                            </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Optimized performance ensures your trades execute instantly, every time.
-                            </p>
-                        </div>
-
-                        {/* Feature 6 */}
-                        <div className="p-6 rounded-2xl bg-[#16124A] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] hover:shadow-lg hover:shadow-[#2F6BFF]/20 transition-all duration-300 hover-lift">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">
-                                Mobile Ready
-                            </h3>
-                            <p className="text-body-dashboard text-gray-200">
-                                Trade anywhere with our fully responsive mobile design and native apps.
-                            </p>
-                        </div>
+                        </Stack>
                     </div>
-                </div>
-            </section>
+
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <Shield className="w-6 h-6 text-[#2F6BFF]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white">
+                                Bank-Level Security
+                            </h3>
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                Your data is protected with <span className="text-white font-bold">military-grade encryption</span>. 99.9% uptime guaranteed.
+                            </p>
+                        </Stack>
+                    </div>
+
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <Settings className="w-6 h-6 text-[#2F6BFF]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white">
+                                Advanced Tools
+                            </h3>
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                Access <span className="text-white font-bold">20+ technical indicators</span>, drawing tools, and professional charting for deep market analysis.
+                            </p>
+                        </Stack>
+                    </div>
+
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <Zap className="w-6 h-6 text-[#2F6BFF]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white">
+                                Lightning Execution
+                            </h3>
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                <span className="text-white font-bold">Sub-10ms execution</span> speed. Your orders hit the market instantly, every single time.
+                            </p>
+                        </Stack>
+                    </div>
+
+                    <div className="group p-5 rounded-2xl bg-card/30 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:bg-card/40 hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <Stack spacing="sm">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                <Smartphone className="w-6 h-6 text-[#2F6BFF]" />
+                            </div>
+                            <h3 className="text-sm font-bold text-white">
+                                Trade Anywhere
+                            </h3>
+                            <p className="text-gray-300 leading-relaxed font-medium text-xs">
+                                <span className="text-white font-bold">Fully responsive</span> on desktop, tablet, and mobile. Trade from anywhere in the world.
+                            </p>
+                        </Stack>
+                    </div>
+                </PageGrid>
+            </PageSection>
 
             {/* Stats Section */}
-            <section className="relative py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#2F6BFF]/10 to-[#FFA62B]/10 border-y border-[#2F6BFF]/20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                        <div className="text-center">
-                            <div className="text-4xl md:text-5xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-2 font-tabular">10K+</div>
-                            <div className="text-body-dashboard text-gray-200">Active Traders</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl md:text-5xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-2 font-tabular">R2.5B+</div>
-                            <div className="text-body-dashboard text-gray-200">Trading Volume</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl md:text-5xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-2 font-tabular">150+</div>
-                            <div className="text-body-dashboard text-gray-200">Countries</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl md:text-5xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-2 font-tabular">99.9%</div>
-                            <div className="text-body-dashboard text-gray-200">Uptime</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <PageSection spacing="normal" background="transparent" fullWidth>
+                <PageGrid cols={4} gap="sm">
+                    <StatsCard
+                        icon={<Users className="w-6 h-6" />}
+                        value="10K+"
+                        label="Active Traders"
+                    />
+                    <StatsCard
+                        icon={<TrendingUp className="w-6 h-6" />}
+                        value="R2.5B+"
+                        label="Trading Volume"
+                    />
+                    <StatsCard
+                        icon={<Globe className="w-6 h-6" />}
+                        value="150+"
+                        label="Countries"
+                    />
+                    <StatsCard
+                        icon={<Award className="w-6 h-6" />}
+                        value="99.9%"
+                        label="Uptime"
+                    />
+                </PageGrid>
+            </PageSection>
 
-            {/* Testimonials Section */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0B0633]">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-small-dashboard text-[#2F6BFF] font-semibold mb-4">
-                            Testimonials
+            {/* 3-Step Process Section */}
+            <PageSection spacing="normal" background="transparent">
+                <ContentWrapper maxWidth="normal" align="center">
+                    <Stack spacing="sm" className="mb-8">
+                        <span className="inline-block px-4 py-2 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-xs text-[#2F6BFF] font-bold">
+                            💎 SIMPLE PROCESS
                         </span>
-                        <h2 className="text-page-title text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-4">
-                            Trusted by traders worldwide
+                        <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
+                            FROM ZERO TO FUNDED IN 3 STEPS
                         </h2>
-                        <p className="text-card-title text-gray-200 max-w-2xl mx-auto">
-                            See what our community has to say about their trading experience
+                        <p className="text-sm text-gray-300 font-medium leading-relaxed">
+                            Start earning real money in as little as 24 hours
                         </p>
+                    </Stack>
+                </ContentWrapper>
+
+                <PageGrid cols={3} gap="sm">
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card/40 to-card/20 backdrop-blur-md border border-primary/20 shadow-[0_0_20px_rgba(47,107,255,0.12)] hover:shadow-[0_0_20px_rgba(47,107,255,0.2)] hover:border-primary/30 transition-all duration-300">
+                        <div className="absolute -top-4 left-6">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#3B82F6] flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(47,107,255,0.4)]">
+                                1
+                            </div>
+                        </div>
+                        <Stack spacing="sm" className="mt-4">
+                            <h3 className="text-base font-bold text-white">Pass The Challenge</h3>
+                            <p className="text-gray-200 leading-relaxed font-medium text-xs">
+                                Hit <span className="text-[#2F6BFF] font-bold">10% profit</span> while staying within <span className="text-[#FFA62B] font-bold">5% drawdown</span>. No time limit. No minimum days.
+                            </p>
+                            <div className="flex items-center gap-2 px-3 py-2 bg-[#2F6BFF]/10 rounded-lg border border-[#2F6BFF]/30">
+                                <svg className="w-4 h-4 text-[#2F6BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                                <span className="text-[#2F6BFF] font-bold text-xs">One-step evaluation only</span>
+                            </div>
+                        </Stack>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {/* Testimonial 1 */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#16124A] to-[#0B0633] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-all duration-300 hover-lift">
-                            <div className="flex items-center mb-4">
-                                <div className="flex text-[#FFA62B]">
-                                    {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                        </svg>
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-body-dashboard text-gray-200 mb-4">
-                                "LemoTick has completely transformed my trading strategy. The automated bots are incredibly reliable and the analytics are top-notch."
-                            </p>
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">
-                                    JD
-                                </div>
-                                <div className="ml-3">
-                                    <div className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)]">John Doe</div>
-                                    <div className="text-small-dashboard text-gray-200">Professional Trader</div>
-                                </div>
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card/40 to-card/20 backdrop-blur-md border border-[#FFA62B]/20 shadow-[0_0_20px_rgba(255,166,43,0.12)] hover:shadow-[0_0_20px_rgba(255,166,43,0.2)] hover:border-[#FFA62B]/30 transition-all duration-300">
+                        <div className="absolute -top-4 left-6">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(255,166,43,0.4)]">
+                                2
                             </div>
                         </div>
-
-                        {/* Testimonial 2 */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#16124A] to-[#0B0633] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-all duration-300 hover-lift">
-                            <div className="flex items-center mb-4">
-                                <div className="flex text-[#FFA62B]">
-                                    {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                        </svg>
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-body-dashboard text-gray-200 mb-4">
-                                "The best trading platform I've used. Real-time data, intuitive interface, and excellent customer support. Highly recommended!"
+                        <Stack spacing="sm" className="mt-4">
+                            <h3 className="text-base font-bold text-white">Get Funded Instantly</h3>
+                            <p className="text-gray-200 leading-relaxed font-medium text-xs">
+                                Pass and your <span className="text-[#FFA62B] font-bold">funded account activates immediately</span>. No phase two. No waiting. Start trading real capital today.
                             </p>
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">
-                                    SM
-                                </div>
-                                <div className="ml-3">
-                                    <div className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)]">Sarah Miller</div>
-                                    <div className="text-small-dashboard text-gray-200">Day Trader</div>
-                                </div>
+                            <div className="flex items-center gap-2 px-3 py-2 bg-[#FFA62B]/10 rounded-lg border border-[#FFA62B]/30">
+                                <svg className="w-4 h-4 text-[#FFA62B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span className="text-[#FFA62B] font-bold text-xs">Keep 80% of all profits</span>
                             </div>
-                        </div>
-
-                        {/* Testimonial 3 */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-br from-[#16124A] to-[#0B0633] border border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-all duration-300 hover-lift">
-                            <div className="flex items-center mb-4">
-                                <div className="flex text-[#FFA62B]">
-                                    {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 20 20">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                        </svg>
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-body-dashboard text-gray-200 mb-4">
-                                "I've increased my portfolio by 40% in just 3 months. The platform's features and tools are exactly what I needed."
-                            </p>
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">
-                                    MK
-                                </div>
-                                <div className="ml-3">
-                                    <div className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)]">Michael Kim</div>
-                                    <div className="text-small-dashboard text-gray-200">Crypto Investor</div>
-                                </div>
-                            </div>
-                        </div>
+                        </Stack>
                     </div>
+
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-card/40 to-card/20 backdrop-blur-md border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.12)] hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] hover:border-green-500/30 transition-all duration-300">
+                        <div className="absolute -top-4 left-6">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFA62B] to-[#FF8C00] flex items-center justify-center text-white font-black text-lg shadow-[0_0_15px_rgba(255,140,0,0.4)]">
+                                3
+                            </div>
+                        </div>
+                        <Stack spacing="sm" className="mt-4">
+                            <h3 className="text-base font-bold text-white">Scale & Earn</h3>
+                            <p className="text-gray-200 leading-relaxed font-medium text-xs">
+                                Receive <span className="text-green-400 font-bold">bi-weekly payouts</span> directly to your bank. Scale up to <span className="text-green-400 font-bold">R2.5 million</span> with consistent performance.
+                            </p>
+                            <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 rounded-lg border border-green-500/30">
+                                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-green-400 font-bold text-xs">Unlimited earning potential</span>
+                            </div>
+                        </Stack>
+                    </div>
+                </PageGrid>
+
+                <div className="text-center mt-8">
+                    <Link
+                        to="/how-it-works"
+                        className="inline-flex items-center text-sm text-[#2F6BFF] hover:text-[#FFA62B] font-bold transition-colors group"
+                    >
+                        See the complete process
+                        <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </Link>
                 </div>
-            </section>
-
-            {/* Pricing Section */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#0D0735] via-[#0B0633] to-[#16124A]/60">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-16">
-                        <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 border border-[#2F6BFF]/30 rounded-full text-small-dashboard text-[#2F6BFF] font-semibold mb-4">
-                            Pricing
-                        </span>
-                        <h2 className="text-page-title text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-4">
-                            Simple, transparent pricing
-                        </h2>
-                        <p className="text-card-title text-gray-200 max-w-2xl mx-auto">
-                            Choose the perfect plan for your trading needs. All plans include 14-day free trial
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {/* Starter Plan */}
-                        <div className="p-8 rounded-2xl border border-[#2F6BFF]/20 bg-[#16124A] hover:border-[#2F6BFF] transition-all duration-300">
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">Starter</h3>
-                            <div className="mb-4">
-                                <span className="text-4xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] font-tabular">R29</span>
-                                <span className="text-body-dashboard text-gray-200">/month</span>
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Up to 5 trading bots
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Basic analytics
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    10+ technical indicators
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Email support
-                                </li>
-                            </ul>
-                            <Link
-                                to="/register"
-                                className="block w-full text-center bg-[#0B0633] hover:bg-[#2F6BFF]/10 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-gray-100 px-6 py-3 rounded-xl text-body-dashboard font-semibold transition-all duration-300"
-                            >
-                                Get Started
-                            </Link>
-                        </div>
-
-                        {/* Pro Plan */}
-                        <div className="p-8 rounded-2xl border-2 border-[#2F6BFF] bg-[#16124A] relative shadow-lg shadow-[#2F6BFF]/20">
-                            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                                <span className="bg-gradient-to-r from-[#2F6BFF] to-[#FFA62B] text-white px-4 py-1 rounded-full text-small-dashboard font-semibold">
-                                    Most Popular
-                                </span>
-                            </div>
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">Pro</h3>
-                            <div className="mb-4">
-                                <span className="text-4xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] font-tabular">R79</span>
-                                <span className="text-body-dashboard text-gray-200">/month</span>
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Up to 20 trading bots
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Advanced analytics
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Priority support
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Custom strategies
-                                </li>
-                            </ul>
-                            <Link
-                                to="/register"
-                                className="block w-full text-center bg-gradient-to-r from-[#2F6BFF] to-[#2F6BFF] hover:from-[#2F6BFF] hover:to-[#FFA62B] text-white px-6 py-3 rounded-xl text-body-dashboard font-semibold transition-all duration-300 shadow-lg shadow-[#2F6BFF]/30"
-                            >
-                                Get Started
-                            </Link>
-                        </div>
-
-                        {/* Enterprise Plan */}
-                        <div className="p-8 rounded-2xl border border-[#2F6BFF]/20 bg-[#16124A] hover:border-[#2F6BFF] transition-all duration-300">
-                            <h3 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] mb-2">Enterprise</h3>
-                            <div className="mb-4">
-                                <span className="text-4xl font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Custom</span>
-                            </div>
-                            <ul className="space-y-3 mb-8">
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Unlimited trading bots
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Enterprise analytics
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    24/7 dedicated support
-                                </li>
-                                <li className="flex items-center text-body-dashboard text-gray-200">
-                                    <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Custom development
-                                </li>
-                            </ul>
-                            <Link
-                                to="/register"
-                                className="block w-full text-center bg-[#0B0633] hover:bg-[#2F6BFF]/10 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-gray-100 px-6 py-3 rounded-xl text-body-dashboard font-semibold transition-all duration-300"
-                            >
-                                Contact Sales
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            </PageSection>
 
             {/* CTA Section */}
-            <section className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-[#2F6BFF] to-[#FFA62B] overflow-hidden">
-                {/* Decorative elements */}
-                <div className="absolute top-0 left-0 w-full h-full opacity-10">
-                    <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full"></div>
-                    <div className="absolute bottom-10 right-10 w-48 h-48 border-2 border-white/30 rounded-full"></div>
-                    <div className="absolute top-1/2 left-1/4 w-24 h-24 border-2 border-white/30 rounded-full"></div>
-                </div>
-
-                <div className="relative max-w-4xl mx-auto text-center z-10">
-                    <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
-                        Ready to start trading?
-                    </h2>
-                    <p className="text-lg md:text-2xl text-white/95 mb-10 max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
-                        Join <span className="font-bold text-white">thousands of traders</span> already using LemoTick to
-                        <span className="font-bold text-white"> maximize their profits</span> and
-                        <span className="font-bold text-white"> minimize risks</span>
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link
-                            to="/register"
-                            className="inline-block bg-white hover:bg-gray-100 text-[#2F6BFF] px-8 py-3 rounded-xl text-card-title font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                        >
-                            Start Your Free Trial
-                        </Link>
-                        <Link
-                            to="/dashboard"
-                            className="inline-block bg-white/10 hover:bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white hover:text-[#2F6BFF] px-8 py-3 rounded-xl text-card-title font-bold transition-all duration-300 transform hover:scale-105"
-                        >
-                            View Demo
-                        </Link>
+            <PageSection spacing="normal" fullWidth>
+                <div className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#2F6BFF]/20 via-[#16124A]/40 to-[#FFA62B]/20 overflow-hidden border-y border-[#2F6BFF]/20">
+                    {/* Animated Background Elements */}
+                    <div className="absolute top-0 left-0 w-full h-full opacity-20">
+                        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/40 rounded-full animate-pulse"></div>
+                        <div className="absolute bottom-10 right-10 w-48 h-48 border-2 border-white/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                        <div className="absolute top-1/2 left-1/4 w-24 h-24 border-2 border-white/40 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                        <div className="absolute top-1/4 right-1/4 w-36 h-36 border-2 border-white/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
                     </div>
-                </div>
-            </section>
 
-            {/* Footer */}
-            <footer className="bg-[#0B0633] border-t border-[#2F6BFF]/20 py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-4 gap-8">
-                        <div>
+                    {/* Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
 
-                            <p className="text-body-dashboard text-gray-200">
-                                The modern trading platform for smart traders.
+                    <ContentWrapper maxWidth="normal" align="center" className="relative z-10">
+                        <Stack spacing="lg">
+                            {/* Urgency Badge */}
+                            <div className="inline-block animate-bounce">
+                                <span className="px-6 py-3 bg-white/20 backdrop-blur-md border-2 border-white/50 rounded-full text-base text-white font-black shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                                    ⚡ LIMITED TIME: First 100 Traders Get 50% Off
+                                </span>
+                            </div>
+
+                            {/* Main Headline */}
+                            <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.4)] tracking-tight leading-tight">
+                                DON'T TRADE WITH
+                                <br />
+                                <span className="text-5xl md:text-7xl lg:text-8xl">
+                                    YOUR OWN MONEY
+                                </span>
+                            </h2>
+
+                            {/* Subheadline */}
+                            <p className="text-xl md:text-3xl text-white font-bold leading-relaxed drop-shadow-[0_2px_15px_rgba(0,0,0,0.3)] max-w-4xl mx-auto">
+                                Trade with <span className="text-yellow-300">OUR capital</span>. Keep <span className="text-yellow-300">80% of profits</span>. Zero risk to your wallet.
                             </p>
-                        </div>
-                        <div>
-                            <h4 className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)] mb-4">Product</h4>
-                            <ul className="space-y-2">
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Features</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Pricing</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Security</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)] mb-4">Company</h4>
-                            <ul className="space-y-2">
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">About</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Blog</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Careers</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)] mb-4">Legal</h4>
-                            <ul className="space-y-2">
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Privacy</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Terms</a></li>
-                                <li><a href="#" className="text-body-dashboard text-gray-200 hover:text-[#2F6BFF] transition-colors">Contact</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="mt-8 pt-8 border-t border-[#2F6BFF]/20 text-center text-body-dashboard text-gray-200">
-                        <p>&copy; 2024 LemoTick. All rights reserved.</p>
-                    </div>
+
+                            {/* Social Proof Stats */}
+                            <div className="flex flex-wrap items-center justify-center gap-8 py-6">
+                                <div className="text-center">
+                                    <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">10,000+</div>
+                                    <div className="text-sm md:text-base text-white/90 font-semibold mt-1">Funded Traders</div>
+                                </div>
+                                <div className="hidden sm:block w-px h-16 bg-white/30"></div>
+                                <div className="text-center">
+                                    <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">R2.5B+</div>
+                                    <div className="text-sm md:text-base text-white/90 font-semibold mt-1">Paid Out</div>
+                                </div>
+                                <div className="hidden sm:block w-px h-16 bg-white/30"></div>
+                                <div className="text-center">
+                                    <div className="text-4xl md:text-5xl font-black text-white drop-shadow-lg">24hrs</div>
+                                    <div className="text-sm md:text-base text-white/90 font-semibold mt-1">To Get Funded</div>
+                                </div>
+                            </div>
+
+                            {/* CTA Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-5 justify-center items-center pt-4">
+                                <Link
+                                    to="/register"
+                                    className="group relative bg-white hover:bg-gray-50 text-[#2F6BFF] px-12 py-6 rounded-2xl text-xl md:text-2xl font-black shadow-[0_0_40px_rgba(255,255,255,0.5)] hover:shadow-[0_0_60px_rgba(255,255,255,0.7)] transition-all duration-300 transform hover:scale-110 overflow-hidden"
+                                >
+                                    <span className="relative z-10 flex items-center gap-3">
+                                        🚀 GET FUNDED NOW
+                                        <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-200 to-white opacity-0 group-hover:opacity-30 transition-opacity"></div>
+                                </Link>
+                                <Link
+                                    to="/how-it-works"
+                                    className="bg-white/10 hover:bg-white/25 backdrop-blur-md border-3 border-white/60 hover:border-white text-white px-10 py-6 rounded-2xl text-lg md:text-xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                >
+                                    Learn More →
+                                </Link>
+                            </div>
+
+                            {/* Trust Indicators */}
+                            <div className="flex flex-wrap items-center justify-center gap-6 pt-6 text-white/90">
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="text-sm font-semibold">No Credit Card Required</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="text-sm font-semibold">Cancel Anytime</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="text-sm font-semibold">Instant Account Setup</span>
+                                </div>
+                            </div>
+
+                            {/* Countdown Timer Effect (Static for now) */}
+                            <div className="inline-block mt-4">
+                                <div className="px-6 py-3 bg-black/30 backdrop-blur-md rounded-xl border border-white/30">
+                                    <p className="text-white/80 text-sm font-semibold mb-2">⏰ Offer expires in:</p>
+                                    <div className="flex gap-4 justify-center">
+                                        <div className="text-center">
+                                            <div className="text-2xl md:text-3xl font-black text-white">23</div>
+                                            <div className="text-xs text-white/70 font-medium">HOURS</div>
+                                        </div>
+                                        <div className="text-2xl md:text-3xl font-black text-white">:</div>
+                                        <div className="text-center">
+                                            <div className="text-2xl md:text-3xl font-black text-white">59</div>
+                                            <div className="text-xs text-white/70 font-medium">MINS</div>
+                                        </div>
+                                        <div className="text-2xl md:text-3xl font-black text-white">:</div>
+                                        <div className="text-center">
+                                            <div className="text-2xl md:text-3xl font-black text-white">47</div>
+                                            <div className="text-xs text-white/70 font-medium">SECS</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Stack>
+                    </ContentWrapper>
                 </div>
-            </footer>
-        </div>
+            </PageSection>
+        </PageContainer >
     );
 }
 

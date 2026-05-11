@@ -49,6 +49,15 @@ public static class DependencyInjection
         services.AddScoped<IPerformanceMetricRepository, PerformanceMetricRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
 
+        // Social Networking Repositories
+        services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+        services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+        services.AddScoped<IBlockedUserRepository, BlockedUserRepository>();
+        services.AddScoped<IFriendListRepository, FriendListRepository>();
+        services.AddScoped<IPrivacySettingsRepository, PrivacySettingsRepository>();
+        services.AddScoped<IFriendSuggestionRepository, FriendSuggestionRepository>();
+        services.AddScoped<ISocialStatisticsRepository, SocialStatisticsRepository>();
+
         // File Storage Service
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
 

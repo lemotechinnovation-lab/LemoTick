@@ -17,7 +17,6 @@ public class NotificationRepository : INotificationRepository
     public async Task<IEnumerable<Notification>> GetAllAsync()
     {
         return await _context.Notifications
-            .Include(n => n.Investor)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
@@ -25,7 +24,6 @@ public class NotificationRepository : INotificationRepository
     public async Task<Notification?> GetByIdAsync(Guid id)
     {
         return await _context.Notifications
-            .Include(n => n.Investor)
             .FirstOrDefaultAsync(n => n.Id == id);
     }
 
@@ -61,7 +59,7 @@ public class NotificationRepository : INotificationRepository
     public async Task<IEnumerable<Notification>> GetByInvestorIdAsync(Guid investorId)
     {
         return await _context.Notifications
-            .Where(n => n.InvestorId == investorId)
+            .Where(n => n.UserId == investorId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
@@ -69,7 +67,7 @@ public class NotificationRepository : INotificationRepository
     public async Task<IEnumerable<Notification>> GetUnreadByInvestorIdAsync(Guid investorId)
     {
         return await _context.Notifications
-            .Where(n => n.InvestorId == investorId && !n.IsRead)
+            .Where(n => n.UserId == investorId && !n.IsRead)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
@@ -81,20 +79,18 @@ public class NotificationRepository : INotificationRepository
             return 0;
 
         notification.IsRead = true;
-        notification.ReadAt = DateTime.UtcNow;
         return await _context.SaveChangesAsync();
     }
 
     public async Task<int> MarkAllAsReadAsync(Guid investorId)
     {
         var unreadNotifications = await _context.Notifications
-            .Where(n => n.InvestorId == investorId && !n.IsRead)
+            .Where(n => n.UserId == investorId && !n.IsRead)
             .ToListAsync();
 
         foreach (var notification in unreadNotifications)
         {
             notification.IsRead = true;
-            notification.ReadAt = DateTime.UtcNow;
         }
 
         return await _context.SaveChangesAsync();

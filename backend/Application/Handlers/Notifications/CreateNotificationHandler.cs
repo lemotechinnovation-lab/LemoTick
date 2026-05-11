@@ -26,18 +26,42 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     public async Task<NotificationDto> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Creating notification for investor: {InvestorId}", request.CreateNotificationDto.InvestorId);
+        _logger.LogInformation("Creating notification for user");
 
-        var notification = _mapper.Map<Notification>(request.CreateNotificationDto);
-        notification.Id = Guid.NewGuid();
-        notification.IsRead = false;
-        notification.CreatedAt = DateTime.UtcNow;
+        var notification = new Notification
+        {
+            Id = Guid.NewGuid(),
+            UserId = Guid.Empty, // This should be set by the caller or from context
+            Type = request.CreateNotificationDto.Type.ToString().ToLower(),
+            Title = request.CreateNotificationDto.Title,
+            Message = request.CreateNotificationDto.Message,
+            Icon = request.CreateNotificationDto.Icon,
+            IconColor = request.CreateNotificationDto.IconColor,
+            Link = request.CreateNotificationDto.Link,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow,
+            MetadataJson = request.CreateNotificationDto.Metadata != null
+                ? System.Text.Json.JsonSerializer.Serialize(request.CreateNotificationDto.Metadata)
+                : null
+        };
 
         var createdNotification = await _notificationRepository.AddAsync(notification);
 
         _logger.LogInformation("Notification created with ID: {NotificationId}", createdNotification.Id);
 
-        return _mapper.Map<NotificationDto>(createdNotification);
+        return new NotificationDto
+        {
+            Id = createdNotification.Id,
+            Type = request.CreateNotificationDto.Type,
+            Title = createdNotification.Title,
+            Message = createdNotification.Message,
+            Icon = createdNotification.Icon,
+            IconColor = createdNotification.IconColor,
+            Link = createdNotification.Link,
+            IsRead = createdNotification.IsRead,
+            CreatedAt = createdNotification.CreatedAt,
+            Metadata = request.CreateNotificationDto.Metadata
+        };
     }
 }
 

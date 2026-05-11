@@ -246,27 +246,25 @@ public class WebhookController : ControllerBase
                 return NotFound(new { error = $"Portfolio {payload.PortfolioId} not found" });
             }
 
-            // Parse notification type and priority
-            var notificationType = NotificationType.RiskAlert;
-            var priority = payload.Severity switch
-            {
-                "Critical" => NotificationPriority.Critical,
-                "High" => NotificationPriority.High,
-                "Medium" => NotificationPriority.Normal,
-                _ => NotificationPriority.Low
-            };
-
             // Create notification
             var notification = new Notification
             {
                 Id = Guid.NewGuid(),
-                InvestorId = portfolio.InvestorId,
+                UserId = portfolio.InvestorId,
                 Title = $"Risk Alert: {payload.AlertType}",
                 Message = payload.Message,
-                Type = notificationType,
-                Priority = priority,
+                Type = "system", // Using string type instead of enum
+                Icon = "alert-triangle",
+                IconColor = payload.Severity == "Critical" ? "red" : payload.Severity == "High" ? "orange" : "yellow",
+                Link = $"/portfolio/{payload.PortfolioId}",
                 IsRead = false,
-                CreatedAt = payload.Timestamp
+                CreatedAt = payload.Timestamp,
+                MetadataJson = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    severity = payload.Severity,
+                    alertType = payload.AlertType,
+                    portfolioId = payload.PortfolioId
+                })
             };
 
             _context.Notifications.Add(notification);

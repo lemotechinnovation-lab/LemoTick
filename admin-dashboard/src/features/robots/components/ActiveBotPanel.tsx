@@ -84,7 +84,7 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
     const progressPercentage = ((settings.duration - timeRemaining) / settings.duration) * 100;
 
     return (
-        <div className="w-80 bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] border-l border-green-500/30 flex-shrink-0 flex flex-col h-full relative overflow-hidden">
+        <div className="w-full bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] border-l border-green-500/30 shrink-0 flex flex-col h-full relative overflow-hidden">
             {/* Animated Background Effects - More vibrant for active state */}
             <div className="absolute inset-0 opacity-40 pointer-events-none">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-green-500 rounded-full blur-3xl animate-pulse"></div>
@@ -93,26 +93,26 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
             </div>
 
             {/* Header with Active Glow */}
-            <div className="px-3 py-2 border-b border-green-500/30 bg-gradient-to-r from-green-500/20 via-[#2F6BFF]/10 to-transparent relative z-10">
-                <div className="flex items-center gap-2">
+            <div className="px-2 py-2 border-b border-green-500/30 bg-gradient-to-r from-green-500/20 via-[#2F6BFF]/10 to-transparent relative z-10 shrink-0">
+                <div className="flex items-center gap-1.5">
                     <div className="relative">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-ping absolute"></div>
-                        <div className="w-2 h-2 bg-green-500 rounded-full shadow-lg shadow-green-500/50"></div>
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping absolute"></div>
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-lg shadow-green-500/50"></div>
                     </div>
-                    <h2 className="text-white text-sm font-semibold">Active robot</h2>
-                    <div className="ml-auto flex items-center gap-1.5">
+                    <h2 className="text-white text-xs font-semibold">Active robot</h2>
+                    <div className="ml-auto flex items-center gap-1">
                         <span className="text-[10px] text-green-500 font-bold animate-pulse">● LIVE</span>
                         <div className="flex gap-0.5">
-                            <div className="w-1 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-1 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-1 h-3 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
+                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Content - No Scroll */}
-            <div className="flex-1 p-3 pt-2 space-y-2 overflow-hidden pointer-events-auto relative z-10">
+            <div className="flex-1 p-2 pt-2 space-y-2 overflow-hidden pointer-events-auto relative z-10">
                 {/* Balance Card - Replaces Asset section */}
                 <div className="bg-gradient-to-br from-[#16124A] via-[#1E1854] to-[#16124A] rounded-lg p-2 border border-[#2F6BFF]/30 shadow-xl shadow-[#2F6BFF]/20 relative overflow-hidden">
                     {/* Animated gradient overlay */}
@@ -287,22 +287,22 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
             </div>
 
             {/* Stop Button */}
-            <div className="p-3 border-t border-red-500/30 bg-gradient-to-t from-[#0B0633] to-transparent relative z-10">
+            <div className="p-2 border-t border-red-500/30 bg-gradient-to-t from-[#0B0633] to-transparent relative z-10 shrink-0">
                 <button
                     onClick={onStopBot}
-                    className="w-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 hover:from-red-600 hover:via-red-700 hover:to-red-600 text-white font-bold py-3 rounded-lg transition-all duration-300 text-sm relative overflow-hidden group shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/70 hover:scale-105"
+                    className="w-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 hover:from-red-600 hover:via-red-700 hover:to-red-600 text-white font-bold py-2.5 rounded-lg transition-all duration-300 text-sm relative overflow-hidden group shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/70 hover:scale-105"
                 >
                     {/* Animated shine effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
-                    <div className="flex items-center justify-center gap-2 relative z-10">
-                        <span className="text-lg">🛑</span>
+                    <div className="flex items-center justify-center gap-1.5 relative z-10">
+                        <span className="text-base">🛑</span>
                         <span>Stop the robot</span>
                     </div>
                 </button>
 
                 {/* Pulsing glow effect */}
-                <div className="absolute inset-x-3 bottom-3 h-12 bg-red-500/30 blur-xl rounded-lg animate-pulse pointer-events-none"></div>
+                <div className="absolute inset-x-2 bottom-2 h-10 bg-red-500/30 blur-xl rounded-lg animate-pulse pointer-events-none"></div>
             </div>
         </div>
     );

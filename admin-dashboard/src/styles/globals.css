@@ -12,8 +12,8 @@
     /* Background Colors */
     --color-background: #0B0830;
     --color-background-gradient: linear-gradient(135deg,#0B0830 0%,#14104A 50%,#0B0830 100%);
-    --color-card: #17124D;
-    --color-card-hover: #1E1863;
+    --color-card: #35335e;
+    --color-card-hover: #45436e;
 
     /* Text Colors */
     --color-text-primary: #E8ECFF;
