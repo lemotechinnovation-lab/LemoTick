@@ -74,15 +74,15 @@ function Sidebar({
             <div
                 id="sidebar"
                 ref={sidebar}
-                className={`flex flex-col fixed z-50 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-56 lg:w-16 lg:sidebar-expanded:!w-56 shrink-0 bg-chrome px-3 pb-4 pt-0 transition-all duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-56"}`}
+                className={`flex flex-col fixed z-50 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-y-scroll lg:overflow-y-auto no-scrollbar w-56 lg:w-16 lg:sidebar-expanded:!w-56 shrink-0 glass-card-elevated backdrop-blur-2xl border-r border-brand-blue/20 shadow-2xl shadow-brand-blue/10 px-3 pb-4 pt-0 transition-all duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-56"}`}
             >
                 {/* Vertical shadow divider on right edge */}
-                <div className="absolute top-0 right-0 bottom-0 w-[2px] bg-gradient-to-b from-primary/40 via-primary/70 to-primary/40 shadow-[2px_0_16px_rgba(47,107,255,0.8)] pointer-events-none"></div>
+                <div className="absolute top-0 right-0 bottom-0 w-[2px] bg-gradient-to-b from-brand-blue/40 via-brand-blue/70 to-brand-blue/40 shadow-[2px_0_20px_rgba(47,107,255,0.6)] pointer-events-none"></div>
 
                 {/* Sidebar header */}
                 <div className="relative flex justify-center items-center h-16 mb-2 overflow-visible">
                     {/* Horizontal shadow divider below logo */}
-                    <div className="absolute bottom-[-5px] left-0 right-0 h-[4px] bg-gradient-to-r from-transparent via-primary/70 to-transparent shadow-[0_2px_16px_rgba(47,107,255,0.8)]"></div>
+                    <div className="absolute bottom-[-5px] left-0 right-0 h-[4px] bg-gradient-to-r from-transparent via-brand-blue/70 to-transparent shadow-[0_2px_20px_rgba(47,107,255,0.6)]"></div>
 
                     {/* Close button (mobile only) */}
                     <button
@@ -118,7 +118,7 @@ function Sidebar({
 
                     {/* Expand / collapse button */}
                     <button
-                        className="absolute -right-6 top-4 z-50 hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-primary via-[#4A7FFF] to-primary text-white hover:from-accent hover:via-[#FFB84D] hover:to-accent shadow-[0_0_25px_rgba(47,107,255,0.6)] hover:shadow-[0_0_30px_rgba(255,166,43,0.8)] transition-all duration-300 hover:scale-110"
+                        className="absolute -right-6 top-4 z-50 hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-brand-blue via-[#4A7FFF] to-brand-blue text-white hover:from-accent-orange hover:via-[#FFB84D] hover:to-accent-orange shadow-[0_0_30px_rgba(47,107,255,0.8)] hover:shadow-[0_0_35px_rgba(255,166,43,1)] transition-all duration-300 hover:scale-110 border border-brand-blue/30 hover:border-accent-orange/50"
                         onClick={() => setSidebarExpanded(!sidebarExpanded)}
                         type="button"
                     >

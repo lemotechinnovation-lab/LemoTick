@@ -155,8 +155,6 @@ div[class*="shadow"] {
 [class*="sidebar"],
 [class*="Sidebar"],
 .bg-chrome {
-  background-color: rgba(35, 35, 60, 0.98) !important;
-  backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
 }
 
