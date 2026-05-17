@@ -52,15 +52,15 @@ stages:
           - script: dotnet --version
             displayName: Verify .NET version
 
-          - script: dotnet restore
+          - script: dotnet restore InvestorManagementSystem.sln
             workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Restore NuGet packages
 
-          - script: dotnet build --configuration Release --no-restore
+          - script: dotnet build InvestorManagementSystem.sln --configuration Release --no-restore
             workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Build (Release)
 
-          - script: dotnet test --no-restore --configuration Release --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+          - script: dotnet test InvestorManagementSystem.sln --no-restore --configuration Release --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
             workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Run xUnit tests
 
@@ -73,7 +73,7 @@ stages:
               mergeTestResults: true
               failTaskOnFailedTests: false
 
-          - script: dotnet publish --configuration Release --output $(Build.ArtifactStagingDirectory)/backend --no-restore
+          - script: dotnet publish API/InvestorManagementSystem.API.csproj --configuration Release --output $(Build.ArtifactStagingDirectory)/backend --no-restore
             workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Publish backend
 
@@ -150,7 +150,7 @@ stages:
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
                     
                     Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
                     
                     Write-Host "Starting app pool and site"
@@ -226,7 +226,7 @@ stages:
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
                     
                     Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
                     
                     Write-Host "Starting app pool and site"
@@ -302,7 +302,7 @@ stages:
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
                     
                     Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
                     
                     Write-Host "Starting app pool and site"
