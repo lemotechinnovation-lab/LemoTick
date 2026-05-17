@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import PublicNavigation from '../components/PublicNavigation';
+import logoFull from '../images/logo-full@2x.png';
 
 interface PublicLayoutProps {
     children: ReactNode;

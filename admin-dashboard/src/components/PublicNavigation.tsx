@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import logoFull from '../images/logo-full@2x.png';
 
 interface PublicNavigationProps {
     variant?: 'landing' | 'default';
