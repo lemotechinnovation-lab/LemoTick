@@ -3,6 +3,7 @@ import { useAuthStore } from '@features/auth/stores/authStore';
 import { AlertCircle, ArrowLeft, CheckCircle, IdCard, Lock, Mail, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import logoFull from '../../../images/logo-full@2x.png';
 import { authService } from '../../../services/authService';
 
 function Register() {
@@ -122,7 +123,7 @@ function Register() {
                 <div className="relative z-10 flex flex-col items-center justify-center w-full px-12">
                     <div className="animate-fadeIn text-center">
                         <img
-                            src="/src/images/logo-full@2x.png"
+                            src={logoFull}
                             alt="LemoTick"
                             className="h-48 w-auto object-contain mx-auto mb-3 sm:mb-4 sm:mb-6 brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(30,109,227,0.5)] hover:drop-shadow-[0_0_30px_rgba(30,109,227,0.7)] hover:scale-105 transition-all duration-300 scale-110"
                             style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '300px' }}
@@ -227,7 +228,7 @@ function Register() {
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex justify-center mb-6">
                         <img
-                            src="/src/images/logo-full@2x.png"
+                            src={logoFull}
                             alt="LemoTick"
                             className="h-12 w-auto object-contain brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_12px_rgba(50,111,249,0.4)] scale-110"
                             style={{ imageRendering: 'crisp-edges' }}

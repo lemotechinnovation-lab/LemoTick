@@ -26,7 +26,7 @@ function PublicLayout({ children }: PublicLayoutProps) {
                             {/* Logo */}
                             <Link to="/" className="flex items-center group shrink-0 transition-transform hover:scale-105">
                                 <img
-                                    src="/src/images/logo-full@2x.png"
+                                    src={logoFull}
                                     alt="LemoTick"
                                     className="drop-shadow-sm"
                                     style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '180px' }}
@@ -80,7 +80,7 @@ function PublicLayout({ children }: PublicLayoutProps) {
                     <div className="grid md:grid-cols-4 gap-12 mb-16">
                         <div>
                             <img
-                                src="/src/images/logo-full@2x.png"
+                                src={logoFull}
                                 alt="LemoTick"
                                 className="h-16 w-auto mb-6 drop-shadow-sm"
                                 style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '180px' }}

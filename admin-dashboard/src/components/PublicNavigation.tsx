@@ -115,7 +115,7 @@ function PublicNavigation({ variant = 'default' }: PublicNavigationProps) {
                                 aria-label="LemoTick home"
                             >
                                 <img
-                                    src="/src/images/logo-full@2x.png"
+                                    src={logoFull}
                                     alt="LemoTick"
                                     className="h-12 w-auto object-contain brightness-125 contrast-150 saturate-110 drop-shadow-[0_0_20px_rgba(47,107,255,0.6)]"
                                 />
