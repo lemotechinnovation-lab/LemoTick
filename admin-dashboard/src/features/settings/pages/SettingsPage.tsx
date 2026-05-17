@@ -1,4 +1,5 @@
 import ModernAreaChart from '@/components/charts/ModernAreaChart';
+import { GlassCard } from '@/components/ui/DesignSystem';
 import {
     CompactField,
     CompactFormSection,
@@ -12,7 +13,7 @@ import {
     Toggle
 } from '@/components/ui/FormComponentsEnhanced';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { PageContainer } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { validateWithToast, validationToast } from '@/lib/validation-toast';
 import { Bell, CheckCircle, Clock, Copy, DollarSign, Eye, Lock, Mail, Phone, Save, Settings as SettingsIcon, Share2, Shield, TrendingUp, User, Users, XCircle } from 'lucide-react';
 import { useState } from 'react';
@@ -249,7 +250,11 @@ export default function SettingsPage() {
     ];
 
     return (
-        <PageContainer>
+        <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+            {/* Animated Background Effects */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-brand-blue/15 via-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent-orange/10 via-pink-500/5 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none" style={{ animationDelay: '1s' }}></div>
+
             {/* Page Header */}
             <PageHeader
                 title="SETTINGS"
@@ -259,617 +264,635 @@ export default function SettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white disabled:opacity-50 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-blue to-[#3B82F6] hover:from-[#3B82F6] hover:to-brand-blue text-white disabled:opacity-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-blue/50 text-sm font-semibold group relative overflow-hidden"
                     >
-                        <Save className="w-4 h-4" />
-                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none"></div>
+                        <Save className="w-4 h-4 relative z-10" />
+                        <span className="relative z-10">{isSaving ? 'Saving...' : 'Save Changes'}</span>
                     </button>
                 }
             />
 
-            {/* Tabs */}
-            <div className="mb-8 w-full max-w-full rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 shadow-xl overflow-hidden">
-                <div className="flex border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-4 text-sm font-semibold transition-all duration-300 ${activeTab === tab.id
-                                    ? 'bg-gradient-to-r from-[#2F6BFF]/20 to-[#2F6BFF]/10 text-white border-b-2 border-[#2F6BFF]'
-                                    : 'text-gray-400 hover:text-gray-300 hover:bg-[#16124A]/50'
-                                    }`}
-                            >
-                                <Icon className="w-5 h-5" />
-                                <span>{tab.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Content Area */}
-                <div className="p-4 sm:p-6">
-                    {/* Profile Tab */}
-                    {activeTab === 'profile' && (
-                        <FormContainer maxWidth="xl">
-                            <FormSection
-                                title="Profile Information"
-                                description="Update your personal details and contact information"
-                                variant="elevated"
-                                icon={<User className="w-5 h-5 text-[#2F6BFF]" />}
-                            >
-                                <FormGrid columns={3} gap="md">
-                                    <FormField label="First Name" htmlFor="firstName" required compact>
-                                        <Input
-                                            id="firstName"
-                                            type="text"
-                                            value={profileData.firstName}
-                                            onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                                            icon={<User className="w-4 h-4" />}
-                                        />
-                                    </FormField>
-                                    <FormField label="Last Name" htmlFor="lastName" required compact>
-                                        <Input
-                                            id="lastName"
-                                            type="text"
-                                            value={profileData.lastName}
-                                            onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                                        />
-                                    </FormField>
-                                    <FormField label="Email Address" htmlFor="email" required compact>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={profileData.email}
-                                            onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                                            icon={<Mail className="w-4 h-4" />}
-                                        />
-                                    </FormField>
-                                </FormGrid>
-
-                                <Divider />
-
-                                <CompactFormSection title="Contact & Location" columns={3}>
-                                    <CompactField label="Phone">
-                                        <Input
-                                            variant="compact"
-                                            type="tel"
-                                            value={profileData.phone}
-                                            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                            icon={<Phone className="w-4 h-4" />}
-                                        />
-                                    </CompactField>
-                                    <CompactField label="Country">
-                                        <Select
-                                            variant="compact"
-                                            value={profileData.country}
-                                            onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
-                                        >
-                                            <option value="United States">United States</option>
-                                            <option value="United Kingdom">United Kingdom</option>
-                                            <option value="Canada">Canada</option>
-                                            <option value="Australia">Australia</option>
-                                        </Select>
-                                    </CompactField>
-                                    <CompactField label="Timezone">
-                                        <Select
-                                            variant="compact"
-                                            value={profileData.timezone}
-                                            onChange={(e) => setProfileData({ ...profileData, timezone: e.target.value })}
-                                        >
-                                            <option value="America/New_York">Eastern Time (ET)</option>
-                                            <option value="America/Chicago">Central Time (CT)</option>
-                                            <option value="America/Denver">Mountain Time (MT)</option>
-                                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-
-                                <Divider />
-
-                                <CompactFormSection title="Preferences" columns={2}>
-                                    <CompactField label="Language">
-                                        <Select
-                                            variant="compact"
-                                            value={profileData.language}
-                                            onChange={(e) => setProfileData({ ...profileData, language: e.target.value })}
-                                        >
-                                            <option value="English">English</option>
-                                            <option value="Spanish">Spanish</option>
-                                            <option value="French">French</option>
-                                            <option value="German">German</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-                            </FormSection>
-                        </FormContainer>
-                    )}
-
-                    {/* Security Tab */}
-                    {activeTab === 'security' && (
-                        <FormContainer maxWidth="lg">
-                            <FormSection
-                                title="Security Settings"
-                                description="Manage your password and authentication settings"
-                                variant="elevated"
-                                icon={<Lock className="w-5 h-5 text-[#2F6BFF]" />}
-                            >
-                                <FormField
-                                    label="Current Password"
-                                    htmlFor="currentPassword"
-                                    helpText="Required to change your password"
-                                    inline
+            <Stack spacing="lg" className="relative z-10">
+                {/* Tabs */}
+                <GlassCard className="p-0 overflow-hidden smooth-hover border border-brand-blue/30 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up">
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-accent-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                    <div className="flex border-b border-brand-blue/30 bg-gradient-to-r from-brand-blue/10 via-transparent to-purple-500/10 relative z-10 overflow-x-auto">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-4 text-sm font-bold transition-all relative overflow-hidden group/tab whitespace-nowrap ${isActive
+                                        ? 'bg-gradient-to-r from-brand-blue/20 to-purple-500/10 text-white border-b-2 border-brand-blue'
+                                        : 'text-gray-400 hover:text-white hover:bg-brand-blue/10'
+                                        }`}
                                 >
-                                    <Input
-                                        id="currentPassword"
-                                        type="password"
-                                        value={securityData.currentPassword}
-                                        onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
-                                        placeholder="Enter current password"
-                                        icon={<Lock className="w-4 h-4" />}
-                                    />
-                                </FormField>
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/10 via-transparent to-purple-500/10 opacity-0 group-hover/tab:opacity-100 transition-opacity pointer-events-none"></div>
+                                    )}
+                                    <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center shadow-lg border transition-all duration-300 ${isActive
+                                        ? 'bg-gradient-to-br from-brand-blue/30 to-purple-500/30 border-brand-blue/40 group-hover/tab:scale-110'
+                                        : 'bg-gray-500/10 border-gray-500/30 group-hover/tab:bg-brand-blue/20 group-hover/tab:border-brand-blue/30'
+                                        }`}>
+                                        <Icon className={`w-4 h-4 transition-all duration-300 relative z-10 ${isActive ? 'text-brand-blue' : 'text-gray-400 group-hover/tab:text-brand-blue'}`} />
+                                        {isActive && (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover/tab:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
+                                        )}
+                                    </div>
+                                    <span className="relative z-10">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                                <Divider />
+                    {/* Content Area */}
+                    <div className="p-4 sm:p-6 relative z-10">
+                        {/* Profile Tab */}
+                        {activeTab === 'profile' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Profile Information"
+                                    description="Update your personal details and contact information"
+                                    variant="elevated"
+                                    icon={<User className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <FormGrid columns={3} gap="md">
+                                        <FormField label="First Name" htmlFor="firstName" required compact>
+                                            <Input
+                                                id="firstName"
+                                                type="text"
+                                                value={profileData.firstName}
+                                                onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                                                icon={<User className="w-4 h-4" />}
+                                            />
+                                        </FormField>
+                                        <FormField label="Last Name" htmlFor="lastName" required compact>
+                                            <Input
+                                                id="lastName"
+                                                type="text"
+                                                value={profileData.lastName}
+                                                onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                                            />
+                                        </FormField>
+                                        <FormField label="Email Address" htmlFor="email" required compact>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={profileData.email}
+                                                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                                                icon={<Mail className="w-4 h-4" />}
+                                            />
+                                        </FormField>
+                                    </FormGrid>
 
-                                <FormGrid columns={2} gap="md">
-                                    <FormField label="New Password" htmlFor="newPassword" compact>
+                                    <Divider />
+
+                                    <CompactFormSection title="Contact & Location" columns={3}>
+                                        <CompactField label="Phone">
+                                            <Input
+                                                variant="compact"
+                                                type="tel"
+                                                value={profileData.phone}
+                                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                                                icon={<Phone className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Country">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.country}
+                                                onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
+                                            >
+                                                <option value="United States">United States</option>
+                                                <option value="United Kingdom">United Kingdom</option>
+                                                <option value="Canada">Canada</option>
+                                                <option value="Australia">Australia</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Timezone">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.timezone}
+                                                onChange={(e) => setProfileData({ ...profileData, timezone: e.target.value })}
+                                            >
+                                                <option value="America/New_York">Eastern Time (ET)</option>
+                                                <option value="America/Chicago">Central Time (CT)</option>
+                                                <option value="America/Denver">Mountain Time (MT)</option>
+                                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+
+                                    <Divider />
+
+                                    <CompactFormSection title="Preferences" columns={2}>
+                                        <CompactField label="Language">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.language}
+                                                onChange={(e) => setProfileData({ ...profileData, language: e.target.value })}
+                                            >
+                                                <option value="English">English</option>
+                                                <option value="Spanish">Spanish</option>
+                                                <option value="French">French</option>
+                                                <option value="German">German</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Security Tab */}
+                        {activeTab === 'security' && (
+                            <FormContainer maxWidth="lg">
+                                <FormSection
+                                    title="Security Settings"
+                                    description="Manage your password and authentication settings"
+                                    variant="elevated"
+                                    icon={<Lock className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <FormField
+                                        label="Current Password"
+                                        htmlFor="currentPassword"
+                                        helpText="Required to change your password"
+                                        inline
+                                    >
                                         <Input
-                                            id="newPassword"
+                                            id="currentPassword"
                                             type="password"
-                                            value={securityData.newPassword}
-                                            onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
-                                            placeholder="Enter new password"
-                                            icon={<Shield className="w-4 h-4" />}
+                                            value={securityData.currentPassword}
+                                            onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
+                                            placeholder="Enter current password"
+                                            icon={<Lock className="w-4 h-4" />}
                                         />
                                     </FormField>
-                                    <FormField label="Confirm Password" htmlFor="confirmPassword" compact>
-                                        <Input
-                                            id="confirmPassword"
-                                            type="password"
-                                            value={securityData.confirmPassword}
-                                            onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
-                                            placeholder="Confirm new password"
-                                        />
-                                    </FormField>
-                                </FormGrid>
 
-                                <Divider label="Authentication" />
+                                    <Divider />
 
-                                <Toggle
-                                    checked={securityData.twoFactorEnabled}
-                                    onChange={(checked) => setSecurityData({ ...securityData, twoFactorEnabled: checked })}
-                                    label="Two-Factor Authentication"
-                                    description="Add an extra layer of security to your account"
-                                />
-
-                                <Divider />
-
-                                <CompactFormSection title="Session Management" columns={2}>
-                                    <CompactField label="Session Timeout">
-                                        <Select
-                                            variant="compact"
-                                            value={securityData.sessionTimeout}
-                                            onChange={(e) => setSecurityData({ ...securityData, sessionTimeout: e.target.value })}
-                                        >
-                                            <option value="15">15 minutes</option>
-                                            <option value="30">30 minutes</option>
-                                            <option value="60">1 hour</option>
-                                            <option value="120">2 hours</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-                            </FormSection>
-                        </FormContainer>
-                    )}
-
-                    {/* Notifications Tab */}
-                    {activeTab === 'notifications' && (
-                        <FormContainer maxWidth="xl">
-                            <FormSection
-                                title="Notification Preferences"
-                                description="Choose which notifications you want to receive"
-                                variant="elevated"
-                                icon={<Bell className="w-5 h-5 text-[#2F6BFF]" />}
-                            >
-                                <CompactFormSection title="Delivery Methods" columns={2}>
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.emailNotifications}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, emailNotifications: checked })}
-                                        label="Email Notifications"
-                                        description="Receive via email"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.pushNotifications}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, pushNotifications: checked })}
-                                        label="Push Notifications"
-                                        description="Browser push alerts"
-                                    />
-                                </CompactFormSection>
-
-                                <Divider label="Alert Types" />
-
-                                <CompactFormSection columns={3}>
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.tradeAlerts}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, tradeAlerts: checked })}
-                                        label="Trade Alerts"
-                                        description="Trade executions"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.priceAlerts}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, priceAlerts: checked })}
-                                        label="Price Alerts"
-                                        description="Price targets"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.newsUpdates}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, newsUpdates: checked })}
-                                        label="News Updates"
-                                        description="Market news"
-                                    />
-                                </CompactFormSection>
-
-                                <Divider label="Reports & Marketing" />
-
-                                <CompactFormSection columns={3}>
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.weeklyReports}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, weeklyReports: checked })}
-                                        label="Weekly Reports"
-                                        description="Performance summaries"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.marketingEmails}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, marketingEmails: checked })}
-                                        label="Marketing Emails"
-                                        description="Promotional offers"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={notificationData.soundEnabled}
-                                        onChange={(checked) => setNotificationData({ ...notificationData, soundEnabled: checked })}
-                                        label="Sound Enabled"
-                                        description="Notification sounds"
-                                    />
-                                </CompactFormSection>
-                            </FormSection>
-                        </FormContainer>
-                    )}
-
-                    {/* Display Tab */}
-                    {activeTab === 'display' && (
-                        <FormContainer maxWidth="xl">
-                            <FormSection
-                                title="Display Preferences"
-                                description="Customize how information is displayed"
-                                variant="elevated"
-                                icon={<Eye className="w-5 h-5 text-[#2F6BFF]" />}
-                            >
-                                <CompactFormSection title="Appearance" columns={2}>
-                                    <CompactField label="Theme">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.theme}
-                                            onChange={(e) => setDisplayData({ ...displayData, theme: e.target.value })}
-                                        >
-                                            <option value="dark">Dark</option>
-                                            <option value="light">Light</option>
-                                            <option value="auto">Auto</option>
-                                        </Select>
-                                    </CompactField>
-                                    <CompactField label="Default Currency">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.currency}
-                                            onChange={(e) => setDisplayData({ ...displayData, currency: e.target.value })}
-                                        >
-                                            <option value="USD">USD - US Dollar</option>
-                                            <option value="EUR">EUR - Euro</option>
-                                            <option value="GBP">GBP - British Pound</option>
-                                            <option value="JPY">JPY - Japanese Yen</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-
-                                <Divider label="Formats" />
-
-                                <CompactFormSection columns={4}>
-                                    <CompactField label="Number Format">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.numberFormat}
-                                            onChange={(e) => setDisplayData({ ...displayData, numberFormat: e.target.value })}
-                                        >
-                                            <option value="en-US">1,234.56 (US)</option>
-                                            <option value="de-DE">1.234,56 (EU)</option>
-                                            <option value="fr-FR">1 234,56 (FR)</option>
-                                        </Select>
-                                    </CompactField>
-                                    <CompactField label="Date Format">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.dateFormat}
-                                            onChange={(e) => setDisplayData({ ...displayData, dateFormat: e.target.value })}
-                                        >
-                                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                        </Select>
-                                    </CompactField>
-                                    <CompactField label="Time Format">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.timeFormat}
-                                            onChange={(e) => setDisplayData({ ...displayData, timeFormat: e.target.value })}
-                                        >
-                                            <option value="12h">12 Hour</option>
-                                            <option value="24h">24 Hour</option>
-                                        </Select>
-                                    </CompactField>
-                                    <CompactField label="Chart Type">
-                                        <Select
-                                            variant="compact"
-                                            value={displayData.chartType}
-                                            onChange={(e) => setDisplayData({ ...displayData, chartType: e.target.value })}
-                                        >
-                                            <option value="candlestick">Candlestick</option>
-                                            <option value="line">Line</option>
-                                            <option value="bar">Bar</option>
-                                            <option value="area">Area</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-                            </FormSection>
-                        </FormContainer>
-                    )}
-
-                    {/* Trading Tab */}
-                    {activeTab === 'trading' && (
-                        <FormContainer maxWidth="xl">
-                            <FormSection
-                                title="Trading Preferences"
-                                description="Configure your default trading settings"
-                                variant="elevated"
-                                icon={<TrendingUp className="w-5 h-5 text-[#2F6BFF]" />}
-                            >
-                                <CompactFormSection title="Default Values" columns={3}>
-                                    <CompactField label="Default Stake">
-                                        <Input
-                                            variant="compact"
-                                            type="number"
-                                            value={tradingData.defaultStake}
-                                            onChange={(e) => setTradingData({ ...tradingData, defaultStake: e.target.value })}
-                                            icon={<DollarSign className="w-4 h-4" />}
-                                        />
-                                    </CompactField>
-                                    <CompactField label="Duration (min)">
-                                        <Input
-                                            variant="compact"
-                                            type="number"
-                                            value={tradingData.defaultDuration}
-                                            onChange={(e) => setTradingData({ ...tradingData, defaultDuration: e.target.value })}
-                                            icon={<Clock className="w-4 h-4" />}
-                                        />
-                                    </CompactField>
-                                    <CompactField label="Risk Level">
-                                        <Select
-                                            variant="compact"
-                                            value={tradingData.riskLevel}
-                                            onChange={(e) => setTradingData({ ...tradingData, riskLevel: e.target.value })}
-                                        >
-                                            <option value="low">Low</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="high">High</option>
-                                        </Select>
-                                    </CompactField>
-                                </CompactFormSection>
-
-                                <Divider label="Trade Execution" />
-
-                                <CompactFormSection columns={2}>
-                                    <Toggle
-                                        variant="compact"
-                                        checked={tradingData.confirmTrades}
-                                        onChange={(checked) => setTradingData({ ...tradingData, confirmTrades: checked })}
-                                        label="Confirm Trades"
-                                        description="Ask before placing"
-                                    />
-                                    <Toggle
-                                        variant="compact"
-                                        checked={tradingData.autoClose}
-                                        onChange={(checked) => setTradingData({ ...tradingData, autoClose: checked })}
-                                        label="Auto Close"
-                                        description="Close at expiry"
-                                    />
-                                </CompactFormSection>
-                            </FormSection>
-                        </FormContainer>
-                    )}
-
-                    {/* Referrals Tab */}
-                    {activeTab === 'referrals' && (
-                        <div className="space-y-6">
-                            {/* Stats Cards */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {/* Total Referrals */}
-                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 hover:border-[#2F6BFF] transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#3B82F6]/20 rounded-xl flex items-center justify-center">
-                                            <Users className="w-5 h-5 text-[#2F6BFF]" />
-                                        </div>
-                                        <span className="text-xs text-gray-400 font-semibold">Total</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-white mb-1">{totalReferrals}</div>
-                                    <div className="text-xs text-gray-400">Referrals</div>
-                                </div>
-
-                                {/* Active Referrals */}
-                                <div className="rounded-2xl border border-green-500/20 bg-[#16124A]/50 p-4 hover:border-green-500 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-400/20 rounded-xl flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-green-400" />
-                                        </div>
-                                        <span className="text-xs text-green-400 font-semibold">Active</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-green-400 mb-1">{activeReferrals}</div>
-                                    <div className="text-xs text-gray-400">Trading</div>
-                                </div>
-
-                                {/* Pending Referrals */}
-                                <div className="rounded-2xl border border-yellow-500/20 bg-[#16124A]/50 p-4 hover:border-yellow-500 transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-yellow-400/20 rounded-xl flex items-center justify-center">
-                                            <Clock className="w-5 h-5 text-yellow-400" />
-                                        </div>
-                                        <span className="text-xs text-yellow-400 font-semibold">Pending</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-white mb-1">{pendingReferrals}</div>
-                                    <div className="text-xs text-gray-400">Not Active</div>
-                                </div>
-
-                                {/* Total Commission */}
-                                <div className="rounded-2xl border border-[#FFA62B]/20 bg-[#16124A]/50 p-4 hover:border-[#FFA62B] transition-all duration-300">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="w-10 h-10 bg-gradient-to-br from-[#FFA62B]/20 to-[#F59E0B]/20 rounded-xl flex items-center justify-center">
-                                            <DollarSign className="w-5 h-5 text-[#FFA62B]" />
-                                        </div>
-                                        <span className="text-xs text-[#FFA62B] font-semibold">Earned</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-[#FFA62B] mb-1">${totalCommission.toFixed(2)}</div>
-                                    <div className="text-xs text-gray-400">Commission</div>
-                                </div>
-                            </div>
-
-                            {/* Commission Trend Chart */}
-                            <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
-                                <h3 className="text-base font-semibold text-white mb-4">Commission Earnings (Last 30 Days)</h3>
-                                <ModernAreaChart
-                                    data={commissionTrend}
-                                    color="#FFA62B"
-                                    gradientFrom="#FFA62B"
-                                    gradientTo="#F59E0B"
-                                    height={180}
-                                    showGrid={true}
-                                />
-                            </div>
-
-                            {/* Referral Link Section */}
-                            <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
-                                <h3 className="text-base font-semibold text-white mb-4">Your Referral Link</h3>
-
-                                <div className="space-y-4">
-                                    {/* Referral Code */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Code</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={referralCode}
-                                                readOnly
-                                                className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                    <FormGrid columns={2} gap="md">
+                                        <FormField label="New Password" htmlFor="newPassword" compact>
+                                            <Input
+                                                id="newPassword"
+                                                type="password"
+                                                value={securityData.newPassword}
+                                                onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
+                                                placeholder="Enter new password"
+                                                icon={<Shield className="w-4 h-4" />}
                                             />
-                                            <button
-                                                onClick={handleCopyCode}
-                                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                                <span>Copy</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Referral Link */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Link</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={referralLink}
-                                                readOnly
-                                                className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                        </FormField>
+                                        <FormField label="Confirm Password" htmlFor="confirmPassword" compact>
+                                            <Input
+                                                id="confirmPassword"
+                                                type="password"
+                                                value={securityData.confirmPassword}
+                                                onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
+                                                placeholder="Confirm new password"
                                             />
-                                            <button
-                                                onClick={handleCopyLink}
-                                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
+                                        </FormField>
+                                    </FormGrid>
+
+                                    <Divider label="Authentication" />
+
+                                    <Toggle
+                                        checked={securityData.twoFactorEnabled}
+                                        onChange={(checked) => setSecurityData({ ...securityData, twoFactorEnabled: checked })}
+                                        label="Two-Factor Authentication"
+                                        description="Add an extra layer of security to your account"
+                                    />
+
+                                    <Divider />
+
+                                    <CompactFormSection title="Session Management" columns={2}>
+                                        <CompactField label="Session Timeout">
+                                            <Select
+                                                variant="compact"
+                                                value={securityData.sessionTimeout}
+                                                onChange={(e) => setSecurityData({ ...securityData, sessionTimeout: e.target.value })}
                                             >
-                                                <Copy className="w-4 h-4" />
-                                                <span>Copy</span>
-                                            </button>
-                                            <button
-                                                onClick={handleShare}
-                                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white text-xs font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                                                <option value="15">15 minutes</option>
+                                                <option value="30">30 minutes</option>
+                                                <option value="60">1 hour</option>
+                                                <option value="120">2 hours</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Notifications Tab */}
+                        {activeTab === 'notifications' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Notification Preferences"
+                                    description="Choose which notifications you want to receive"
+                                    variant="elevated"
+                                    icon={<Bell className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Delivery Methods" columns={2}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.emailNotifications}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, emailNotifications: checked })}
+                                            label="Email Notifications"
+                                            description="Receive via email"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.pushNotifications}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, pushNotifications: checked })}
+                                            label="Push Notifications"
+                                            description="Browser push alerts"
+                                        />
+                                    </CompactFormSection>
+
+                                    <Divider label="Alert Types" />
+
+                                    <CompactFormSection columns={3}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.tradeAlerts}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, tradeAlerts: checked })}
+                                            label="Trade Alerts"
+                                            description="Trade executions"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.priceAlerts}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, priceAlerts: checked })}
+                                            label="Price Alerts"
+                                            description="Price targets"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.newsUpdates}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, newsUpdates: checked })}
+                                            label="News Updates"
+                                            description="Market news"
+                                        />
+                                    </CompactFormSection>
+
+                                    <Divider label="Reports & Marketing" />
+
+                                    <CompactFormSection columns={3}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.weeklyReports}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, weeklyReports: checked })}
+                                            label="Weekly Reports"
+                                            description="Performance summaries"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.marketingEmails}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, marketingEmails: checked })}
+                                            label="Marketing Emails"
+                                            description="Promotional offers"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.soundEnabled}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, soundEnabled: checked })}
+                                            label="Sound Enabled"
+                                            description="Notification sounds"
+                                        />
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Display Tab */}
+                        {activeTab === 'display' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Display Preferences"
+                                    description="Customize how information is displayed"
+                                    variant="elevated"
+                                    icon={<Eye className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Appearance" columns={2}>
+                                        <CompactField label="Theme">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.theme}
+                                                onChange={(e) => setDisplayData({ ...displayData, theme: e.target.value })}
                                             >
-                                                <Share2 className="w-4 h-4" />
-                                                <span>Share</span>
-                                            </button>
+                                                <option value="dark">Dark</option>
+                                                <option value="light">Light</option>
+                                                <option value="auto">Auto</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Default Currency">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.currency}
+                                                onChange={(e) => setDisplayData({ ...displayData, currency: e.target.value })}
+                                            >
+                                                <option value="USD">USD - US Dollar</option>
+                                                <option value="EUR">EUR - Euro</option>
+                                                <option value="GBP">GBP - British Pound</option>
+                                                <option value="JPY">JPY - Japanese Yen</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+
+                                    <Divider label="Formats" />
+
+                                    <CompactFormSection columns={4}>
+                                        <CompactField label="Number Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.numberFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, numberFormat: e.target.value })}
+                                            >
+                                                <option value="en-US">1,234.56 (US)</option>
+                                                <option value="de-DE">1.234,56 (EU)</option>
+                                                <option value="fr-FR">1 234,56 (FR)</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Date Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.dateFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, dateFormat: e.target.value })}
+                                            >
+                                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Time Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.timeFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, timeFormat: e.target.value })}
+                                            >
+                                                <option value="12h">12 Hour</option>
+                                                <option value="24h">24 Hour</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Chart Type">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.chartType}
+                                                onChange={(e) => setDisplayData({ ...displayData, chartType: e.target.value })}
+                                            >
+                                                <option value="candlestick">Candlestick</option>
+                                                <option value="line">Line</option>
+                                                <option value="bar">Bar</option>
+                                                <option value="area">Area</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Trading Tab */}
+                        {activeTab === 'trading' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Trading Preferences"
+                                    description="Configure your default trading settings"
+                                    variant="elevated"
+                                    icon={<TrendingUp className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Default Values" columns={3}>
+                                        <CompactField label="Default Stake">
+                                            <Input
+                                                variant="compact"
+                                                type="number"
+                                                value={tradingData.defaultStake}
+                                                onChange={(e) => setTradingData({ ...tradingData, defaultStake: e.target.value })}
+                                                icon={<DollarSign className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Duration (min)">
+                                            <Input
+                                                variant="compact"
+                                                type="number"
+                                                value={tradingData.defaultDuration}
+                                                onChange={(e) => setTradingData({ ...tradingData, defaultDuration: e.target.value })}
+                                                icon={<Clock className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Risk Level">
+                                            <Select
+                                                variant="compact"
+                                                value={tradingData.riskLevel}
+                                                onChange={(e) => setTradingData({ ...tradingData, riskLevel: e.target.value })}
+                                            >
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+
+                                    <Divider label="Trade Execution" />
+
+                                    <CompactFormSection columns={2}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={tradingData.confirmTrades}
+                                            onChange={(checked) => setTradingData({ ...tradingData, confirmTrades: checked })}
+                                            label="Confirm Trades"
+                                            description="Ask before placing"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={tradingData.autoClose}
+                                            onChange={(checked) => setTradingData({ ...tradingData, autoClose: checked })}
+                                            label="Auto Close"
+                                            description="Close at expiry"
+                                        />
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Referrals Tab */}
+                        {activeTab === 'referrals' && (
+                            <div className="space-y-6">
+                                {/* Stats Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Total Referrals */}
+                                    <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 hover:border-[#2F6BFF] transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#3B82F6]/20 rounded-xl flex items-center justify-center">
+                                                <Users className="w-5 h-5 text-[#2F6BFF]" />
+                                            </div>
+                                            <span className="text-xs text-gray-400 font-semibold">Total</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-white mb-1">{totalReferrals}</div>
+                                        <div className="text-xs text-gray-400">Referrals</div>
+                                    </div>
+
+                                    {/* Active Referrals */}
+                                    <div className="rounded-2xl border border-green-500/20 bg-[#16124A]/50 p-4 hover:border-green-500 transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-400/20 rounded-xl flex items-center justify-center">
+                                                <CheckCircle className="w-5 h-5 text-green-400" />
+                                            </div>
+                                            <span className="text-xs text-green-400 font-semibold">Active</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-green-400 mb-1">{activeReferrals}</div>
+                                        <div className="text-xs text-gray-400">Trading</div>
+                                    </div>
+
+                                    {/* Pending Referrals */}
+                                    <div className="rounded-2xl border border-yellow-500/20 bg-[#16124A]/50 p-4 hover:border-yellow-500 transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-yellow-400/20 rounded-xl flex items-center justify-center">
+                                                <Clock className="w-5 h-5 text-yellow-400" />
+                                            </div>
+                                            <span className="text-xs text-yellow-400 font-semibold">Pending</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-white mb-1">{pendingReferrals}</div>
+                                        <div className="text-xs text-gray-400">Not Active</div>
+                                    </div>
+
+                                    {/* Total Commission */}
+                                    <div className="rounded-2xl border border-[#FFA62B]/20 bg-[#16124A]/50 p-4 hover:border-[#FFA62B] transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-[#FFA62B]/20 to-[#F59E0B]/20 rounded-xl flex items-center justify-center">
+                                                <DollarSign className="w-5 h-5 text-[#FFA62B]" />
+                                            </div>
+                                            <span className="text-xs text-[#FFA62B] font-semibold">Earned</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-[#FFA62B] mb-1">${totalCommission.toFixed(2)}</div>
+                                        <div className="text-xs text-gray-400">Commission</div>
+                                    </div>
+                                </div>
+
+                                {/* Commission Trend Chart */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Commission Earnings (Last 30 Days)</h3>
+                                    <ModernAreaChart
+                                        data={commissionTrend}
+                                        color="#FFA62B"
+                                        gradientFrom="#FFA62B"
+                                        gradientTo="#F59E0B"
+                                        height={180}
+                                        showGrid={true}
+                                    />
+                                </div>
+
+                                {/* Referral Link Section */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Your Referral Link</h3>
+
+                                    <div className="space-y-4">
+                                        {/* Referral Code */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Code</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={referralCode}
+                                                    readOnly
+                                                    className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                                />
+                                                <button
+                                                    onClick={handleCopyCode}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                    <span>Copy</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Referral Link */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Link</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={referralLink}
+                                                    readOnly
+                                                    className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                                />
+                                                <button
+                                                    onClick={handleCopyLink}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                    <span>Copy</span>
+                                                </button>
+                                                <button
+                                                    onClick={handleShare}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white text-xs font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                                                >
+                                                    <Share2 className="w-4 h-4" />
+                                                    <span>Share</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Referrals Table */}
-                            <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
-                                <div className="border-b border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent pb-4 mb-4">
-                                    <h3 className="text-base font-semibold text-white">Referral History</h3>
-                                </div>
+                                {/* Referrals Table */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <div className="border-b border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent pb-4 mb-4">
+                                        <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Referral History</h3>
+                                    </div>
 
-                                <div className="overflow-x-auto w-full">
-                                    <table className="w-full min-w-[600px]">
-                                        <thead>
-                                            <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
-                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
-                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Email</th>
-                                                <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
-                                                <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Trades</th>
-                                                <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Commission</th>
-                                                <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Signup Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-[#2F6BFF]/20">
-                                            {referrals.map((referral) => (
-                                                <tr key={referral.id} className="hover:bg-[#16124A]/50 transition-colors duration-200">
-                                                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
-                                                        <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.name}</div>
-                                                    </td>
-                                                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
-                                                        <div className="text-xs text-gray-400">{referral.email}</div>
-                                                    </td>
-                                                    <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
-                                                        <div className="flex items-center gap-2">
-                                                            {getStatusIcon(referral.status)}
-                                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>
-                                                                {referral.status.toUpperCase()}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 sm:px-6 py-3 text-center whitespace-nowrap">
-                                                        <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.totalTrades}</div>
-                                                    </td>
-                                                    <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
-                                                        <div className="text-sm text-[#FFA62B] font-semibold">${referral.commission.toFixed(2)}</div>
-                                                    </td>
-                                                    <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
-                                                        <div className="text-xs text-gray-400">{referral.signupDate}</div>
-                                                    </td>
+                                    <div className="overflow-x-auto w-full">
+                                        <table className="w-full min-w-[600px]">
+                                            <thead>
+                                                <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Email</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Trades</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Commission</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Signup Date</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#2F6BFF]/20">
+                                                {referrals.map((referral) => (
+                                                    <tr key={referral.id} className="hover:bg-[#16124A]/50 transition-colors duration-200">
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.name}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="text-xs text-gray-400">{referral.email}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                {getStatusIcon(referral.status)}
+                                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>
+                                                                    {referral.status.toUpperCase()}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-center whitespace-nowrap">
+                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.totalTrades}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
+                                                            <div className="text-sm text-[#FFA62B] font-semibold">${referral.commission.toFixed(2)}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
+                                                            <div className="text-xs text-gray-400">{referral.signupDate}</div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+                        )}
+                    </div>
+                </GlassCard>
+            </Stack>
         </PageContainer>
     );
 }
+
+

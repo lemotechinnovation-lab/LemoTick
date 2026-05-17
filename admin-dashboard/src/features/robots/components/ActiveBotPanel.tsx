@@ -1,4 +1,4 @@
-import { ArrowUpRight, Percent } from 'lucide-react';
+import { ArrowUpRight, Bot, Percent } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface BotSettings {
@@ -24,7 +24,6 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
 
     const handleAIIndicatorClick = () => {
         console.log('AI Indicator clicked');
-        // Add your AI Indicator logic here
     };
 
     // Countdown timer
@@ -32,7 +31,7 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
         const interval = setInterval(() => {
             setTimeRemaining((prev) => {
                 if (prev <= 1) {
-                    return settings.duration; // Reset
+                    return settings.duration;
                 }
                 return prev - 1;
             });
@@ -59,7 +58,7 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
     };
 
     const getAssetCorrelation = () => {
-        return 93; // Mock value
+        return 93;
     };
 
     const getIndicatorName = (id: string) => {
@@ -84,226 +83,243 @@ export default function ActiveBotPanel({ settings, onStopBot }: ActiveBotPanelPr
     const progressPercentage = ((settings.duration - timeRemaining) / settings.duration) * 100;
 
     return (
-        <div className="w-full bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] border-l border-green-500/30 shrink-0 flex flex-col h-full relative overflow-hidden">
-            {/* Animated Background Effects - More vibrant for active state */}
-            <div className="absolute inset-0 opacity-40 pointer-events-none">
-                <div className="absolute top-0 right-0 w-40 h-40 bg-green-500 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 w-40 h-40 bg-[#2F6BFF] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-purple-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-            </div>
+        <div className="w-full h-full flex flex-col overflow-hidden p-1.5 space-y-1 scrollbar-thin scrollbar-thumb-green-500/20 scrollbar-track-transparent">
+            {/* Enhanced Header with Title & Live Stats - Micro Compact */}
+            <div className="glass-card-elevated p-1.5 rounded-md border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-accent-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-            {/* Header with Active Glow */}
-            <div className="px-2 py-2 border-b border-green-500/30 bg-gradient-to-r from-green-500/20 via-[#2F6BFF]/10 to-transparent relative z-10 shrink-0">
-                <div className="flex items-center gap-1.5">
-                    <div className="relative">
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping absolute"></div>
-                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-lg shadow-green-500/50"></div>
-                    </div>
-                    <h2 className="text-white text-xs font-semibold">Active robot</h2>
-                    <div className="ml-auto flex items-center gap-1">
-                        <span className="text-[10px] text-green-500 font-bold animate-pulse">● LIVE</span>
-                        <div className="flex gap-0.5">
-                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-0.5 h-2.5 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Content - No Scroll */}
-            <div className="flex-1 p-2 pt-2 space-y-2 overflow-hidden pointer-events-auto relative z-10">
-                {/* Balance Card - Replaces Asset section */}
-                <div className="bg-gradient-to-br from-[#16124A] via-[#1E1854] to-[#16124A] rounded-lg p-2 border border-[#2F6BFF]/30 shadow-xl shadow-[#2F6BFF]/20 relative overflow-hidden">
-                    {/* Animated gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#2F6BFF]/5 to-transparent animate-shimmer"></div>
-
-                    <div className="flex items-start justify-between mb-1 relative z-10">
-                        <div>
-                            <div className="text-white text-lg font-bold animate-pulse">${balance.toFixed(2)}</div>
-                            <div className="flex items-center gap-1 mt-0.5">
-                                <span className="text-gray-400 text-[9px]">Profit</span>
-                                <span className={`text-[9px] font-semibold flex items-center gap-0.5 ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                    {profit >= 0 ? '↗' : '↘'}
-                                    {profit >= 0 ? '+' : ''}{profit.toFixed(2)}
+                <div className="relative z-10 space-y-1">
+                    {/* Title Section with Live Indicator */}
+                    <div className="flex items-center gap-1">
+                        <div className="relative w-5 h-5 rounded-md bg-gradient-to-br from-green-500/40 to-emerald-500/40 flex items-center justify-center shadow-lg shadow-green-500/30 border border-green-400/20">
+                            <Bot className="w-2.5 h-2.5 text-green-400" />
+                            <div className="absolute -top-0.5 -right-0.5">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 shadow-lg shadow-green-500/50"></span>
                                 </span>
                             </div>
                         </div>
-                        <div className="text-right">
-                            <div className="text-gray-400 text-[9px]">Demo</div>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-[9px] font-bold flex items-center gap-1">
+                                <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent truncate">
+                                    Trading Robots
+                                </span>
+                                <span className="flex items-center gap-0.5 px-1 py-0.5 bg-green-500/20 rounded-full border border-green-400/30 flex-shrink-0">
+                                    <span className="text-[7px] text-green-400 font-bold">ACTIVE</span>
+                                </span>
+                            </h1>
                         </div>
                     </div>
 
-                    {/* Timer and Asset */}
-                    <div className="flex items-center gap-2 mt-1.5 relative z-10">
-                        {/* Circular Timer with Glow */}
-                        <div className="relative w-11 h-11">
-                            {/* Outer glow ring */}
-                            <div className="absolute inset-0 bg-[#2F6BFF]/20 rounded-full blur-md animate-pulse"></div>
-
-                            <svg className="w-11 h-11 transform -rotate-90 relative z-10">
-                                <circle
-                                    cx="22"
-                                    cy="22"
-                                    r="18"
-                                    stroke="#16124A"
-                                    strokeWidth="2"
-                                    fill="none"
-                                />
-                                <circle
-                                    cx="22"
-                                    cy="22"
-                                    r="18"
-                                    stroke="url(#timerGradient)"
-                                    strokeWidth="2"
-                                    fill="none"
-                                    strokeDasharray={`${2 * Math.PI * 18}`}
-                                    strokeDashoffset={`${2 * Math.PI * 18 * (1 - progressPercentage / 100)}`}
-                                    strokeLinecap="round"
-                                    className="transition-all duration-1000"
-                                />
-                                <defs>
-                                    <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="#2F6BFF" />
-                                        <stop offset="50%" stopColor="#4A5FD9" />
-                                        <stop offset="100%" stopColor="#2F6BFF" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-white text-[9px] font-bold">{formatTime(timeRemaining)}</span>
+                    {/* Live Stats Grid */}
+                    <div className="grid grid-cols-3 gap-0.5">
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-green-400/20 backdrop-blur-sm group/stat cursor-pointer hover:border-green-400/40 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <Bot className="w-2 h-2 text-green-400 group-hover/stat:scale-110 transition-transform" />
+                                <p className="text-[7px] text-gray-400 font-medium">Active</p>
+                                <p className="text-[8px] font-bold text-green-400 tabular-nums">1</p>
                             </div>
                         </div>
-
-                        {/* Asset Info */}
-                        <div className="flex-1">
-                            <div className="flex items-center gap-1 mb-0.5">
-                                <span className="text-sm">🇨🇭</span>
-                                <span className="text-white text-[10px] font-medium">USD/CHF OTC</span>
-                                <span className="text-[#2F6BFF] text-[10px] font-semibold">{getAssetCorrelation()}%</span>
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-green-400/20 backdrop-blur-sm group/stat cursor-pointer hover:border-green-400/40 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <ArrowUpRight className="w-2 h-2 text-green-400 group-hover/stat:scale-110 transition-transform" />
+                                <p className="text-[7px] text-gray-400 font-medium">Profit</p>
+                                <p className={`text-[8px] font-bold tabular-nums ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {profit >= 0 ? '+' : ''}{profit.toFixed(2)}
+                                </p>
                             </div>
-                            <div className="text-gray-400 text-[9px]">
-                                {getIndicatorName(settings.indicator)}
+                        </div>
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-brand-blue/20 backdrop-blur-sm group/stat cursor-pointer hover:border-brand-blue/40 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <Percent className="w-2 h-2 text-brand-blue group-hover/stat:scale-110 transition-transform" />
+                                <p className="text-[7px] text-gray-400 font-medium">Balance</p>
+                                <p className="text-[8px] font-bold text-brand-blue tabular-nums">${balance.toFixed(0)}</p>
                             </div>
                         </div>
                     </div>
-
-                    {/* AI Indicator Promo */}
-                    <a
-                        href="#"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleAIIndicatorClick();
-                        }}
-                        className="mt-1.5 w-full bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 border border-purple-500/40 rounded-lg p-1.5 hover:from-purple-500/30 hover:via-blue-500/30 hover:to-purple-500/30 transition-all duration-300 cursor-pointer relative z-10 block no-underline group shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105"
-                    >
-                        {/* Animated shine effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-lg"></div>
-
-                        <div className="flex items-center gap-1.5 relative z-10">
-                            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center shadow-lg animate-pulse">
-                                <span className="text-white text-xs">✨</span>
-                            </div>
-                            <div className="flex-1 text-left">
-                                <div className="text-white text-[10px] font-semibold">Try AI Indicator</div>
-                                <div className="text-gray-300 text-[8px]">Increase accuracy up to 63%</div>
-                            </div>
-                            <svg className="w-2.5 h-2.5 text-gray-400 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
-                    </a>
                 </div>
+            </div>
 
-                {/* Amount & Strategy - Replaces Amount & Duration grid */}
-                <div className="grid grid-cols-2 gap-2">
+            {/* Balance Card - Micro Compact */}
+            <div className="glass-card-elevated p-1.5 rounded-md border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="flex items-start justify-between mb-1 relative z-10">
                     <div>
-                        <label className="text-gray-400 text-[9px] mb-0.5 block">Amount</label>
-                        <div className="bg-[#16124A] text-white rounded-lg px-2 py-1.5 text-[11px] flex items-center gap-1">
-                            <span className="text-red-500 text-xs">↓</span>
-                            <span>${settings.initialAmount}</span>
+                        <div className="text-[8px] text-gray-300 mb-0.5 font-semibold">Balance</div>
+                        <div className="text-sm font-black text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+                            ${balance.toFixed(2)}
+                        </div>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                            <span className="text-[7px] text-gray-400">Profit</span>
+                            <span className={`text-[8px] font-bold flex items-center gap-0.5 ${profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {profit >= 0 ? '↗' : '↘'}
+                                {profit >= 0 ? '+' : ''}${profit.toFixed(2)}
+                            </span>
                         </div>
                     </div>
-                    <div>
-                        <label className="text-gray-400 text-[9px] mb-0.5 block">Strategy</label>
-                        <div className="bg-[#16124A] text-white rounded-lg px-2 py-1.5 text-[11px]">
-                            {getStrategyName(settings.strategy)}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Profit Limit - Matches Indicator section height */}
-                <div>
-                    <p className="text-gray-400 text-[9px] mb-0.5">Profit limit</p>
-                    <div className="bg-gradient-to-r from-[#16124A] to-[#1E1854] rounded-lg p-2 flex items-center justify-between border border-green-500/20">
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 bg-green-500/20 rounded flex items-center justify-center">
-                                <ArrowUpRight className="w-3 h-3 text-green-500" />
-                            </div>
-                            <span className="text-white text-[11px] font-medium">${settings.profitLimit}</span>
-                        </div>
-                        <div className="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-[9px] font-semibold">ON</span>
-                        </div>
+                    <div className="px-1.5 py-0.5 rounded-md bg-purple-500/20 border border-purple-400/30 shadow-lg shadow-purple-500/20">
+                        <span className="text-[7px] text-purple-400 font-bold">DEMO</span>
                     </div>
                 </div>
 
-                {/* Asset Change - Matches Strategy section height */}
-                <div>
-                    <p className="text-gray-400 text-[9px] mb-0.5">Asset auto-switch</p>
-                    <div className="bg-gradient-to-r from-[#16124A] to-[#1E1854] rounded-lg p-2 flex items-center justify-between border border-[#2F6BFF]/20">
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 bg-blue-500/20 rounded flex items-center justify-center">
-                                <Percent className="w-3 h-3 text-blue-500" />
-                            </div>
-                            <div className="text-left">
-                                <div className="text-white text-[11px] font-medium">Below {settings.assetChangeThreshold}%</div>
-                                <span className="text-gray-400 text-[9px]">or market closes</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Chart Follows Asset - Matches Profit Limit section */}
-                <div>
-                    <label className="text-gray-400 text-[9px] mb-0.5 block">Chart behavior</label>
-                    <div className="bg-gradient-to-r from-[#16124A] to-[#1E1854] rounded-lg p-2 flex items-center justify-between border border-[#2F6BFF]/20">
-                        <div className="flex-1">
-                            <div className="text-white text-[11px] font-semibold">Follows the asset</div>
-                            <div className="text-gray-400 text-[9px]">Auto-switch chart</div>
-                        </div>
-                        <button
-                            onClick={() => setChartFollowsAsset(!chartFollowsAsset)}
-                            className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${chartFollowsAsset ? 'bg-[#2F6BFF]' : 'bg-gray-600'
-                                }`}
-                        >
-                            <div
-                                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${chartFollowsAsset ? 'translate-x-4' : 'translate-x-0'
-                                    }`}
+                {/* Timer and Asset */}
+                <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-gradient-to-br from-brand-blue/10 to-purple-500/10 border border-brand-blue/30 shadow-lg relative z-10">
+                    {/* Circular Timer */}
+                    <div className="relative w-8 h-8 shrink-0">
+                        <svg className="w-8 h-8 transform -rotate-90">
+                            <circle
+                                cx="16"
+                                cy="16"
+                                r="13"
+                                stroke="rgba(59, 130, 246, 0.2)"
+                                strokeWidth="2"
+                                fill="none"
                             />
-                        </button>
+                            <circle
+                                cx="16"
+                                cy="16"
+                                r="13"
+                                stroke="url(#timerGradient)"
+                                strokeWidth="2"
+                                fill="none"
+                                strokeDasharray={`${2 * Math.PI * 13}`}
+                                strokeDashoffset={`${2 * Math.PI * 13 * (1 - progressPercentage / 100)}`}
+                                strokeLinecap="round"
+                                className="transition-all duration-1000"
+                            />
+                            <defs>
+                                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#3B82F6" />
+                                    <stop offset="100%" stopColor="#8B5CF6" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-[8px] font-bold text-white">{formatTime(timeRemaining)}</span>
+                        </div>
                     </div>
+
+                    {/* Asset Info */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-0.5 mb-0.5">
+                            <span className="text-[9px]">🇨🇭</span>
+                            <span className="text-white text-[9px] font-bold truncate">USD/CHF OTC</span>
+                            <span className="text-brand-blue text-[8px] font-bold">{getAssetCorrelation()}%</span>
+                        </div>
+                        <div className="text-gray-400 text-[8px] truncate">
+                            {getIndicatorName(settings.indicator)}
+                        </div>
+                    </div>
+                </div>
+
+                {/* AI Indicator Promo */}
+                <button
+                    onClick={handleAIIndicatorClick}
+                    className="mt-1.5 w-full bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 border border-purple-500/40 rounded-md p-1.5 hover:from-purple-500/30 hover:via-blue-500/30 hover:to-purple-500/30 transition-all duration-300 group/ai shadow-xl shadow-purple-500/20 hover:shadow-2xl hover:shadow-purple-500/30 hover:scale-105 relative z-10"
+                >
+                    <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-blue-500 rounded-md flex items-center justify-center shadow-lg animate-pulse shrink-0">
+                            <span className="text-white text-[9px]">✨</span>
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                            <div className="text-white text-[8px] font-bold">Try AI Indicator</div>
+                            <div className="text-gray-300 text-[7px]">+63% accuracy</div>
+                        </div>
+                        <svg className="w-3 h-3 text-gray-400 group-hover/ai:text-white transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </button>
+            </div>
+
+            {/* Settings Grid */}
+            <div className="grid grid-cols-2 gap-2">
+                <div className="glass-card-elevated p-2.5 rounded-xl border border-brand-blue/20 shadow-lg shadow-brand-blue/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="text-[11px] text-gray-300 mb-0.5 font-semibold relative z-10">Amount</div>
+                    <div className="flex items-center gap-1 relative z-10">
+                        <span className="text-red-400 text-xs">↓</span>
+                        <span className="text-white text-xs font-bold">${settings.initialAmount}</span>
+                    </div>
+                </div>
+
+                <div className="glass-card-elevated p-2.5 rounded-xl border border-purple-500/20 shadow-lg shadow-purple-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="text-[11px] text-gray-300 mb-0.5 font-semibold relative z-10">Strategy</div>
+                    <div className="text-white text-xs font-bold truncate relative z-10">
+                        {getStrategyName(settings.strategy)}
+                    </div>
+                </div>
+            </div>
+
+            {/* Profit Limit */}
+            <div className="glass-card-elevated p-2.5 rounded-xl border border-green-400/30 shadow-lg shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="text-[11px] text-gray-300 mb-1.5 font-semibold relative z-10">Profit limit</div>
+                <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-7 h-7 bg-green-500/20 rounded-lg flex items-center justify-center border border-green-400/30 shadow-lg shadow-green-500/20">
+                            <ArrowUpRight className="w-3.5 h-3.5 text-green-400" />
+                        </div>
+                        <span className="text-white text-xs font-bold">${settings.profitLimit}</span>
+                    </div>
+                    <div className="px-2.5 py-0.5 bg-green-500 rounded-lg shadow-lg shadow-green-500/30">
+                        <span className="text-white text-[10px] font-bold">ON</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Asset Auto-switch */}
+            <div className="glass-card-elevated p-2.5 rounded-xl border border-brand-blue/20 shadow-lg shadow-brand-blue/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="text-[11px] text-gray-300 mb-1.5 font-semibold relative z-10">Asset auto-switch</div>
+                <div className="flex items-center gap-1.5 relative z-10">
+                    <div className="w-7 h-7 bg-brand-blue/20 rounded-lg flex items-center justify-center border border-brand-blue/30 shadow-lg shadow-brand-blue/20">
+                        <Percent className="w-3.5 h-3.5 text-brand-blue" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="text-white text-[11px] font-bold">Below {settings.assetChangeThreshold}%</div>
+                        <span className="text-gray-400 text-[10px]">or market closes</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Chart Behavior */}
+            <div className="glass-card-elevated p-3 rounded-2xl border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="text-xs text-gray-300 mb-2 font-semibold relative z-10">Chart behavior</div>
+                <div className="flex items-center justify-between relative z-10">
+                    <div className="flex-1 min-w-0">
+                        <div className="text-white text-xs font-bold">Follows the asset</div>
+                        <div className="text-gray-400 text-xs">Auto-switch chart</div>
+                    </div>
+                    <button
+                        onClick={() => setChartFollowsAsset(!chartFollowsAsset)}
+                        className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 shadow-lg ${chartFollowsAsset ? 'bg-brand-blue shadow-brand-blue/30' : 'bg-gray-600'
+                            }`}
+                    >
+                        <div
+                            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-lg ${chartFollowsAsset ? 'translate-x-4' : 'translate-x-0'
+                                }`}
+                        />
+                    </button>
                 </div>
             </div>
 
             {/* Stop Button */}
-            <div className="p-2 border-t border-red-500/30 bg-gradient-to-t from-[#0B0633] to-transparent relative z-10 shrink-0">
-                <button
-                    onClick={onStopBot}
-                    className="w-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 hover:from-red-600 hover:via-red-700 hover:to-red-600 text-white font-bold py-2.5 rounded-lg transition-all duration-300 text-sm relative overflow-hidden group shadow-xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/70 hover:scale-105"
-                >
-                    {/* Animated shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-
-                    <div className="flex items-center justify-center gap-1.5 relative z-10">
-                        <span className="text-base">🛑</span>
-                        <span>Stop the robot</span>
-                    </div>
-                </button>
-
-                {/* Pulsing glow effect */}
-                <div className="absolute inset-x-2 bottom-2 h-10 bg-red-500/30 blur-xl rounded-lg animate-pulse pointer-events-none"></div>
-            </div>
+            <button
+                onClick={onStopBot}
+                className="w-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 hover:from-red-600 hover:via-red-700 hover:to-red-600 text-white font-bold py-3.5 rounded-xl transition-all duration-300 text-sm relative overflow-hidden group shadow-2xl shadow-red-500/50 hover:shadow-2xl hover:shadow-red-500/70 hover:scale-105 animate-fade-in-up"
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className="flex items-center justify-center gap-2 relative z-10">
+                    <span className="text-lg">🛑</span>
+                    <span>Stop the robot</span>
+                </div>
+            </button>
         </div>
     );
 }
+
+

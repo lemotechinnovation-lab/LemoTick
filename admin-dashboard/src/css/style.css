@@ -13,72 +13,160 @@
 @custom-variant sidebar-expanded (&:is(.sidebar-expanded *));
 
 /* ============================================
-   GLOBAL WHITE TEXT - FORCE ALL TEXT TO WHITE
+   CENTRALIZED COLOR SYSTEM
    ============================================ */
 
-/* Force white text color globally for body text - but dark on light background */
-body,
-html,
-div,
-span,
-p,
-a,
-button,
-input,
-textarea,
-select,
-label,
-li,
-td,
-th,
-em,
-small {
-  color: #1a1a2e !important;
+:root {
+  /* Primary Headers - Orange #FCB839 */
+  --color-header-primary: #FCB839;
+  
+  /* Section/Sub Headers - Blue #326FF9 */
+  --color-section-header: #326FF9;
+  
+  /* Body Text - White for maximum visibility */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #E5E7EB;
+  --color-text-tertiary: #D1D5DB;
+  --color-text-muted: #9CA3AF;
+  
+  /* Accent Colors */
+  --color-accent-blue: #326FF9;
+  --color-accent-orange: #FCB839;
+  --color-accent-green: #10B981;
+  --color-accent-purple: #8B5CF6;
+  --color-accent-red: #EF4444;
 }
 
-/* Headers use brand colors with enhanced visibility - darker for light background */
-h1, .h1 {
-  color: #d66a00 !important; /* Darker orange for main headers */
+/* ============================================
+   TYPOGRAPHY SYSTEM
+   ============================================ */
+
+/* Main Page Headers - Orange #FCB839, Bold, Stand Out */
+h1, .h1,
+.page-title,
+[class*="PageHeader"] h1 {
+  color: var(--color-header-primary) !important;
   font-weight: 700 !important;
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 0 20px rgba(252, 184, 57, 0.4), 0 0 40px rgba(252, 184, 57, 0.2) !important;
+  filter: drop-shadow(0 4px 12px rgba(252, 184, 57, 0.3)) !important;
+  font-size: 2rem !important; /* 32px - larger for more prominence */
+  line-height: 1.2 !important;
 }
 
-h2, .h2 {
-  color: #d66a00 !important; /* Darker orange for secondary headers */
-  font-weight: 700 !important;
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
+/* Section/Sub Headers - Blue #326FF9, Bold, No Shadow, Consistent Size, UPPERCASE */
+h2, .h2,
+.section-title,
 h3, .h3,
+.subsection-title {
+  color: var(--color-section-header) !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important; /* 18px - consistent across all pages */
+  line-height: 1.5 !important;
+  letter-spacing: 0.01em !important;
+  text-shadow: none !important;
+  filter: none !important;
+  text-transform: uppercase !important;
+}
+
+/* Smaller Headers - Also use blue for consistency */
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  color: #2557c9 !important; /* Darker blue for subheaders */
+  color: var(--color-section-header) !important;
   font-weight: 600 !important;
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    0 1px 2px rgba(0, 0, 0, 0.1);
+  font-size: 1rem !important; /* 16px */
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Body Text Hierarchy - White for cards, Black for light backgrounds */
+p:not([class*="card"] *):not([class*="Card"] *):not([class*="stat"] *):not([class*="Stat"] *), 
+.text-body:not([class*="card"] *):not([class*="Card"] *):not([class*="stat"] *):not([class*="Stat"] *) {
+  color: #000000 !important;
+  line-height: 1.6 !important;
+  font-weight: 500 !important; /* Medium weight for better visibility */
+}
+
+.text-secondary {
+  color: #1F2937 !important;
+  font-weight: 500 !important;
+}
+
+.text-muted,
+.text-tertiary {
+  color: #374151 !important;
+  font-weight: 400 !important;
+}
+
+.text-subtle {
+  color: var(--color-text-muted) !important;
+  font-weight: 400 !important;
+}
+
+/* Description text under headers - white and visible */
+.description,
+.subtitle,
+[class*="description"] {
+  color: var(--color-text-primary) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   GLOBAL WHITE TEXT - FORCE ALL TEXT TO WHITE
+   ============================================ */
+
+/* Force white text color globally for body text - but allow Tailwind color classes to override */
+body,
+html {
+  color: var(--color-text-primary);
+}
+
+/* Default text color for common elements - but allow color classes to override */
+div:not([class*="text-"]):not([class*="bg-"]),
+span:not([class*="text-"]):not([class*="bg-"]),
+p:not([class*="text-"]):not([class*="bg-"]),
+label:not([class*="text-"]):not([class*="bg-"]),
+li:not([class*="text-"]):not([class*="bg-"]),
+td:not([class*="text-"]):not([class*="bg-"]),
+th:not([class*="text-"]):not([class*="bg-"]),
+em:not([class*="text-"]):not([class*="bg-"]),
+small:not([class*="text-"]):not([class*="bg-"]) {
+  color: var(--color-text-primary);
+}
+
+/* Links and buttons inherit or use their own colors */
+a,
+button {
+  color: inherit;
+}
+
+/* Input elements */
+input,
+textarea,
+select {
+  color: var(--color-text-primary) !important;
 }
 
 /* Strong/bold text inherits from parent */
 strong {
   color: inherit !important;
+  font-weight: 700 !important;
 }
 
 /* Placeholder text */
 ::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
+  color: var(--color-text-muted) !important;
+  opacity: 0.7 !important;
 }
 
 /* Input text */
 input,
 textarea,
 select {
-  color: #FFFFFF !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* ============================================
@@ -98,6 +186,44 @@ div[class*="shadow"] {
   -webkit-backdrop-filter: blur(12px) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ============================================
+   UTILITY CLASSES FOR CONSISTENT STYLING
+   ============================================ */
+
+/* Header utility classes - Orange #FCB839 */
+.header-gradient-orange,
+.text-header-primary {
+  color: var(--color-header-primary) !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+
+/* Section header utility classes - Blue #326FF9 */
+.header-gradient-blue,
+.text-header-secondary,
+.text-section-header {
+  color: var(--color-section-header) !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  text-shadow: none !important;
+}
+
+/* Text color utilities */
+.text-body-primary {
+  color: var(--color-text-primary) !important;
+  font-weight: 500 !important;
+}
+
+.text-body-secondary {
+  color: var(--color-text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+.text-body-muted {
+  color: var(--color-text-muted) !important;
+  font-weight: 400 !important;
 }
 
 /* Specific bg-card variants */
@@ -184,7 +310,9 @@ select {
   color: #FFFFFF !important;
 }
 
-/* Force white text inside cards */
+/* Remove the global white color forcing - let Tailwind classes work */
+/* Commented out to allow icon colors to show */
+/*
 [class*="card"] *,
 [class*="Card"] *,
 [class*="bg-card"] *,
@@ -194,6 +322,201 @@ select {
 [class*="Metric"] * {
   color: #FFFFFF !important;
 }
+*/
+
+/* Keep text white inside cards, but allow colored elements to override */
+[class*="card"] span:not([class*="text-"]),
+[class*="Card"] span:not([class*="text-"]),
+[class*="card"] p:not([class*="text-"]),
+[class*="Card"] p:not([class*="text-"]),
+[class*="card"] div:not([class*="text-"]):not([class*="bg-"]),
+[class*="Card"] div:not([class*="text-"]):not([class*="bg-"]),
+[class*="stat"] span:not([class*="text-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *),
+[class*="Stat"] span:not([class*="text-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *),
+[class*="stat"] p:not([class*="text-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *),
+[class*="Stat"] p:not([class*="text-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *),
+[class*="stat"] div:not([class*="text-"]):not([class*="bg-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *),
+[class*="Stat"] div:not([class*="text-"]):not([class*="bg-"]):not(.stat-card-icon):not(.stat-card-icon *):not(.force-icon-color):not(.stat-card-change):not(.stat-card-change *) {
+  color: #FFFFFF !important;
+}
+
+/* Force white text for all card descendants except those with explicit color classes */
+/* Force card header colors - target h1, h2, h3, and uppercase labels only */
+[class*="glass-card"] h1,
+[class*="glass-card"] h2,
+[class*="glass-card"] h3,
+[class*="GlassCard"] h1,
+[class*="GlassCard"] h2,
+[class*="GlassCard"] h3 {
+  color: #E8B4B8 !important;
+  text-shadow: 0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3) !important;
+}
+
+/* Target uppercase labels that are card headers (common pattern in cards) */
+[class*="glass-card"] .uppercase.font-semibold.tracking-wide,
+[class*="GlassCard"] .uppercase.font-semibold.tracking-wide,
+[class*="glass-card"] .uppercase.font-bold,
+[class*="GlassCard"] .uppercase.font-bold {
+  color: #E8B4B8 !important;
+  text-shadow: 0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3) !important;
+}
+
+/* Override any text-white classes on headers */
+[class*="glass-card"] h1.text-white,
+[class*="glass-card"] h2.text-white,
+[class*="glass-card"] h3.text-white,
+[class*="GlassCard"] h1.text-white,
+[class*="GlassCard"] h2.text-white,
+[class*="GlassCard"] h3.text-white {
+  color: #E8B4B8 !important;
+  text-shadow: 0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3) !important;
+}
+
+/* Removed force icon colors rules - allow inline styles to work */
+/* This allows StatCard icons and other components to use their own color styles */
+
+/* Force icon colors for stat cards - override the white color forcing with maximum specificity */
+.stat-card-wrapper .stat-card-icon,
+.stat-card-wrapper .stat-card-icon *,
+.stat-card-wrapper .stat-card-icon svg,
+.stat-card-wrapper .force-icon-color,
+[class*="glass-card"] .stat-card-icon,
+[class*="glass-card"] .stat-card-icon *,
+[class*="glass-card"] .stat-card-icon svg,
+[class*="GlassCard"] .stat-card-icon,
+[class*="GlassCard"] .stat-card-icon *,
+[class*="GlassCard"] .stat-card-icon svg {
+  color: currentColor !important;
+}
+
+/* Specific color overrides for stat card icons - blue */
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\],
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\] *,
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\] svg,
+[class*="glass-card"] .stat-card-icon.text-\[\#2F6BFF\],
+[class*="glass-card"] .stat-card-icon.text-\[\#2F6BFF\] *,
+[class*="glass-card"] .stat-card-icon.text-\[\#2F6BFF\] svg {
+  color: #2F6BFF !important;
+}
+
+/* Orange */
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\],
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\] *,
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\] svg,
+[class*="glass-card"] .stat-card-icon.text-\[\#FFA62B\],
+[class*="glass-card"] .stat-card-icon.text-\[\#FFA62B\] *,
+[class*="glass-card"] .stat-card-icon.text-\[\#FFA62B\] svg {
+  color: #FFA62B !important;
+}
+
+/* Green */
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\],
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\] *,
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\] svg,
+[class*="glass-card"] .stat-card-icon.text-\[\#10B981\],
+[class*="glass-card"] .stat-card-icon.text-\[\#10B981\] *,
+[class*="glass-card"] .stat-card-icon.text-\[\#10B981\] svg {
+  color: #10B981 !important;
+}
+
+/* Purple */
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\],
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\] *,
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\] svg,
+[class*="glass-card"] .stat-card-icon.text-\[\#A78BFA\],
+[class*="glass-card"] .stat-card-icon.text-\[\#A78BFA\] *,
+[class*="glass-card"] .stat-card-icon.text-\[\#A78BFA\] svg {
+  color: #A78BFA !important;
+}
+
+/* Red */
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\],
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\] *,
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\] svg,
+[class*="glass-card"] .stat-card-icon.text-\[\#EF4444\],
+[class*="glass-card"] .stat-card-icon.text-\[\#EF4444\] *,
+[class*="glass-card"] .stat-card-icon.text-\[\#EF4444\] svg {
+  color: #EF4444 !important;
+}
+
+/* Change indicator colors - green */
+.stat-card-wrapper .stat-card-change.text-green-400,
+.stat-card-wrapper .stat-card-change.text-green-400 *,
+.stat-card-wrapper .stat-card-change.text-green-400 span,
+.stat-card-wrapper .stat-card-change .text-green-400,
+.stat-card-wrapper .stat-card-change .text-green-400 *,
+.stat-card-wrapper .text-green-400.force-icon-color,
+[class*="glass-card"] .stat-card-change.text-green-400,
+[class*="glass-card"] .stat-card-change.text-green-400 *,
+[class*="glass-card"] .stat-card-change.text-green-400 span,
+[class*="glass-card"] .stat-card-change .text-green-400,
+[class*="glass-card"] .stat-card-change .text-green-400 *,
+[class*="GlassCard"] .stat-card-change.text-green-400,
+[class*="GlassCard"] .stat-card-change.text-green-400 *,
+[class*="GlassCard"] .stat-card-change.text-green-400 span {
+  color: #10B981 !important;
+}
+
+/* Change indicator colors - red */
+.stat-card-wrapper .stat-card-change.text-red-400,
+.stat-card-wrapper .stat-card-change.text-red-400 *,
+.stat-card-wrapper .stat-card-change.text-red-400 span,
+.stat-card-wrapper .stat-card-change .text-red-400,
+.stat-card-wrapper .stat-card-change .text-red-400 *,
+.stat-card-wrapper .text-red-400.force-icon-color,
+[class*="glass-card"] .stat-card-change.text-red-400,
+[class*="glass-card"] .stat-card-change.text-red-400 *,
+[class*="glass-card"] .stat-card-change.text-red-400 span,
+[class*="glass-card"] .stat-card-change .text-red-400,
+[class*="glass-card"] .stat-card-change .text-red-400 *,
+[class*="GlassCard"] .stat-card-change.text-red-400,
+[class*="GlassCard"] .stat-card-change.text-red-400 *,
+[class*="GlassCard"] .stat-card-change.text-red-400 span {
+  color: #EF4444 !important;
+}
+
+/* Ensure icons stay visible on hover */
+.stat-card-wrapper:hover .stat-card-icon,
+.stat-card-wrapper:hover .stat-card-icon *,
+.stat-card-wrapper:hover .stat-card-icon svg,
+.stat-card-wrapper:hover .force-icon-color,
+[class*="glass-card"]:hover .stat-card-icon,
+[class*="glass-card"]:hover .stat-card-icon *,
+[class*="glass-card"]:hover .stat-card-icon svg,
+[class*="GlassCard"]:hover .stat-card-icon,
+[class*="GlassCard"]:hover .stat-card-icon *,
+[class*="GlassCard"]:hover .stat-card-icon svg {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline !important;
+}
+
+/* Ensure SVG paths stay visible */
+.stat-card-wrapper .stat-card-icon svg path,
+.stat-card-wrapper .stat-card-icon svg line,
+.stat-card-wrapper .stat-card-icon svg circle,
+.stat-card-wrapper .stat-card-icon svg rect,
+.stat-card-wrapper .stat-card-icon svg polyline,
+.stat-card-wrapper .stat-card-icon svg polygon,
+[class*="glass-card"] .stat-card-icon svg path,
+[class*="glass-card"] .stat-card-icon svg line,
+[class*="glass-card"] .stat-card-icon svg circle,
+[class*="glass-card"] .stat-card-icon svg rect,
+[class*="glass-card"] .stat-card-icon svg polyline,
+[class*="glass-card"] .stat-card-icon svg polygon,
+[class*="GlassCard"] .stat-card-icon svg path,
+[class*="GlassCard"] .stat-card-icon svg line,
+[class*="GlassCard"] .stat-card-icon svg circle,
+[class*="GlassCard"] .stat-card-icon svg rect,
+[class*="GlassCard"] .stat-card-icon svg polyline,
+[class*="GlassCard"] .stat-card-icon svg polygon {
+  opacity: 1 !important;
+  visibility: visible !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+
+/* Specific rules for stat card icons and changes - removed to allow inline color styles */
 
 /* Keep headers colored inside cards */
 [class*="card"] h1,
@@ -209,6 +532,19 @@ select {
 [class*="Card"] h5,
 [class*="Card"] h6 {
   color: inherit !important;
+}
+
+/* Fix hover issues - all absolute positioned gradient overlays should not block interactions */
+.absolute.inset-0[class*="bg-gradient"],
+.absolute[class*="inset"][class*="bg-gradient"],
+div[class*="absolute"][class*="inset-0"][class*="bg-gradient"],
+div.absolute.inset-0 {
+  pointer-events: none !important;
+}
+
+/* Ensure icons and interactive elements remain clickable */
+button, a, input, select, textarea {
+  pointer-events: auto !important;
 }
 
 /* ============================================
@@ -631,4 +967,207 @@ img, svg, video, canvas, audio, iframe, embed, object {
 .animate-gradient-x {
   background-size: 200% 200%;
   animation: gradient-x 3s ease infinite;
+}
+
+
+/* Market Selector Light Theme Override - High Specificity */
+div.market-selector-modal.fixed.rounded-2xl {
+  background-color: #A4A4B3 !important;
+  border: 1px solid rgba(47, 107, 255, 0.3) !important;
+}
+
+div.market-selector-sidebar {
+  background-color: #777790ff !important;
+}
+
+input.market-selector-input.rounded-lg {
+  background-color: #9494A3 !important;
+}
+
+button.market-selector-section-header {
+  background-color: #9494A3 !important;
+}
+
+div.market-selector-subcategory {
+  background-color: #8484A0 !important;
+}
+
+
+/* Right Panel Smooth Shadows */
+.bg-\[#A4A4B3\] {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Market Selector Button Shadow */
+button.bg-\[#A4A4B3\] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12),
+              0 1px 3px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+button.bg-\[#A4A4B3\]:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+              0 2px 6px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+
+/* Chart Toolbar Buttons Smooth Shadows */
+button.bg-gradient-to-br.from-\[#A4A4B3\],
+button[class*="bg-gradient-to-br"][class*="from-[#A4A4B3]"] {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12),
+              0 1px 3px rgba(0, 0, 0, 0.08),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+button.bg-gradient-to-br.from-\[#A4A4B3\]:hover,
+button[class*="bg-gradient-to-br"][class*="from-[#A4A4B3]"]:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15),
+              0 2px 5px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Chart Toolbar Container Shadow */
+div.bg-gradient-to-r.from-\[#B4B4C3\],
+div[class*="bg-gradient-to-r"][class*="from-[#B4B4C3]"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1),
+              0 1px 4px rgba(0, 0, 0, 0.06),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ============================================
+   STAT CARD COLOR OVERRIDES - MAXIMUM PRIORITY
+   These rules must come last to override all other color rules
+   ============================================ */
+
+/* Stat card icon colors - force with maximum specificity */
+.stat-card-wrapper .stat-card-icon svg,
+.stat-card-wrapper .stat-card-icon svg *,
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\] svg,
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\] svg,
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\] svg,
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\] svg,
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\] svg {
+  color: currentColor !important;
+  fill: currentColor !important;
+}
+
+/* Blue icons */
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\],
+.stat-card-wrapper .stat-card-icon.text-\[\#2F6BFF\] * {
+  color: #2F6BFF !important;
+}
+
+/* Orange icons */
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\],
+.stat-card-wrapper .stat-card-icon.text-\[\#FFA62B\] * {
+  color: #FFA62B !important;
+}
+
+/* Green icons */
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\],
+.stat-card-wrapper .stat-card-icon.text-\[\#10B981\] * {
+  color: #10B981 !important;
+}
+
+/* Purple icons */
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\],
+.stat-card-wrapper .stat-card-icon.text-\[\#A78BFA\] * {
+  color: #A78BFA !important;
+}
+
+/* Red icons */
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\],
+.stat-card-wrapper .stat-card-icon.text-\[\#EF4444\] * {
+  color: #EF4444 !important;
+}
+
+/* Change indicators - green for positive */
+.stat-card-wrapper .stat-card-change.text-green-400,
+.stat-card-wrapper .stat-card-change.text-green-400 *,
+.stat-card-wrapper .stat-card-change.text-green-400 svg,
+.stat-card-wrapper .stat-card-change.text-green-400 span {
+  color: #10B981 !important;
+}
+
+/* Change indicators - red for negative */
+.stat-card-wrapper .stat-card-change.text-red-400,
+.stat-card-wrapper .stat-card-change.text-red-400 *,
+.stat-card-wrapper .stat-card-change.text-red-400 svg,
+.stat-card-wrapper .stat-card-change.text-red-400 span {
+  color: #EF4444 !important;
+}
+
+/* Force icon color class */
+.force-icon-color {
+  color: currentColor !important;
+}
+
+/* Data attribute based color overrides - even higher specificity */
+[data-icon-color="blue"],
+[data-icon-color="blue"] *,
+[data-icon-color="blue"] svg {
+  color: #2F6BFF !important;
+}
+
+[data-icon-color="orange"],
+[data-icon-color="orange"] *,
+[data-icon-color="orange"] svg {
+  color: #FFA62B !important;
+}
+
+[data-icon-color="green"],
+[data-icon-color="green"] *,
+[data-icon-color="green"] svg {
+  color: #10B981 !important;
+}
+
+[data-icon-color="purple"],
+[data-icon-color="purple"] *,
+[data-icon-color="purple"] svg {
+  color: #A78BFA !important;
+}
+
+[data-icon-color="red"],
+[data-icon-color="red"] *,
+[data-icon-color="red"] svg {
+  color: #EF4444 !important;
+}
+
+/* Change indicators with data attributes */
+[data-change-type="positive"],
+[data-change-type="positive"] *,
+[data-change-type="positive"] svg,
+[data-change-value="true"] {
+  color: #10B981 !important;
+}
+
+[data-change-type="negative"],
+[data-change-type="negative"] *,
+[data-change-type="negative"] svg {
+  color: #EF4444 !important;
+}
+
+
+/* Global card header styling - apply to all cards */
+.glass-card-elevated h1,
+.glass-card-elevated h2,
+.glass-card-elevated h3,
+[class*="card"] h1.uppercase,
+[class*="card"] h2.uppercase,
+[class*="card"] h3.uppercase,
+[class*="Card"] h1.uppercase,
+[class*="Card"] h2.uppercase,
+[class*="Card"] h3.uppercase {
+  color: #E8B4B8 !important;
+  text-shadow: 0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3) !important;
+}
+
+/* Override any text-white on card headers */
+.glass-card-elevated .text-white.font-bold:not(.text-xs):not(.text-sm),
+[class*="card"] .text-white.uppercase,
+[class*="Card"] .text-white.uppercase {
+  color: #E8B4B8 !important;
+  text-shadow: 0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3) !important;
 }

@@ -10,6 +10,7 @@ import {
     TradingPost,
     TrendingTopics
 } from '@/components/ui/SocialComponentsEnhanced';
+import { getCurrentUser, mockUsers } from '@/features/social/data/mockSocialData';
 import {
     Activity,
     Bell,
@@ -22,7 +23,6 @@ import {
     Users
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, mockUsers } from '../data/mockSocialData';
 
 export default function TimelinePageEnhanced() {
     const navigate = useNavigate();
@@ -525,3 +525,5 @@ export default function TimelinePageEnhanced() {
         </PageContainer>
     );
 }
+
+

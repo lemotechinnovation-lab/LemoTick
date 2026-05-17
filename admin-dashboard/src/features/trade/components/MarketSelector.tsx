@@ -1,5 +1,6 @@
 import { ChevronDown, Search, Star, TrendingDown, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Market {
     symbol: string;
@@ -172,8 +173,21 @@ export default function MarketSelector({
         return saved ? JSON.parse(saved) : [];
     });
     const [isDerivedExpanded, setIsDerivedExpanded] = useState(true);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     const selectedMarket = MARKETS.find((m) => m.symbol === selectedSymbol);
+
+    // Update dropdown position when opened
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setDropdownPosition({
+                top: rect.bottom + 8,
+                left: rect.left
+            });
+        }
+    }, [isOpen]);
 
     const toggleFavorite = (symbol: string) => {
         const newFavorites = favorites.includes(symbol)
@@ -299,24 +313,25 @@ export default function MarketSelector({
         <div className="relative">
             {/* Trigger Button */}
             <button
+                ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-3 px-4 py-2.5 bg-[#16124A] hover:bg-[#16124A]/80 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#2F6BFF]/20 border border-[#2F6BFF]/20"
+                className="flex items-center gap-3 px-4 py-2.5 bg-[#A4A4B3] hover:bg-[#9494A3] rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-brand-blue/20 border border-brand-blue/30 backdrop-blur-sm"
             >
                 {/* Market Icon */}
-                <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-lg">
+                <div className="flex items-center justify-center w-10 h-10 bg-[#9494A3] rounded-lg shadow-lg shadow-brand-blue/20">
                     <span className="text-2xl">{selectedMarket?.icon || '📊'}</span>
                 </div>
 
                 {/* Market Info */}
                 <div className="flex flex-col items-start flex-1 min-w-[200px]">
-                    <span className="text-white font-semibold text-body-dashboard">
+                    <span className="text-white font-bold text-base tracking-wide">
                         {selectedMarket?.name || selectedSymbol}
                     </span>
                     <div className={`flex items-center gap-1.5 text-small-dashboard font-medium ${priceChangePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         <span className="text-gray-100 font-semibold font-tabular">
                             {currentPrice.toFixed(selectedSymbol === 'R_100' ? 2 : 5)}
                         </span>
-                        <span>-</span>
+                        <span className="text-gray-300">-</span>
                         <span className="font-semibold font-tabular">
                             {priceChange >= 0 ? '+' : ''}{priceChange.toFixed(selectedSymbol === 'R_100' ? 4 : 5)}
                         </span>
@@ -331,33 +346,39 @@ export default function MarketSelector({
                     </div>
                 </div>
 
-                <ChevronDown className={`w-4 h-4 text-gray-200 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Modal */}
-            {isOpen && (
+            {isOpen && createPortal(
                 <>
                     {/* Backdrop */}
-                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+                    <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
 
                     {/* Modal Content */}
-                    <div className="absolute top-full left-0 mt-2 w-[700px] h-[500px] bg-[#0B0633] border border-[#2F6BFF]/30 rounded-2xl shadow-2xl glow-primary z-50 flex overflow-hidden">
+                    <div
+                        className="market-selector-modal fixed w-[550px] h-[500px] backdrop-blur-xl border border-brand-blue/30 rounded-2xl shadow-2xl shadow-brand-blue/10 z-[9999] flex overflow-hidden"
+                        style={{
+                            top: `${dropdownPosition.top}px`,
+                            left: `${dropdownPosition.left}px`
+                        }}
+                    >
                         {/* Left Sidebar - Categories */}
-                        <div className="w-56 border-r border-[#2F6BFF]/20 flex flex-col bg-[#16124A]/50">
-                            <div className="px-4 py-3 border-b border-[#16124A]">
-                                <h3 className="text-white font-semibold text-data-label">Markets</h3>
+                        <div className="market-selector-sidebar w-48 border-r border-brand-blue/20 flex flex-col">
+                            <div className="px-4 py-3 border-b border-brand-blue/10">
+                                <h3 className="text-gray-900 font-bold text-sm">Markets</h3>
                             </div>
                             <div className="flex-1 overflow-y-auto py-2">
                                 {/* Favorites */}
                                 <button
                                     onClick={() => setSelectedCategory('favorites')}
-                                    className={`w-full px-4 py-2.5 text-left text-body-dashboard transition-colors flex items-center gap-3 ${selectedCategory === 'favorites'
-                                        ? 'bg-[#2F6BFF]/10 text-white border-l-2 border-[#2F6BFF]'
-                                        : 'text-gray-200 hover:text-gray-100 hover:bg-[#16124A]/30'
+                                    className={`w-full px-4 py-2.5 text-left text-sm transition-all flex items-center gap-3 ${selectedCategory === 'favorites'
+                                        ? 'bg-brand-blue/30 text-white border-l-2 border-brand-blue shadow-lg shadow-brand-blue/20'
+                                        : 'text-gray-800 hover:text-gray-900 hover:bg-brand-blue/10'
                                         }`}
                                 >
                                     <Star className="w-4 h-4" />
-                                    <span>Favorites</span>
+                                    <span className="font-semibold">Favorites</span>
                                 </button>
 
                                 {/* Derived with Dropdown */}
@@ -367,19 +388,19 @@ export default function MarketSelector({
                                             setSelectedCategory('derived');
                                             setIsDerivedExpanded(!isDerivedExpanded);
                                         }}
-                                        className={`w-full px-4 py-2.5 text-left text-body-dashboard transition-colors flex items-center gap-3 ${selectedCategory === 'derived'
-                                            ? 'bg-[#2F6BFF]/10 text-white border-l-2 border-[#2F6BFF]'
-                                            : 'text-gray-200 hover:text-gray-100 hover:bg-[#16124A]/30'
+                                        className={`w-full px-4 py-2.5 text-left text-sm transition-all flex items-center gap-3 ${selectedCategory === 'derived'
+                                            ? 'bg-brand-blue/30 text-white border-l-2 border-brand-blue shadow-lg shadow-brand-blue/20'
+                                            : 'text-gray-800 hover:text-gray-900 hover:bg-brand-blue/10'
                                             }`}
                                     >
                                         <span className="text-lg">🌐</span>
-                                        <span className="flex-1">Derived</span>
+                                        <span className="flex-1 font-semibold">Derived</span>
                                         <ChevronDown className={`w-3 h-3 transition-transform ${isDerivedExpanded && selectedCategory === 'derived' ? '' : '-rotate-90'}`} />
                                     </button>
 
                                     {/* Derived Subcategories */}
                                     {isDerivedExpanded && selectedCategory === 'derived' && (
-                                        <div className="bg-[#0B0633]/30">
+                                        <div className="market-selector-subcategory">
                                             {derivedSubcategories.map((subcat) => (
                                                 <button
                                                     key={subcat}
@@ -395,9 +416,9 @@ export default function MarketSelector({
                                                             }
                                                         }
                                                     }}
-                                                    className={`w-full px-8 py-2 text-left text-small-dashboard transition-colors ${activeScrollSection === subcat
-                                                        ? 'text-white bg-[#2F6BFF]/10'
-                                                        : 'text-gray-200 hover:text-gray-100 hover:bg-[#16124A]/30'
+                                                    className={`w-full px-8 py-2 text-left text-xs transition-all ${activeScrollSection === subcat
+                                                        ? 'text-white bg-brand-blue/20 font-bold'
+                                                        : 'text-gray-700 hover:text-gray-900 hover:bg-brand-blue/5 font-semibold'
                                                         }`}
                                                 >
                                                     {subcat}
@@ -412,9 +433,9 @@ export default function MarketSelector({
                                     <button
                                         key={category.id}
                                         onClick={() => setSelectedCategory(category.id)}
-                                        className={`w-full px-4 py-2.5 text-left text-body-dashboard transition-colors flex items-center gap-3 ${selectedCategory === category.id
-                                            ? 'bg-[#2F6BFF]/10 text-white border-l-2 border-[#2F6BFF]'
-                                            : 'text-gray-200 hover:text-gray-100 hover:bg-[#16124A]/30'
+                                        className={`w-full px-4 py-2.5 text-left text-sm transition-all flex items-center gap-3 ${selectedCategory === category.id
+                                            ? 'bg-brand-blue/30 text-white border-l-2 border-brand-blue shadow-lg shadow-brand-blue/20'
+                                            : 'text-gray-800 hover:text-gray-900 hover:bg-brand-blue/10'
                                             }`}
                                     >
                                         {typeof category.icon === 'string' ? (
@@ -422,7 +443,7 @@ export default function MarketSelector({
                                         ) : (
                                             <category.icon className="w-4 h-4" />
                                         )}
-                                        <span>{category.label}</span>
+                                        <span className="font-semibold">{category.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -431,15 +452,15 @@ export default function MarketSelector({
                         {/* Right Content */}
                         <div className="flex-1 flex flex-col">
                             {/* Header with Search */}
-                            <div className="px-4 py-3 border-b border-[#16124A]">
+                            <div className="px-4 py-3 border-b border-brand-blue/10">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300" />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600" />
                                     <input
                                         type="text"
-                                        placeholder="Search..."
+                                        placeholder="Search markets..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 bg-[#0B0633] border border-[#16124A] rounded text-white text-body-dashboard focus:outline-none focus:border-[#2F6BFF]"
+                                        className="market-selector-input w-full pl-10 pr-4 py-2 border border-brand-blue/20 rounded-lg text-white text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 transition-all font-medium placeholder:text-gray-300"
                                     />
                                 </div>
                             </div>
@@ -447,9 +468,10 @@ export default function MarketSelector({
                             {/* Markets List */}
                             <div className="flex-1 overflow-y-auto" onScroll={handleScroll} data-scroll-container>
                                 {selectedCategory === 'favorites' && favorites.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-gray-200">
-                                        <Star className="w-12 h-12 mb-2 opacity-30" />
-                                        <p className="text-body-dashboard">There are no favorites yet.</p>
+                                    <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                                        <Star className="w-12 h-12 mb-3 opacity-30" />
+                                        <p className="text-sm font-semibold">No favorites yet</p>
+                                        <p className="text-xs mt-1">Star markets to add them here</p>
                                     </div>
                                 ) : (
                                     sortedGroupedMarkets.map(([subcategory, markets]) => {
@@ -465,7 +487,7 @@ export default function MarketSelector({
                                                             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                                         }
                                                     }}
-                                                    className="w-full px-4 py-2 text-xs font-semibold text-gray-300 uppercase bg-[#0B0633]/50 sticky top-0 text-left hover:bg-[#0B0633]/50 transition-colors"
+                                                    className="market-selector-section-header w-full px-4 py-2.5 text-xs font-bold text-gray-800 uppercase sticky top-0 text-left hover:bg-[#8484A0] transition-all backdrop-blur-sm border-b border-brand-blue/10"
                                                 >
                                                     {sectionHeading}
                                                 </button>
@@ -476,14 +498,14 @@ export default function MarketSelector({
                                                             onSymbolChange(market.symbol);
                                                             setIsOpen(false);
                                                         }}
-                                                        className={`w-full px-4 py-3 text-left hover:bg-[#16124A]/50 transition-colors flex items-center justify-between group ${selectedSymbol === market.symbol ? 'bg-[#2F6BFF]/10' : ''
+                                                        className={`w-full px-4 py-3 text-left hover:bg-brand-blue/10 transition-all flex items-center justify-between group border-b border-brand-blue/5 ${selectedSymbol === market.symbol ? 'bg-brand-blue/30 shadow-lg shadow-brand-blue/10' : ''
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-3 flex-1">
                                                             <span className="text-xl">{market.icon}</span>
-                                                            <span className="text-white text-sm font-medium">{market.name}</span>
+                                                            <span className="text-gray-900 text-sm font-semibold">{market.name}</span>
                                                             {market.isClosed && (
-                                                                <span className="px-2 py-0.5 text-[10px] font-medium text-red-400 border border-red-400/30 rounded">
+                                                                <span className="px-2 py-0.5 text-[10px] font-bold text-red-600 border border-red-500/30 rounded bg-red-500/20">
                                                                     CLOSED
                                                                 </span>
                                                             )}
@@ -497,8 +519,8 @@ export default function MarketSelector({
                                                         >
                                                             <Star
                                                                 className={`w-4 h-4 ${favorites.includes(market.symbol)
-                                                                    ? 'fill-violet-400 text-violet-400'
-                                                                    : 'text-gray-200 hover:text-violet-400'
+                                                                    ? 'fill-accent-orange text-accent-orange'
+                                                                    : 'text-gray-400 hover:text-accent-orange'
                                                                     }`}
                                                             />
                                                         </button>
@@ -511,8 +533,11 @@ export default function MarketSelector({
                             </div>
                         </div>
                     </div>
-                </>
+                </>,
+                document.body
             )}
         </div>
     );
 }
+
+

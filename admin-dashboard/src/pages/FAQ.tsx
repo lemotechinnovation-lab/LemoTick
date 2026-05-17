@@ -280,75 +280,88 @@ function FAQ() {
     };
 
     return (
-        <PageContainer maxWidth="xl">
-            {/* Hero Section */}
-            <PublicPageHeader page="faq" />
+        <div className="min-h-screen bg-[#B1B1C1] relative overflow-hidden">
+            {/* Animated Background Effects - Matching Enhanced Pages */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-brand-blue/40 rounded-full blur-[150px] animate-pulse-slow"></div>
+                <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-accent-orange/40 rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-blue/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+            </div>
 
-            {/* FAQ Categories - 2 Column Grid */}
-            <PageSection spacing="normal">
-                {faqCategories.map((category, categoryIndex) => (
-                    <div key={categoryIndex} className="mb-16 last:mb-0">
-                        <h2 className="text-xl md:text-xl font-bold text-white mb-8 text-center uppercase">
-                            {category.category}
-                        </h2>
-                        <div className="grid md:grid-cols-2 gap-x-12 gap-y-1">
-                            {category.questions.map((faq) => (
-                                <div
-                                    key={faq.id}
-                                    className="border-b border-gray-700/50 py-6"
-                                >
-                                    <button
-                                        onClick={() => toggleQuestion(faq.id)}
-                                        className="w-full text-left flex items-start justify-between gap-4 group"
-                                    >
-                                        <span className="text-base font-medium text-white group-hover:text-[#2F6BFF] transition-colors flex-1">
-                                            <span className="text-gray-500 mr-2">—</span>
-                                            {faq.question}
-                                        </span>
-                                        {openIndex === faq.id ? (
-                                            <Minus className="w-4 h-4 text-[#2F6BFF] shrink-0 mt-1" />
-                                        ) : (
-                                            <Plus className="w-4 h-4 text-gray-400 group-hover:text-[#2F6BFF] shrink-0 mt-1 transition-colors" />
-                                        )}
-                                    </button>
+            <PageContainer maxWidth="xl" className="relative z-10">
+                {/* Hero Section */}
+                <PublicPageHeader page="faq" />
+
+                {/* FAQ Categories - 2 Column Grid */}
+                <PageSection spacing="normal">
+                    {faqCategories.map((category, categoryIndex) => (
+                        <div key={categoryIndex} className="mb-16 last:mb-0">
+                            <h2 className="text-xl md:text-xl font-bold text-white mb-8 text-center uppercase">
+                                {category.category}
+                            </h2>
+                            <div className="grid md:grid-cols-2 gap-x-12 gap-y-1">
+                                {category.questions.map((faq) => (
                                     <div
-                                        className={`overflow-hidden transition-all duration-300 ${openIndex === faq.id ? 'max-h-96 mt-4' : 'max-h-0'
-                                            }`}
+                                        key={faq.id}
+                                        className="border-b border-gray-700/50 py-6"
                                     >
-                                        <p className="text-gray-400 leading-relaxed text-sm pl-5">{faq.answer}</p>
+                                        <button
+                                            onClick={() => toggleQuestion(faq.id)}
+                                            className="w-full text-left flex items-start justify-between gap-4 group"
+                                        >
+                                            <span className="text-base font-medium text-white group-hover:text-brand-blue transition-colors flex-1">
+                                                <span className="text-gray-500 mr-2">—</span>
+                                                {faq.question}
+                                            </span>
+                                            {openIndex === faq.id ? (
+                                                <Minus className="w-4 h-4 text-brand-blue shrink-0 mt-1" />
+                                            ) : (
+                                                <Plus className="w-4 h-4 text-gray-400 group-hover:text-brand-blue shrink-0 mt-1 transition-colors" />
+                                            )}
+                                        </button>
+                                        <div
+                                            className={`overflow-hidden transition-all duration-300 ${openIndex === faq.id ? 'max-h-96 mt-4' : 'max-h-0'
+                                                }`}
+                                        >
+                                            <p className="text-gray-400 leading-relaxed text-sm pl-5">{faq.answer}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </PageSection>
+                    ))}
+                </PageSection>
 
-            {/* CTA Section */}
-            <PageSection spacing="normal">
-                <PageCard padding="md" className="text-center bg-gradient-to-r from-[#2F6BFF]/10 to-[#FFA62B]/10">
-                    <Stack spacing="md">
-                        <h2 className="text-2xl font-bold text-white">Still Have Questions?</h2>
-                        <p className="text-base text-gray-300">Our team is here to help</p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a
-                                href="mailto:support@lemotick.com"
-                                className="inline-block bg-[#16124A] hover:bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300"
-                            >
-                                Contact Support
-                            </a>
-                            <Link
-                                to="/register"
-                                className="inline-block bg-gradient-to-r from-[#2F6BFF] to-[#FFA62B] text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                            >
-                                Begin Your Evaluation
-                            </Link>
-                        </div>
-                    </Stack>
-                </PageCard>
-            </PageSection>
-        </PageContainer>
+                {/* CTA Section */}
+                <PageSection spacing="normal">
+                    <PageCard padding="md" className="text-center bg-gradient-to-r from-brand-blue/10 to-accent-orange/10">
+                        <Stack spacing="md">
+                            <h2 className="text-2xl font-bold text-white">Still Have Questions?</h2>
+                            <p className="text-base text-white">Our team is here to help</p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <a
+                                    href="mailto:support@lemotick.com"
+                                    className="inline-block bg-[#16124A] hover:bg-brand-blue/20 border border-brand-blue/30 hover:border-brand-blue text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300"
+                                >
+                                    Contact Support
+                                </a>
+                                <Link
+                                    to="/register"
+                                    className="inline-block bg-gradient-to-r from-brand-blue to-accent-orange text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                                >
+                                    Begin Your Evaluation
+                                </Link>
+                            </div>
+                        </Stack>
+                    </PageCard>
+                </PageSection>
+            </PageContainer>
+        </div>
     );
 }
 
 export default FAQ;
+
+
+
+

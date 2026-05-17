@@ -1,6 +1,7 @@
 import ModernBarChart from '@/components/charts/ModernBarChart';
+import { GlassCard, StatCard, StatusBadge } from '@/components/ui/DesignSystem';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ContentSection, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { ArrowDownLeft, ArrowUpRight, Calendar, ChevronLeft, ChevronRight, Download, Eye, Filter, RefreshCw, Search, TrendingUp, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -129,25 +130,25 @@ export default function TransactionsPage() {
         toast.success('Exporting transactions...');
     };
 
-    const getTypeColor = (type: string) => {
+    const getTypeBadgeType = (type: string): 'success' | 'error' | 'warning' | 'info' => {
         switch (type) {
-            case 'deposit': return 'text-green-400 bg-green-500/20';
-            case 'withdrawal': return 'text-[#FFA62B] bg-[#FFA62B]/20';
-            case 'trade': return 'text-[#2F6BFF] bg-[#2F6BFF]/20';
-            case 'fee': return 'text-red-400 bg-red-500/20';
-            case 'bonus': return 'text-purple-400 bg-purple-500/20';
-            case 'refund': return 'text-yellow-400 bg-yellow-500/20';
-            default: return 'text-gray-400 bg-gray-500/20';
+            case 'deposit': return 'success';
+            case 'withdrawal': return 'warning';
+            case 'trade': return 'info';
+            case 'fee': return 'error';
+            case 'bonus': return 'success';
+            case 'refund': return 'warning';
+            default: return 'info';
         }
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadgeType = (status: string): 'success' | 'error' | 'warning' | 'info' | 'pending' => {
         switch (status) {
-            case 'completed': return 'text-green-400 bg-green-500/20';
-            case 'pending': return 'text-yellow-400 bg-yellow-500/20';
-            case 'failed': return 'text-red-400 bg-red-500/20';
-            case 'cancelled': return 'text-gray-400 bg-gray-500/20';
-            default: return 'text-gray-400 bg-gray-500/20';
+            case 'completed': return 'success';
+            case 'pending': return 'pending';
+            case 'failed': return 'error';
+            case 'cancelled': return 'warning';
+            default: return 'info';
         }
     };
 
@@ -212,21 +213,21 @@ export default function TransactionsPage() {
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] disabled:opacity-50 transition-all duration-300 text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-blue/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-brand-blue disabled:opacity-50 transition-all duration-300 text-sm font-semibold"
                         >
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             <span>Refresh</span>
                         </button>
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] transition-all duration-300 text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-blue/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-brand-blue transition-all duration-300 text-sm font-semibold"
                         >
                             <Filter className="w-4 h-4" />
                             <span>Filters</span>
                         </button>
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-blue to-[#3B82F6] hover:from-[#3B82F6] hover:to-brand-blue text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-blue/30 text-sm font-semibold"
                         >
                             <Download className="w-4 h-4" />
                             <span>Export</span>
@@ -237,46 +238,54 @@ export default function TransactionsPage() {
 
             <Stack spacing="lg">
                 {/* Stats Cards */}
-                <PageGrid cols={4}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* Total Deposits */}
-                    <StatsCard
-                        icon={<ArrowDownLeft className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <StatCard
+                        icon={<ArrowDownLeft className="w-6 h-6" />}
                         value={`$${totalDeposits.toLocaleString()}`}
                         label="Total Deposits"
-                        iconColor="text-[#10B981]"
+                        variant="green"
+                        delay={0}
                     />
 
                     {/* Total Withdrawals */}
-                    <StatsCard
-                        icon={<ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <StatCard
+                        icon={<ArrowUpRight className="w-6 h-6" />}
                         value={`$${totalWithdrawals.toLocaleString()}`}
                         label="Total Withdrawals"
-                        iconColor="text-[#FFA62B]"
+                        variant="orange"
+                        delay={100}
                     />
 
                     {/* Total Fees */}
-                    <StatsCard
-                        icon={<X className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <StatCard
+                        icon={<X className="w-6 h-6" />}
                         value={`$${totalFees.toLocaleString()}`}
                         label="Total Fees"
-                        iconColor="text-[#EF4444]"
+                        variant="red"
+                        delay={200}
                     />
 
                     {/* Net Amount */}
-                    <StatsCard
-                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <StatCard
+                        icon={<TrendingUp className="w-6 h-6" />}
                         value={`$${Math.abs(netAmount).toLocaleString()}`}
                         label="Net Amount"
-                        iconColor={netAmount >= 0 ? 'text-[#10B981]' : 'text-[#EF4444]'}
-                        trend={{
+                        variant={netAmount >= 0 ? 'green' : 'red'}
+                        change={{
                             value: parseFloat(((netAmount / (totalDeposits || 1)) * 100).toFixed(1)),
                             isPositive: netAmount >= 0
                         }}
+                        delay={300}
                     />
-                </PageGrid>
+                </div>
 
                 {/* Transaction Flow Chart */}
-                <ContentSection title="Transaction Activity" description="Daily transaction volume over the last 7 days">
+                <GlassCard className="p-6">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Transaction Activity</h3>
+                        <p className="text-sm text-black font-medium">Daily transaction volume over the last 7 days</p>
+                    </div>
                     <div className="h-64">
                         <ModernBarChart
                             data={transactionFlowData}
@@ -284,7 +293,7 @@ export default function TransactionsPage() {
                             animate={true}
                         />
                     </div>
-                </ContentSection>
+                </GlassCard>
 
                 {/* Search and Filters */}
                 <div className="space-y-4">
@@ -299,19 +308,19 @@ export default function TransactionsPage() {
                                 setCurrentPage(1);
                             }}
                             placeholder="Search by description or reference..."
-                            className="w-full pl-12 pr-4 py-3 bg-[#16124A]/50 border border-[#2F6BFF]/20 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                            className="w-full pl-12 pr-4 py-3 bg-[#16124A]/50 border border-brand-blue/20 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:border-brand-blue transition-all duration-200"
                         />
                     </div>
 
                     {/* Filter Options */}
                     {showFilters && (
-                        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6 bg-[#16124A]/50 border border-[#2F6BFF]/20 rounded-xl animate-fadeIn w-full max-w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6 bg-[#16124A]/50 border border-brand-blue/20 rounded-xl animate-fadeIn w-full max-w-full">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-300 mb-2">Transaction Type</label>
                                 <select
                                     value={selectedType}
                                     onChange={(e) => handleFilterChange(setSelectedType, e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/20 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-brand-blue/20 rounded-xl text-sm text-white focus:outline-none focus:border-brand-blue transition-all duration-200"
                                 >
                                     <option value="all">All Types</option>
                                     <option value="deposit">Deposits</option>
@@ -327,7 +336,7 @@ export default function TransactionsPage() {
                                 <select
                                     value={selectedStatus}
                                     onChange={(e) => handleFilterChange(setSelectedStatus, e.target.value)}
-                                    className="w-full px-4 py-3 bg-[#0B0633] border border-[#2F6BFF]/20 rounded-xl text-sm text-white focus:outline-none focus:border-[#2F6BFF] transition-all duration-200"
+                                    className="w-full px-4 py-3 bg-[#0B0633] border border-brand-blue/20 rounded-xl text-sm text-white focus:outline-none focus:border-brand-blue transition-all duration-200"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="completed">Completed</option>
@@ -340,11 +349,11 @@ export default function TransactionsPage() {
                     )}
 
                     {/* Transactions Table */}
-                    <div className="bg-[#16124A]/50 rounded-2xl border border-[#2F6BFF]/20 shadow-xl overflow-hidden mt-4">
+                    <GlassCard variant="blue" className="overflow-hidden mt-4 p-0">
                         <div className="overflow-x-auto w-full">
                             <table className="w-full min-w-[600px]">
                                 <thead>
-                                    <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
+                                    <tr className="bg-gradient-to-r from-brand-blue/10 to-transparent border-b border-brand-blue/30">
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Date/Time</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Description</th>
                                         <th className="px-4 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Type</th>
@@ -354,16 +363,20 @@ export default function TransactionsPage() {
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[#2F6BFF]/10">
-                                    {paginatedTransactions.map((transaction) => (
-                                        <tr key={transaction.id} className="hover:bg-[#2F6BFF]/5 transition-colors duration-200">
+                                <tbody className="divide-y divide-brand-blue/10">
+                                    {paginatedTransactions.map((transaction, index) => (
+                                        <tr
+                                            key={transaction.id}
+                                            className="hover:bg-brand-blue/5 transition-colors duration-200 animate-fade-in-up"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
                                             <td className="px-4 py-4 whitespace-nowrap">
                                                 <div className="text-sm text-white font-semibold">{transaction.date}</div>
                                                 <div className="text-xs text-gray-400">{transaction.timestamp}</div>
                                             </td>
                                             <td className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 bg-[#0B0633] rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-8 h-8 bg-gradient-to-br from-brand-blue/20 to-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-brand-blue/30">
                                                         {getTypeIcon(transaction.type)}
                                                     </div>
                                                     <div>
@@ -373,14 +386,19 @@ export default function TransactionsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(transaction.type)}`}>
-                                                    {transaction.type.toUpperCase()}
-                                                </span>
+                                                <StatusBadge
+                                                    status={getTypeBadgeType(transaction.type)}
+                                                    label={transaction.type.toUpperCase()}
+                                                    size="md"
+                                                />
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}>
-                                                    {transaction.status.toUpperCase()}
-                                                </span>
+                                                <StatusBadge
+                                                    status={getStatusBadgeType(transaction.status)}
+                                                    label={transaction.status.toUpperCase()}
+                                                    pulse={transaction.status === 'pending'}
+                                                    size="md"
+                                                />
                                             </td>
                                             <td className="px-4 py-4 text-right whitespace-nowrap">
                                                 <div className={`text-sm font-bold ${transaction.amount >= 0 ? 'text-green-400' : 'text-white'}`}>
@@ -399,7 +417,7 @@ export default function TransactionsPage() {
                                                         setSelectedTransaction(transaction);
                                                         setIsViewModalOpen(true);
                                                     }}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-xs font-semibold transition-all duration-200 border border-[#2F6BFF]/30 hover:border-[#2F6BFF]"
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-blue/20 hover:bg-brand-blue/30 text-brand-blue text-xs font-semibold transition-all duration-200 border border-brand-blue/30 hover:border-brand-blue hover:shadow-lg hover:shadow-brand-blue/20"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                     <span>View</span>
@@ -419,7 +437,7 @@ export default function TransactionsPage() {
 
                         {/* Pagination */}
                         {filteredTransactions.length > 0 && (
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/5 to-transparent">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-brand-blue/20 bg-gradient-to-r from-brand-blue/5 to-transparent">
                                 <div className="text-sm text-gray-400">
                                     Showing {startIndex + 1} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
                                 </div>
@@ -427,7 +445,7 @@ export default function TransactionsPage() {
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                         disabled={currentPage === 1}
-                                        className="p-2 rounded-xl bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+                                        className="p-2 rounded-xl bg-[#0B0633] border border-brand-blue/30 text-gray-300 hover:bg-[#16124A] hover:border-brand-blue hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
                                     >
                                         <ChevronLeft className="w-5 h-5" />
                                     </button>
@@ -437,8 +455,8 @@ export default function TransactionsPage() {
                                                 key={page}
                                                 onClick={() => setCurrentPage(page)}
                                                 className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${currentPage === page
-                                                    ? 'bg-[#2F6BFF] text-white shadow-lg'
-                                                    : 'bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white'
+                                                    ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/30'
+                                                    : 'bg-[#0B0633] border border-brand-blue/30 text-gray-300 hover:bg-[#16124A] hover:border-brand-blue hover:text-white'
                                                     }`}
                                             >
                                                 {page}
@@ -448,14 +466,14 @@ export default function TransactionsPage() {
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                         disabled={currentPage === totalPages}
-                                        className="p-2 rounded-xl bg-[#0B0633] border border-[#2F6BFF]/30 text-gray-300 hover:bg-[#16124A] hover:border-[#2F6BFF] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+                                        className="p-2 rounded-xl bg-[#0B0633] border border-brand-blue/30 text-gray-300 hover:bg-[#16124A] hover:border-brand-blue hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
                                     >
                                         <ChevronRight className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </GlassCard>
                 </div>
             </Stack>
 
@@ -467,7 +485,7 @@ export default function TransactionsPage() {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 via-transparent to-[#FFA62B]/10">
                             <div className="flex items-center gap-2">
                                 <Eye size={16} className="text-[#2F6BFF]" />
-                                <h2 className="text-small-dashboard text-[#efdede] font-bold">Transaction Details</h2>
+                                <h2 className="text-lg text-[#FCB839] font-bold">Transaction Details</h2>
                             </div>
                             <button
                                 onClick={() => {
@@ -484,7 +502,7 @@ export default function TransactionsPage() {
                         <div className="p-3 space-y-3">
                             {/* Transaction Info */}
                             <div className="space-y-2">
-                                <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Transaction Information</h3>
+                                <h3 className="text-lg text-[#E8B4B8] font-bold uppercase">Transaction Information</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
                                     <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
                                         <div className="text-[10px] text-gray-400 mb-0.5">Transaction ID</div>
@@ -515,7 +533,7 @@ export default function TransactionsPage() {
 
                             {/* Amount Details */}
                             <div className="space-y-2">
-                                <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Amount Details</h3>
+                                <h3 className="text-lg text-[#E8B4B8] font-bold uppercase">Amount Details</h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-full">
                                     <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
                                         <div className="text-[10px] text-gray-400 mb-0.5">Amount</div>
@@ -540,7 +558,7 @@ export default function TransactionsPage() {
 
                             {/* Description */}
                             <div className="space-y-2">
-                                <h3 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Description</h3>
+                                <h3 className="text-lg text-[#E8B4B8] font-bold uppercase">Description</h3>
                                 <div className="p-2 bg-[#0B0633] border border-gray-700/50 rounded-md">
                                     <div className="text-micro text-[#efdede]">{selectedTransaction.description}</div>
                                 </div>
@@ -565,3 +583,5 @@ export default function TransactionsPage() {
         </PageContainer>
     );
 }
+
+

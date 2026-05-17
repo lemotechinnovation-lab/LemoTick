@@ -1,5 +1,6 @@
+import { GlassCard, StatCard } from '@/components/ui/DesignSystem';
 import { PageHeader, PageHeaderAction } from '@/components/ui/PageHeader';
-import { ContentSection, PageCard, PageContainer, PageGrid, PageSection, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import {
     AlertCircle,
     BarChart3,
@@ -161,6 +162,10 @@ function PortfolioPage() {
 
     return (
         <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+            {/* Animated Background Effects */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-brand-blue/15 via-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent-orange/10 via-pink-500/5 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none" style={{ animationDelay: '1s' }}></div>
+
             {/* Page Header */}
             <PageHeader
                 title="PORTFOLIOS"
@@ -173,67 +178,68 @@ function PortfolioPage() {
                 }
             />
 
-            {/* Overview Stats */}
-            <PageSection spacing="normal">
-                <PageGrid cols={4} gap="sm">
-                    <StatsCard
+            <Stack spacing="lg" className="relative z-10">
+                {/* Overview Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
+                    <StatCard
                         icon={<Briefcase className="w-6 h-6" />}
-                        value={stats.totalPortfolios}
+                        value={stats.totalPortfolios.toString()}
                         label="Total Portfolios"
-                        iconColor="text-[#2F6BFF]"
+                        variant="blue"
+                        delay={0}
                     />
-                    <StatsCard
+                    <StatCard
                         icon={<DollarSign className="w-6 h-6" />}
                         value={formatCurrency(stats.totalValue)}
                         label="Total Portfolio Value"
-                        trend={{ value: parseFloat(overallProfitPercentage), isPositive: stats.totalProfit >= 0 }}
-                        iconColor="text-[#10B981]"
+                        change={{ value: parseFloat(overallProfitPercentage), isPositive: stats.totalProfit >= 0 }}
+                        variant="green"
+                        delay={100}
                     />
-                    <StatsCard
+                    <StatCard
                         icon={<BarChart3 className="w-6 h-6" />}
                         value={formatCurrency(stats.totalInvestment)}
                         label="Total Investment"
-                        iconColor="text-[#8B5CF6]"
+                        variant="purple"
+                        delay={200}
                     />
-                    <StatsCard
+                    <StatCard
                         icon={<TrendingUp className="w-6 h-6" />}
                         value={formatCurrency(stats.totalProfit)}
                         label="Net Profit/Loss"
-                        trend={{ value: parseFloat(overallProfitPercentage), isPositive: stats.totalProfit >= 0 }}
-                        iconColor="text-[#F59E0B]"
+                        change={{ value: parseFloat(overallProfitPercentage), isPositive: stats.totalProfit >= 0 }}
+                        variant="orange"
+                        delay={300}
                     />
-                </PageGrid>
-            </PageSection>
+                </div>
 
-            {/* Portfolio Cards Grid - 3 COLUMN COMPACT */}
-            <PageSection spacing="normal">
-                <ContentSection
-                    title="Your Portfolios"
-                    actions={
-                        <button className="px-4 py-2 bg-[#16124A] border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-white rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+                {/* Portfolio Cards Grid - 3 COLUMN COMPACT */}
+                <div className="animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-[#E8B4B8] uppercase">Your Portfolios</h2>
+                        <button className="px-4 py-2 bg-[#16124A] border border-brand-blue/30 hover:border-brand-blue text-white rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2">
                             <PieChart className="w-4 h-4" />
                             Grid View
                         </button>
-                    }
-                >
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-                        {portfolios.map((portfolio) => (
-                            <div
-                                key={portfolio.id}
-                                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    </div>
 
-                                <div className="relative p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+                        {portfolios.map((portfolio, index) => (
+                            <GlassCard
+                                key={portfolio.id}
+                                variant="blue"
+                                className="p-0 animate-fade-in-up"
+                                style={{ animationDelay: `${index * 100}ms` }}
+                            >
+                                <div className="p-5">
                                     {/* Portfolio Header */}
                                     <div className="flex items-start gap-3 mb-4">
-                                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#2F6BFF]/30 group-hover:shadow-[#2F6BFF]/50 transition-all duration-300 group-hover:scale-110">
+                                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-brand-blue to-[#1E40AF] flex items-center justify-center shadow-lg shadow-brand-blue/30 group-hover:shadow-brand-blue/50 transition-all duration-300 group-hover:scale-110">
                                             <Briefcase className="w-6 h-6 text-white" />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#2F6BFF] transition-colors duration-300 truncate">
+                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-brand-blue transition-colors duration-300 truncate">
                                                 {portfolio.name}
                                             </h3>
                                             <div className="flex flex-wrap items-center gap-1.5">
@@ -249,7 +255,7 @@ function PortfolioPage() {
 
                                     {/* Description */}
                                     {portfolio.description && (
-                                        <p className="text-xs text-gray-400 mb-4 line-clamp-2">{portfolio.description}</p>
+                                        <p className="text-xs text-white font-medium mb-4 line-clamp-2">{portfolio.description}</p>
                                     )}
 
                                     {/* Current Value */}
@@ -260,7 +266,7 @@ function PortfolioPage() {
                                             <div className="text-2xl font-black text-white tracking-tight">
                                                 {formatCurrency(portfolio.currentValue)}
                                             </div>
-                                            <div className="text-xs font-medium text-gray-400">
+                                            <div className="text-xs font-medium text-white">
                                                 Initial: {formatCurrency(portfolio.initialInvestment)}
                                             </div>
                                         </div>
@@ -344,103 +350,99 @@ function PortfolioPage() {
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </GlassCard>
                         ))}
                     </div>
-                </ContentSection>
-            </PageSection>
+                </div>
 
-            {/* Performance Overview */}
-            <PageSection spacing="normal">
-                <PageGrid cols={2} gap="sm">
+                {/* Performance Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     {/* Asset Allocation */}
-                    <PageCard padding="md">
-                        <ContentSection
-                            title="Asset Allocation"
-                            actions={<PieChart className="w-5 h-5 text-[#2F6BFF]" />}
-                        >
-                            <div className="h-48 flex items-center justify-center text-gray-400 mb-6">
-                                <div className="text-center">
-                                    <PieChart className="w-12 h-12 mx-auto mb-4 text-[#2F6BFF]/50" />
-                                    <p>Chart visualization will be integrated here</p>
-                                </div>
+                    <GlassCard className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Asset Allocation</h3>
+                            <PieChart className="w-5 h-5 text-brand-blue" />
+                        </div>
+                        <div className="h-48 flex items-center justify-center text-white font-medium mb-6">
+                            <div className="text-center">
+                                <PieChart className="w-12 h-12 mx-auto mb-4 text-brand-blue/50" />
+                                <p>Chart visualization will be integrated here</p>
                             </div>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-[#2F6BFF]"></div>
-                                        <span className="text-sm text-gray-300">Stocks</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-white">45%</span>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-brand-blue"></div>
+                                    <span className="text-sm text-white font-medium">Stocks</span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
-                                        <span className="text-sm text-gray-300">Crypto</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-white">30%</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-                                        <span className="text-sm text-gray-300">Bonds</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-white">15%</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 rounded-full bg-[#8B5CF6]"></div>
-                                        <span className="text-sm text-gray-300">Commodities</span>
-                                    </div>
-                                    <span className="text-sm font-semibold text-white">10%</span>
-                                </div>
+                                <span className="text-sm font-semibold text-white">45%</span>
                             </div>
-                        </ContentSection>
-                    </PageCard>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
+                                    <span className="text-sm text-white font-medium">Crypto</span>
+                                </div>
+                                <span className="text-sm font-semibold text-white">30%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
+                                    <span className="text-sm text-white font-medium">Bonds</span>
+                                </div>
+                                <span className="text-sm font-semibold text-white">15%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-[#8B5CF6]"></div>
+                                    <span className="text-sm text-white font-medium">Commodities</span>
+                                </div>
+                                <span className="text-sm font-semibold text-white">10%</span>
+                            </div>
+                        </div>
+                    </GlassCard>
 
                     {/* Performance Metrics */}
-                    <PageCard padding="md">
-                        <ContentSection
-                            title="Performance Metrics"
-                            actions={<Percent className="w-5 h-5 text-[#2F6BFF]" />}
-                        >
-                            <div className="space-y-4">
-                                <div className="p-4 rounded-xl bg-[#0B0633]/50">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm text-gray-400">Overall ROI</span>
-                                        <span className={`text-lg font-bold ${parseFloat(overallProfitPercentage) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {parseFloat(overallProfitPercentage) >= 0 ? '+' : ''}{overallProfitPercentage}%
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-[#0B0633] rounded-full h-2">
-                                        <div
-                                            className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-2 rounded-full transition-all duration-500"
-                                            style={{ width: `${Math.min(Math.abs(parseFloat(overallProfitPercentage)) * 5, 100)}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
-                                    <span className="text-sm text-gray-400">Best Performing</span>
-                                    <span className="text-sm font-semibold text-white">Growth Portfolio</span>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
-                                    <span className="text-sm text-gray-400">Total Portfolios</span>
-                                    <span className="text-sm font-semibold text-white">{stats.totalPortfolios} Active</span>
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
-                                    <span className="text-sm text-gray-400">Average Risk</span>
-                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                                        Medium
+                    <GlassCard className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Performance Metrics</h3>
+                            <Percent className="w-5 h-5 text-brand-blue" />
+                        </div>
+                        <div className="space-y-4">
+                            <div className="p-4 rounded-xl bg-[#0B0633]/50">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-white font-medium">Overall ROI</span>
+                                    <span className={`text-lg font-bold ${parseFloat(overallProfitPercentage) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                        {parseFloat(overallProfitPercentage) >= 0 ? '+' : ''}{overallProfitPercentage}%
                                     </span>
                                 </div>
+                                <div className="w-full bg-[#0B0633] rounded-full h-2">
+                                    <div
+                                        className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-2 rounded-full transition-all duration-500"
+                                        style={{ width: `${Math.min(Math.abs(parseFloat(overallProfitPercentage)) * 5, 100)}%` }}
+                                    ></div>
+                                </div>
                             </div>
-                        </ContentSection>
-                    </PageCard>
-                </PageGrid>
-            </PageSection>
+
+                            <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
+                                <span className="text-sm text-white font-medium">Best Performing</span>
+                                <span className="text-sm font-semibold text-white">Growth Portfolio</span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
+                                <span className="text-sm text-white font-medium">Total Portfolios</span>
+                                <span className="text-sm font-semibold text-white">{stats.totalPortfolios} Active</span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 rounded-xl bg-[#0B0633]/50">
+                                <span className="text-sm text-white font-medium">Average Risk</span>
+                                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                                    Medium
+                                </span>
+                            </div>
+                        </div>
+                    </GlassCard>
+                </div>
+            </Stack>
 
             {/* Portfolio Modal */}
             {isModalOpen && (
@@ -449,8 +451,10 @@ function PortfolioPage() {
                     onClose={handleCloseModal}
                 />
             )}
-        </PageContainer>
+        </PageContainer >
     );
 }
 
 export default PortfolioPage;
+
+

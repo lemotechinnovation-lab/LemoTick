@@ -1,6 +1,7 @@
 import ModernBarChart from '@/components/charts/ModernBarChart';
+import { GlassCard, StatCard } from '@/components/ui/DesignSystem';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ContentSection, PageCard, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { Activity, AlertCircle, CheckCircle, Clock, Filter, Info, LogIn, LogOut, Settings, TrendingUp, User, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
@@ -161,8 +162,12 @@ function ActivityLogPage() {
     ];
 
     return (
-        <PageContainer maxWidth="xl">
-            <Stack spacing="lg">
+        <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+            {/* Animated Background Effects */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-brand-blue/15 via-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent-orange/10 via-pink-500/5 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none" style={{ animationDelay: '1s' }}></div>
+
+            <Stack spacing="lg" className="relative z-10">
                 {/* Page Header */}
                 <PageHeader
                     title="ACTIVITY LOG"
@@ -171,45 +176,52 @@ function ActivityLogPage() {
                 />
 
                 {/* Stats Cards */}
-                <PageGrid cols={4}>
-                    <StatsCard
-                        icon={<Activity className="w-5 h-5" />}
-                        value={stats.total}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
+                    <StatCard
+                        icon={<Activity className="w-6 h-6" />}
+                        value={stats.total.toString()}
                         label="All Activities"
-                        iconColor="text-[#2F6BFF]"
+                        variant="blue"
+                        delay={0}
                     />
-                    <StatsCard
-                        icon={<Clock className="w-5 h-5" />}
-                        value={stats.today}
+                    <StatCard
+                        icon={<Clock className="w-6 h-6" />}
+                        value={stats.today.toString()}
                         label="Recent Actions"
-                        iconColor="text-purple-400"
+                        variant="purple"
+                        delay={100}
                     />
-                    <StatsCard
-                        icon={<CheckCircle className="w-5 h-5" />}
-                        value={stats.success}
+                    <StatCard
+                        icon={<CheckCircle className="w-6 h-6" />}
+                        value={stats.success.toString()}
                         label="Completed"
-                        iconColor="text-green-400"
+                        variant="green"
+                        delay={200}
                     />
-                    <StatsCard
-                        icon={<XCircle className="w-5 h-5" />}
-                        value={stats.failed}
+                    <StatCard
+                        icon={<XCircle className="w-6 h-6" />}
+                        value={stats.failed.toString()}
                         label="Errors"
-                        iconColor="text-red-400"
+                        variant="red"
+                        delay={300}
                     />
-                </PageGrid>
+                </div>
 
                 {/* Activity Distribution Chart */}
-                <PageCard padding="lg">
-                    <h3 className="text-base font-semibold text-white mb-4">Activity Distribution by Type</h3>
-                    <ModernBarChart
-                        data={activityDistribution}
-                        height={180}
-                        showValues={true}
-                    />
-                </PageCard>
+                <GlassCard className="p-6 smooth-hover border border-brand-blue/30 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-accent-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 relative z-10 uppercase">Activity Distribution By Type</h3>
+                    <div className="relative z-10">
+                        <ModernBarChart
+                            data={activityDistribution}
+                            height={180}
+                            showValues={true}
+                        />
+                    </div>
+                </GlassCard>
 
                 {/* Filters */}
-                <div className="flex items-center gap-2 p-3 bg-[#16124A]/50 border border-[#2F6BFF]/20 rounded-xl">
+                <div className="flex items-center gap-2 p-3 bg-[#16124A]/50 border border-brand-blue/20 rounded-xl animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     <Filter className="w-4 h-4 text-gray-400" />
                     <div className="flex gap-2 flex-wrap">
                         {['all', 'login', 'logout', 'trade', 'deposit', 'withdrawal', 'settings', 'security'].map((filter) => (
@@ -217,7 +229,7 @@ function ActivityLogPage() {
                                 key={filter}
                                 onClick={() => setSelectedFilter(filter)}
                                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300 ${selectedFilter === filter
-                                    ? 'bg-[#2F6BFF] text-white'
+                                    ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/30'
                                     : 'bg-[#0B0633] text-gray-400 hover:text-white hover:bg-[#1E1854]'
                                     }`}
                             >
@@ -228,19 +240,21 @@ function ActivityLogPage() {
                 </div>
 
                 {/* Activity Cards - 3 COLUMN GRID */}
-                <ContentSection title="Activity Timeline">
+                <div className="animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-[#E8B4B8] uppercase">Activity Timeline</h2>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-                        {filteredActivities.map((activity) => {
+                        {filteredActivities.map((activity, index) => {
                             const typeColors = getTypeColor(activity.type);
                             return (
-                                <div
+                                <GlassCard
                                     key={activity.id}
-                                    className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1"
+                                    variant="blue"
+                                    className="p-0 animate-fade-in-up"
+                                    style={{ animationDelay: `${index * 100}ms` }}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                                    <div className="relative p-5">
+                                    <div className="p-5">
                                         {/* Header */}
                                         <div className="flex items-start gap-3 mb-4">
                                             <div className={`shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${typeColors.from} ${typeColors.to} flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 border ${typeColors.border}`}>
@@ -296,14 +310,16 @@ function ActivityLogPage() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </GlassCard>
                             );
                         })}
                     </div>
-                </ContentSection>
+                </div>
             </Stack>
         </PageContainer>
     );
 }
 
 export default ActivityLogPage;
+
+

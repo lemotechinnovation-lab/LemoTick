@@ -1,7 +1,8 @@
 import ModernAreaChart from '@/components/charts/ModernAreaChart';
 import ModernBarChart from '@/components/charts/ModernBarChart';
 import ModernDonutChart from '@/components/charts/ModernDonutChart';
-import { ProgressBar, StatusBadge, TableCell, TableRow } from '@/components/dashboard/DashboardComponents';
+import { ProgressBar, TableCell, TableRow } from '@/components/dashboard/DashboardComponents';
+import { StatCard, StatusBadge } from '@/components/ui/DesignSystem';
 import { LiveBadge, PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer, PageSection } from '@/components/ui/PageLayoutEnhanced';
 import {
@@ -164,10 +165,10 @@ function Dashboard() {
 
   // Quick actions
   const quickActions = [
-    { title: 'New Trade', icon: TrendingUp, link: '/trade', color: 'from-[#2F6BFF] to-[#3B82F6]', iconColor: 'text-[#2F6BFF]', borderColor: 'border-[#2F6BFF]/30', shadowColor: 'shadow-[#2F6BFF]/20' },
-    { title: 'My Robots', icon: Bot, link: '/my-robots', color: 'from-[#8B5CF6] to-[#A78BFA]', iconColor: 'text-[#8B5CF6]', borderColor: 'border-[#8B5CF6]/30', shadowColor: 'shadow-[#8B5CF6]/20' },
-    { title: 'Portfolio', icon: BarChart3, link: '/portfolio', color: 'from-[#10B981] to-[#34D399]', iconColor: 'text-[#10B981]', borderColor: 'border-[#10B981]/30', shadowColor: 'shadow-[#10B981]/20' },
-    { title: 'Transactions', icon: DollarSign, link: '/transactions', color: 'from-[#F59E0B] to-[#FBBF24]', iconColor: 'text-[#F59E0B]', borderColor: 'border-[#F59E0B]/30', shadowColor: 'shadow-[#F59E0B]/20' },
+    { title: 'New Trade', icon: TrendingUp, link: '/trade', color: 'from-[#2F6BFF] to-[#3B82F6]', iconColor: 'text-white', borderColor: 'border-[#2F6BFF]/30', shadowColor: 'shadow-[#2F6BFF]/20' },
+    { title: 'My Robots', icon: Bot, link: '/my-robots', color: 'from-[#8B5CF6] to-[#A78BFA]', iconColor: 'text-white', borderColor: 'border-[#8B5CF6]/30', shadowColor: 'shadow-[#8B5CF6]/20' },
+    { title: 'Portfolio', icon: BarChart3, link: '/portfolio', color: 'from-[#10B981] to-[#34D399]', iconColor: 'text-white', borderColor: 'border-[#10B981]/30', shadowColor: 'shadow-[#10B981]/20' },
+    { title: 'Transactions', icon: DollarSign, link: '/transactions', color: 'from-[#F59E0B] to-[#FBBF24]', iconColor: 'text-white', borderColor: 'border-[#F59E0B]/30', shadowColor: 'shadow-[#F59E0B]/20' },
   ];
 
   return (
@@ -192,82 +193,55 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Account Balance */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-brand-blue/20 to-[#4A7FFF]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <Wallet className="w-6 h-6 text-brand-blue group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-              </div>
-              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${userStats.profitChange >= 0 ? 'bg-green-500/20 text-green-400 border border-green-400/30' : 'bg-red-500/20 text-red-400 border border-red-400/30'}`}>
-                {userStats.profitChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(1)}%
-              </div>
-            </div>
-            <div className="relative z-10">
-              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Account Balance</p>
-              <p className="text-2xl font-bold text-white mb-1">{formatCurrency(userStats.totalBalance)}</p>
-              <p className="text-xs text-gray-500">Updated just now</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<Wallet className="w-6 h-6" />}
+            value={formatCurrency(userStats.totalBalance)}
+            label="Account Balance"
+            subtitle="Updated just now"
+            change={{
+              value: userStats.profitChange,
+              isPositive: userStats.profitChange >= 0
+            }}
+            variant="blue"
+            delay={0}
+          />
 
           {/* Total Profit */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-              </div>
-              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${userStats.profitChange >= 0 ? 'bg-green-500/20 text-green-400 border border-green-400/30' : 'bg-red-500/20 text-red-400 border border-red-400/30'}`}>
-                {userStats.profitChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(1)}%
-              </div>
-            </div>
-            <div className="relative z-10">
-              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Total Profit</p>
-              <p className="text-2xl font-bold text-green-400 mb-1">{formatCurrency(userStats.totalProfit)}</p>
-              <p className="text-xs text-gray-500">This month</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<TrendingUp className="w-6 h-6" />}
+            value={formatCurrency(userStats.totalProfit)}
+            label="Total Profit"
+            subtitle="This month"
+            change={{
+              value: userStats.profitChange,
+              isPositive: userStats.profitChange >= 0
+            }}
+            variant="green"
+            delay={100}
+          />
 
           {/* Win Rate */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-violet-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-6 h-6 text-purple-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-              </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-400/30">
-                {userStats.totalTrades} trades
-              </div>
-            </div>
-            <div className="relative z-10">
-              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Win Rate</p>
-              <p className="text-2xl font-bold text-purple-400 mb-1">{userStats.winRate.toFixed(1)}%</p>
-              <p className="text-xs text-gray-500">Above average</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<Activity className="w-6 h-6" />}
+            value={`${userStats.winRate.toFixed(1)}%`}
+            label="Win Rate"
+            subtitle="Above average"
+            badge={`${userStats.totalTrades} trades`}
+            variant="purple"
+            delay={200}
+          />
 
           {/* Active Bots */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-accent-orange/30 shadow-xl shadow-accent-orange/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-accent-orange/20 to-[#FFB84D]/20 flex items-center justify-center shadow-lg border border-accent-orange/30 group-hover:scale-110 transition-transform">
-                <Bot className="w-6 h-6 text-accent-orange group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-accent-orange/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
-              </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-400/30">
-                {userStats.botsChange > 0 ? `+${userStats.botsChange}` : 'Running'}
-              </div>
-            </div>
-            <div className="relative z-10">
-              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Active Bots</p>
-              <p className="text-2xl font-bold text-accent-orange mb-1">{userStats.activeBots}</p>
-              <p className="text-xs text-gray-500">All operational</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<Bot className="w-6 h-6" />}
+            value={userStats.activeBots.toString()}
+            label="Active Bots"
+            subtitle="All operational"
+            badge={userStats.botsChange > 0 ? `+${userStats.botsChange}` : 'Running'}
+            badgeVariant="success"
+            variant="orange"
+            delay={300}
+          />
         </div>
       </PageSection>
 
@@ -275,12 +249,12 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Account Status */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <CheckCircle className="w-6 h-6 text-green-400 relative z-20" style={{ opacity: 1 }} />
               </div>
               <StatusBadge status="active" pulse={true} />
             </div>
@@ -292,12 +266,12 @@ function Dashboard() {
           </div>
 
           {/* Drawdown Monitor */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-yellow-400/30 shadow-xl shadow-yellow-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-yellow-400/30 shadow-xl shadow-yellow-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center shadow-lg border border-yellow-400/30 group-hover:scale-110 transition-transform">
-                <AlertTriangle className="w-6 h-6 text-yellow-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center shadow-lg border border-yellow-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <AlertTriangle className="w-6 h-6 text-yellow-400 relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-400/30">
                 Safe zone
@@ -319,12 +293,12 @@ function Dashboard() {
           </div>
 
           {/* Profit Target */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingUp className="w-6 h-6 text-green-400 relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-400/30">
                 <TrendingUp className="w-3 h-3" />
@@ -350,17 +324,17 @@ function Dashboard() {
       {/* Advanced Trading Metrics - Enhanced */}
       <PageSection spacing="normal">
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-white mb-1">Advanced Trading Metrics</h2>
-          <p className="text-sm text-gray-400">Key performance indicators for professional traders</p>
+          <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Advanced Trading Metrics</h2>
+          <p className="text-sm text-black font-medium">Key performance indicators for professional traders</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Sharpe Ratio */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-3 relative z-10">
-              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#8B5CF6]/20 to-[#A78BFA]/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-5 h-5 text-[#8B5CF6] group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#8B5CF6]/20 to-[#A78BFA]/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <TrendingUp className="w-5 h-5 text-[#8B5CF6] relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Sharpe Ratio</div>
@@ -374,12 +348,12 @@ function Dashboard() {
           </div>
 
           {/* Max Drawdown */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-3 relative z-10">
-              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#EF4444]/20 to-[#F87171]/20 flex items-center justify-center shadow-lg border border-red-500/30 group-hover:scale-110 transition-transform">
-                <ArrowDownRight className="w-5 h-5 text-[#EF4444] group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#EF4444]/20 to-[#F87171]/20 flex items-center justify-center shadow-lg border border-red-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <ArrowDownRight className="w-5 h-5 text-[#EF4444] relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Max Drawdown</div>
@@ -393,12 +367,12 @@ function Dashboard() {
           </div>
 
           {/* Profit Factor */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-3 relative z-10">
-              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#2F6BFF]/20 to-[#4A90E2]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-5 h-5 text-[#2F6BFF] group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#2F6BFF]/20 to-[#4A90E2]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-[#2F6BFF] relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Profit Factor</div>
@@ -412,12 +386,12 @@ function Dashboard() {
           </div>
 
           {/* Total Trades */}
-          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-cyan-500/20 shadow-xl shadow-cyan-500/10 backdrop-blur-xl relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-cyan-500/20 shadow-xl shadow-cyan-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-3 relative z-10">
-              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#06B6D4]/20 to-[#22D3EE]/20 flex items-center justify-center shadow-lg border border-cyan-500/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-5 h-5 text-[#06B6D4] group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#06B6D4]/20 to-[#22D3EE]/20 flex items-center justify-center shadow-lg border border-cyan-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-[#06B6D4] relative z-20" style={{ opacity: 1 }} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Total Trades</div>
@@ -435,23 +409,23 @@ function Dashboard() {
       {/* Quick Actions - Enhanced */}
       <PageSection spacing="normal">
         <div className="mb-4">
-          <h2 className="text-lg font-bold text-white mb-1">Quick Actions</h2>
-          <p className="text-sm text-gray-400">Common tasks and shortcuts</p>
+          <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Quick Actions</h2>
+          <p className="text-sm text-black font-medium">Common tasks and shortcuts</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((action, idx) => (
             <button
               key={idx}
               onClick={() => navigate(action.link)}
-              className={`glass-card-elevated p-5 rounded-2xl smooth-hover border ${action.borderColor} shadow-xl ${action.shadowColor} backdrop-blur-xl relative overflow-hidden group animate-fade-in-up`}
+              className={`glass-card-elevated p-5 rounded-2xl smooth-hover border ${action.borderColor} shadow-xl ${action.shadowColor} backdrop-blur-xl relative group animate-fade-in-up`}
               style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border ${action.borderColor} group-hover:scale-110 transition-transform mb-3 mx-auto`}>
-                <action.icon className={`w-6 h-6 ${action.iconColor} group-hover:animate-pulse`} />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border ${action.borderColor} transition-transform mb-3 mx-auto`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <action.icon className={`w-6 h-6 ${action.iconColor} relative z-20 drop-shadow-lg`} strokeWidth={2.5} />
               </div>
-              <p className={`text-sm font-bold text-center transition-colors ${action.iconColor} group-hover:text-white`}>{action.title}</p>
+              <p className="text-sm font-bold text-center text-white transition-colors group-hover:text-white">{action.title}</p>
             </button>
           ))}
         </div>
@@ -459,12 +433,12 @@ function Dashboard() {
 
       {/* Recent Trades - Enhanced Table */}
       <PageSection spacing="normal">
-        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div>
-              <h2 className="text-lg font-bold text-white mb-1">Recent Trades</h2>
-              <p className="text-sm text-gray-400">Your latest trading activity</p>
+              <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Recent Trades</h2>
+              <p className="text-sm text-black font-medium">Your latest trading activity</p>
             </div>
             <Link to="/trade" className="text-brand-blue hover:text-accent-orange text-sm font-semibold transition-colors flex items-center gap-1 group/link">
               <span>View All</span>
@@ -521,14 +495,14 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trading Activity */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trading Activity</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trading Activity</h3>
             </div>
             <div className="space-y-3 sm:space-y-4 relative z-10">
               <div className="flex items-center justify-between">
@@ -551,14 +525,14 @@ function Dashboard() {
           </div>
 
           {/* Account Summary */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
-                <Wallet className="w-5 h-5 text-green-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Wallet className="w-5 h-5 text-green-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-green-400 transition-colors">Account Summary</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-green-400 transition-colors uppercase">Account Summary</h3>
             </div>
             <div className="space-y-3 sm:space-y-4 relative z-10">
               <div className="flex items-center justify-between">
@@ -590,14 +564,14 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trading Volume Chart */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trading Volume (Last 7 Days)</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trading Volume (Last 7 Days)</h3>
             </div>
             <div className="relative z-10">
               <ModernBarChart
@@ -613,19 +587,21 @@ function Dashboard() {
                 height={240}
                 showValues={true}
                 animate={true}
+                yAxisLabel="Trades"
+                xAxisLabel="Day of Week"
               />
             </div>
           </div>
 
           {/* Asset Allocation */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-5 h-5 text-purple-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-purple-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">Asset Allocation</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-purple-400 transition-colors uppercase">Asset Allocation</h3>
             </div>
             <div className="relative z-10">
               <ModernDonutChart
@@ -649,16 +625,16 @@ function Dashboard() {
 
       {/* Performance Trends - Enhanced */}
       <PageSection spacing="normal">
-        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           <div className="flex items-center gap-3 mb-4 relative z-10">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+              <TrendingUp className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Account Balance Trend (30 Days)</h3>
-              <p className="text-sm text-gray-400">Your account performance over the last month</p>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Account Balance Trend (30 Days)</h3>
+              <p className="text-sm text-black font-medium">Your account performance over the last month</p>
             </div>
           </div>
           <div className="relative z-10">
@@ -669,11 +645,14 @@ function Dashboard() {
                 55500, 56200, 55800, 56500, 57200, 56800, 57500, 58200,
                 57800, 58500, 59200, 58800, 59500, 60200
               ]}
+              xLabels={['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30']}
               color="#2F6BFF"
               gradientFrom="#2F6BFF"
               gradientTo="#FFA62B"
               height={280}
               showGrid={true}
+              yAxisLabel="Balance (R)"
+              xAxisLabel="Days"
               animate={true}
             />
           </div>
@@ -684,16 +663,16 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Trade Distribution */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Trade Distribution</h3>
-                <p className="text-sm text-gray-400">Pie chart visualization</p>
+                <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trade Distribution</h3>
+                <p className="text-sm text-black font-medium">Pie chart visualization</p>
               </div>
             </div>
             <div className="relative z-10">
@@ -729,14 +708,14 @@ function Dashboard() {
           </div>
 
           {/* Trade Statistics */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-5 h-5 text-purple-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-purple-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">Trade Statistics</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-purple-400 transition-colors uppercase">Trade Statistics</h3>
             </div>
             <div className="space-y-3 relative z-10">
               <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
@@ -768,14 +747,14 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Top 5 Best Trades */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-5 h-5 text-green-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingUp className="w-5 h-5 text-green-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-green-400 transition-colors">Top 5 Best Trades</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-green-400 transition-colors uppercase">Top 5 Best Trades</h3>
             </div>
             <div className="space-y-2 relative z-10">
               {[
@@ -808,14 +787,14 @@ function Dashboard() {
           </div>
 
           {/* Top 5 Worst Trades */}
-          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <div className="flex items-center gap-3 mb-4 relative z-10">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 flex items-center justify-center shadow-lg border border-red-500/30 group-hover:scale-110 transition-transform">
-                <TrendingDown className="w-5 h-5 text-red-400 group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 flex items-center justify-center shadow-lg border border-red-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingDown className="w-5 h-5 text-red-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <h3 className="text-lg font-bold text-white group-hover:text-red-400 transition-colors">Top 5 Worst Trades</h3>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-red-400 transition-colors uppercase">Top 5 Worst Trades</h3>
             </div>
             <div className="space-y-2 relative z-10">
               {[
@@ -851,17 +830,17 @@ function Dashboard() {
 
       {/* Live Activity Logs - Enhanced */}
       <PageSection spacing="normal">
-        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           <div className="flex items-center justify-between mb-4 relative z-10">
             <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 group-hover:scale-110 transition-transform">
-                <Activity className="w-5 h-5 text-brand-blue group-hover:animate-pulse" />
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">Live Activity Logs</h3>
-                <p className="text-sm text-gray-400">Real-time bot activity and trade execution</p>
+                <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Live Activity Logs</h3>
+                <p className="text-sm text-black font-medium">Real-time bot activity and trade execution</p>
               </div>
             </div>
             <StatusBadge status="active" label="LIVE" pulse={true} />
@@ -920,3 +899,10 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+
+
+
+
+
+

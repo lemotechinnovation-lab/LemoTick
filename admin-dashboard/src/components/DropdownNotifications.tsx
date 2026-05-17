@@ -243,3 +243,5 @@ function DropdownNotifications({ align }: DropdownNotificationsProps) {
 }
 
 export default DropdownNotifications;
+
+

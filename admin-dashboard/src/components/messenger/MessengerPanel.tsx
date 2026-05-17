@@ -400,3 +400,5 @@ export default function MessengerPanel({ isOpen, onClose }: MessengerPanelProps)
         </div>
     );
 }
+
+

@@ -67,3 +67,5 @@ export default function IndicatorControls({ indicators, onEdit, onDelete, chartH
         </>
     );
 }
+
+

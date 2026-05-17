@@ -1,6 +1,7 @@
 import ModernAreaChart from '@/components/charts/ModernAreaChart';
+import { GlassCard, StatCard, StatusBadge } from '@/components/ui/DesignSystem';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ContentSection, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { Activity, DollarSign, Eye, EyeOff, Plus, RefreshCw, TrendingUp, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -93,17 +94,25 @@ export default function AccountsPage() {
         setIsRefreshing(false);
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadgeType = (status: string): 'success' | 'warning' | 'error' | 'inactive' => {
         switch (status) {
-            case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
-            case 'suspended': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-            case 'closed': return 'bg-red-500/20 text-red-400 border-red-500/30';
-            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+            case 'active': return 'success';
+            case 'suspended': return 'warning';
+            case 'closed': return 'inactive';
+            default: return 'inactive';
         }
     };
 
+    const getAccountTypeBadgeType = (type: string): 'warning' | 'info' => {
+        return type === 'live' ? 'warning' : 'info';
+    };
+
+    const getAccountTypeBadgeTypeForStatus = (type: string): 'warning' | 'info' => {
+        return type === 'live' ? 'warning' : 'info';
+    };
+
     const getAccountTypeColor = (type: string) => {
-        return type === 'live' ? 'bg-[#FFA62B]/20 text-[#FFA62B] border-[#FFA62B]/30' : 'bg-[#2F6BFF]/20 text-[#2F6BFF] border-[#2F6BFF]/30';
+        return type === 'live' ? 'accent-orange' : 'brand-blue';
     };
 
     const activeAccounts = accounts.filter(acc => acc.status === 'active').length;
@@ -129,21 +138,21 @@ export default function AccountsPage() {
                         <button
                             onClick={handleRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] disabled:opacity-50 transition-all duration-300 text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-blue/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-brand-blue disabled:opacity-50 transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-brand-blue/20"
                         >
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             <span className="hidden sm:inline">Refresh</span>
                         </button>
                         <button
                             onClick={() => setShowBalances(!showBalances)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#2F6BFF]/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-[#2F6BFF] transition-all duration-300 text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-brand-blue/30 bg-[#16124A] text-gray-300 hover:bg-[#1E1854] hover:border-brand-blue transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-brand-blue/20"
                         >
                             {showBalances ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             <span className="hidden sm:inline">{showBalances ? 'Hide' : 'Show'}</span>
                         </button>
                         <button
                             onClick={() => setIsAddModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-semibold"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-blue to-[#3B82F6] hover:from-[#3B82F6] hover:to-brand-blue text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-blue/50 text-sm font-semibold"
                         >
                             <Plus className="w-4 h-4" />
                             <span>Add Account</span>
@@ -153,38 +162,46 @@ export default function AccountsPage() {
             />
 
             <Stack spacing="lg">
-                <PageGrid cols={4}>
-                    <StatsCard
-                        icon={<Users className="w-5 h-5 sm:w-6 sm:h-6" />}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard
+                        icon={<Users className="w-6 h-6" />}
                         value={`${activeAccounts}/${accounts.length}`}
                         label="Trading Accounts"
-                        iconColor="text-[#2F6BFF]"
+                        variant="blue"
+                        delay={0}
                     />
-                    <StatsCard
-                        icon={<DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />}
-                        value={showBalances ? `${totalBalance.toLocaleString()}` : '••••••'}
+                    <StatCard
+                        icon={<DollarSign className="w-6 h-6" />}
+                        value={showBalances ? `$${totalBalance.toLocaleString()}` : '••••••'}
                         label="Total Balance"
-                        iconColor="text-[#10B981]"
+                        variant="green"
+                        delay={100}
                     />
-                    <StatsCard
-                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
-                        value={showBalances ? `${totalProfit.toFixed(2)}` : '••••••'}
+                    <StatCard
+                        icon={<TrendingUp className="w-6 h-6" />}
+                        value={showBalances ? `$${totalProfit.toFixed(2)}` : '••••••'}
                         label="Net Profit"
-                        iconColor={totalProfit >= 0 ? 'text-[#10B981]' : 'text-[#EF4444]'}
-                        trend={{
+                        variant={totalProfit >= 0 ? 'green' : 'red'}
+                        change={{
                             value: parseFloat(((totalProfit / totalBalance) * 100).toFixed(1)),
                             isPositive: totalProfit >= 0
                         }}
+                        delay={200}
                     />
-                    <StatsCard
-                        icon={<Activity className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <StatCard
+                        icon={<Activity className="w-6 h-6" />}
                         value={`${avgWinRate.toFixed(1)}%`}
                         label="Win Rate"
-                        iconColor="text-[#F59E0B]"
+                        variant="orange"
+                        delay={300}
                     />
-                </PageGrid>
+                </div>
 
-                <ContentSection title="Account Balance Trend" description="Combined balance over the last 30 days">
+                <GlassCard className="p-6">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balance Trend</h3>
+                        <p className="text-sm text-black font-medium">Combined balance over the last 30 days</p>
+                    </div>
                     <div className="h-64">
                         <ModernAreaChart
                             data={balanceTrendData}
@@ -195,39 +212,47 @@ export default function AccountsPage() {
                             animate={true}
                         />
                     </div>
-                </ContentSection>
+                </GlassCard>
 
                 {/* Trading Accounts - 3 COLUMN GRID */}
-                <ContentSection title="Your Accounts">
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Your Accounts</h3>
+                            <p className="text-sm text-black font-medium">Manage your trading accounts</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-                        {accounts.map((account) => (
-                            <div
+                        {accounts.map((account, index) => (
+                            <GlassCard
                                 key={account.id}
-                                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1"
+                                variant="blue"
+                                className="p-0 animate-fade-in-up"
+                                style={{ animationDelay: `${index * 100}ms` }}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                                <div className="relative p-5">
+                                <div className="p-5">
                                     {/* Header */}
                                     <div className="flex items-start gap-3 mb-4">
-                                        <div className={`shrink-0 w-12 h-12 rounded-xl ${account.accountType === 'live' ? 'bg-gradient-to-br from-[#FFA62B] to-[#F59E0B]' : 'bg-gradient-to-br from-[#2F6BFF] to-[#1E40AF]'} flex items-center justify-center shadow-lg ${account.accountType === 'live' ? 'shadow-[#FFA62B]/30 group-hover:shadow-[#FFA62B]/50' : 'shadow-[#2F6BFF]/30 group-hover:shadow-[#2F6BFF]/50'} transition-all duration-300 group-hover:scale-110`}>
+                                        <div className={`shrink-0 w-12 h-12 rounded-xl ${account.accountType === 'live' ? 'bg-gradient-to-br from-accent-orange to-orange-600' : 'bg-gradient-to-br from-brand-blue to-blue-600'} flex items-center justify-center shadow-lg ${account.accountType === 'live' ? 'shadow-accent-orange/30 group-hover:shadow-accent-orange/50' : 'shadow-brand-blue/30 group-hover:shadow-brand-blue/50'} transition-all duration-300 group-hover:scale-110`}>
                                             <Users className="w-6 h-6 text-white" />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#2F6BFF] transition-colors duration-300 font-mono truncate">
+                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-brand-blue transition-colors duration-300 font-mono truncate">
                                                 {account.accountId}
                                             </h3>
                                             <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getAccountTypeColor(account.accountType)}`}>
-                                                    {account.accountType === 'live' ? '🔴 LIVE' : '🎮 DEMO'}
-                                                </span>
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getStatusColor(account.status)}`}>
-                                                    {account.status.toUpperCase()}
-                                                </span>
+                                                <StatusBadge
+                                                    status={getAccountTypeBadgeTypeForStatus(account.accountType)}
+                                                    label={account.accountType === 'live' ? '🔴 LIVE' : '🎮 DEMO'}
+                                                />
+                                                <StatusBadge
+                                                    status={getStatusBadgeType(account.status)}
+                                                    label={account.status.toUpperCase()}
+                                                    pulse={account.status === 'suspended'}
+                                                />
                                                 {account.winRate > 70 && (
-                                                    <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-[#10B981] to-[#059669] text-white shadow-lg shadow-[#10B981]/30">
+                                                    <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg shadow-green-500/30">
                                                         🏆 HIGH
                                                     </span>
                                                 )}
@@ -349,10 +374,10 @@ export default function AccountsPage() {
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </GlassCard>
                         ))}
                     </div>
-                </ContentSection>
+                </div>
             </Stack>
 
             <AddAccountModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
@@ -361,3 +386,5 @@ export default function AccountsPage() {
         </PageContainer>
     );
 }
+
+

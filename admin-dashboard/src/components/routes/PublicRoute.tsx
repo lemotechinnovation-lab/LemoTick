@@ -16,3 +16,5 @@ export default function PublicRoute({ children, redirectTo = '/dashboard' }: Pub
 
     return <>{children}</>;
 }
+
+

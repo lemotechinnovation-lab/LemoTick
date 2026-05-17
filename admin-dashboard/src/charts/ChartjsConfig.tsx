@@ -71,3 +71,4 @@ export const chartColors = {
     dark: getCssVariable('--color-border'),
   },
 };
+

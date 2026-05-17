@@ -8,6 +8,7 @@ import DropdownMessages from '@/components/DropdownMessages';
 import DropdownNotifications from '@/components/DropdownNotifications';
 import ProfileDropdown from '@/components/shared/ProfileDropdown';
 import { useAuthStore } from '@/features/auth/stores/authStore';
+import userAvatar from '@/images/user-36-05.jpg';
 
 // Feature flag to enable/disable social features
 const ENABLE_SOCIAL_FEATURES = import.meta.env.VITE_ENABLE_SOCIAL_FEATURES === 'true';
@@ -112,7 +113,7 @@ function Header({
                   user={{
                     name: `${user.firstName} ${user.lastName}`,
                     email: user.email,
-                    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(`${user.firstName} ${user.lastName}`)}&background=2F6BFF&color=fff&bold=true`,
+                    avatar: userAvatar,
                     verified: true,
                     role: 'Pro Trader'
                   }}
@@ -140,3 +141,5 @@ function Header({
 }
 
 export default Header;
+
+

@@ -1,13 +1,12 @@
 # ==============================================================
 # LemoTick – Bot Pipeline (Python Trading Bot)
-# CI:       Azure DevOps  (self-hosted agent on the same VM)
-# Registry: Docker Hub
-# Deploy:   Direct docker commands — agent runs ON the server
+# CI:       Azure DevOps  (self-hosted agent on Windows Server VM)
+# Deploy:   Windows Service using NSSM (Non-Sucking Service Manager)
 #
-# Container names:
-#   prod  →  lemotick-bot-prod
-#   qa    →  lemotick-bot-qa
-#   dev   →  lemotick-bot-dev
+# Service names:
+#   prod  →  LemoTick-Bot-Prod
+#   qa    →  LemoTick-Bot-QA
+#   dev   →  LemoTick-Bot-Dev
 # ==============================================================
 
 trigger:
@@ -20,7 +19,6 @@ trigger:
   paths:
     include:
       - lemotickautostart/**
-      - deployment/docker/Dockerfile.bot
       - azure-pipelines/bot-pipeline.yml
 
 pr:
@@ -32,7 +30,6 @@ pr:
   paths:
     include:
       - lemotickautostart/**
-      - deployment/docker/Dockerfile.bot
 
 pool:
   name: Default
@@ -40,52 +37,49 @@ pool:
     - agent.name -equals lemotick-vm
 
 variables:
-  DOCKER_REGISTRY: docker.io
-  IMAGE_REPOSITORY: $(DOCKERHUB_USERNAME)/lemotick-bot
-  IMAGE_TAG: $(Build.BuildId)
   IS_PR: $[eq(variables['Build.Reason'], 'PullRequest')]
 
 stages:
 # ==============================================================
-# STAGE 1 – Lint, Build & Push
+# STAGE 1 – Lint & Package
 # ==============================================================
   - stage: Build
-    displayName: '🔨 Build Bot Image'
+    displayName: 'Build Bot Package'
     variables:
       - group: lemotick-dev
     jobs:
-      - job: BuildImage
-        displayName: Lint · Docker build & push
+      - job: BuildPackage
+        displayName: Lint and Package bot files
         steps:
-          - script: python3 --version
+          - script: python --version
             displayName: Verify Python version
 
-          - script: |
-              python3 -m pip install flake8
-              python3 -m flake8 lemotickautostart/src \
-                --max-line-length=120 \
-                --exclude=__pycache__,.git \
-                --ignore=E501,W503
+          - script: python -m pip install flake8 && python -m flake8 lemotickautostart/src --max-line-length=120 --exclude=__pycache__,.git --ignore=E501,W503
             workingDirectory: $(Build.SourcesDirectory)
             displayName: Lint Python source
             continueOnError: true
 
-          - script: |
-              echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
-              docker build -t $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG) \
-                           -t $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(Build.SourceBranchName) \
-                           -f $(Build.SourcesDirectory)/deployment/docker/Dockerfile.bot \
-                           $(Build.SourcesDirectory)
-              docker push $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-              docker push $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(Build.SourceBranchName)
-            displayName: Build & push bot image → Docker Hub
+          - task: CopyFiles@2
+            displayName: Copy bot files to staging
             condition: and(succeeded(), eq(variables['IS_PR'], false))
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/lemotickautostart'
+              Contents: '**'
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/bot'
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish bot artifacts
+            condition: and(succeeded(), eq(variables['IS_PR'], false))
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/bot'
+              ArtifactName: 'bot'
+              publishLocation: 'Container'
 
 # ==============================================================
 # STAGE 2a – Deploy → Development  (branch: dev)
 # ==============================================================
   - stage: DeployDev
-    displayName: '🚀 Deploy → Development'
+    displayName: 'Deploy to Development'
     dependsOn: Build
     condition: |
       and(
@@ -97,43 +91,101 @@ stages:
       - group: lemotick-dev
     jobs:
       - deployment: DeployDev
-        displayName: Deploy lemotick-bot-dev
+        displayName: Deploy as Windows Service (Dev)
         environment: development
         strategy:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
-                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'bot'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                    docker stop lemotick-bot-dev 2>/dev/null || true
-                    docker rm   lemotick-bot-dev 2>/dev/null || true
-
-                    mkdir -p /var/log/lemotick-bot-dev
-                    docker run -d \
-                      --name lemotick-bot-dev \
-                      --restart unless-stopped \
-                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                      -e "ENV=development" \
-                      -v /var/log/lemotick-bot-dev:/app/logs \
-                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                    sleep 8
-                    docker ps --filter "name=lemotick-bot-dev" \
-                      --format "table {{.Names}}\t{{.Status}}"
-                    docker logs --tail 20 lemotick-bot-dev
-                    docker image prune -f
-                  displayName: Run lemotick-bot-dev
+                - powershell: |
+                    $serviceName = "LemoTick-Bot-Dev"
+                    $appPath = "C:\LemoTick\Bot\Dev"
+                    $logPath = "C:\lemotick-logs\bot-dev"
+                    $pythonExe = "python.exe"
+                    $mainScript = "main.py"
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    if (-not (Test-Path $logPath)) {
+                        New-Item -ItemType Directory -Path $logPath -Force
+                    }
+                    
+                    Write-Host "Stopping service if running"
+                    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                    if ($service) {
+                        if ($service.Status -eq 'Running') {
+                            Stop-Service -Name $serviceName -Force
+                            Start-Sleep -Seconds 3
+                        }
+                    }
+                    
+                    Write-Host "Copying bot files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\bot\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Installing Python dependencies"
+                    & python -m pip install -r "$appPath\requirements.txt" --quiet
+                    
+                    Write-Host "Creating environment file"
+                    "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8
+                    "BACKEND_API_URL=$(BACKEND_API_URL)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "BACKEND_API_KEY=$(BACKEND_API_KEY)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "ENV=development" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "LOG_PATH=$logPath" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    
+                    Write-Host "Installing Windows Service with NSSM"
+                    $nssmPath = "C:\nssm\nssm.exe"
+                    if (-not (Test-Path $nssmPath)) {
+                        Write-Host "Installing NSSM..."
+                        $nssmZip = "$env:TEMP\nssm.zip"
+                        Invoke-WebRequest -Uri "https://nssm.cc/release/nssm-2.24.zip" -OutFile $nssmZip
+                        Expand-Archive -Path $nssmZip -DestinationPath "$env:TEMP\nssm" -Force
+                        New-Item -ItemType Directory -Path "C:\nssm" -Force
+                        Copy-Item -Path "$env:TEMP\nssm\nssm-2.24\win64\nssm.exe" -Destination $nssmPath -Force
+                    }
+                    
+                    if ($service) {
+                        & $nssmPath stop $serviceName
+                        & $nssmPath remove $serviceName confirm
+                    }
+                    
+                    & $nssmPath install $serviceName $pythonExe "$appPath\$mainScript"
+                    & $nssmPath set $serviceName AppDirectory $appPath
+                    & $nssmPath set $serviceName DisplayName "LemoTick Trading Bot (Development)"
+                    & $nssmPath set $serviceName Description "LemoTick automated trading bot - Development environment"
+                    & $nssmPath set $serviceName Start SERVICE_AUTO_START
+                    & $nssmPath set $serviceName AppStdout "$logPath\service-stdout.log"
+                    & $nssmPath set $serviceName AppStderr "$logPath\service-stderr.log"
+                    & $nssmPath set $serviceName AppRotateFiles 1
+                    & $nssmPath set $serviceName AppRotateBytes 10485760
+                    
+                    Write-Host "Starting service"
+                    Start-Service -Name $serviceName
+                    Start-Sleep -Seconds 5
+                    
+                    $serviceStatus = Get-Service -Name $serviceName
+                    Write-Host "Service status: $($serviceStatus.Status)"
+                    
+                    if (Test-Path "$logPath\service-stdout.log") {
+                        Write-Host "Recent logs:"
+                        Get-Content "$logPath\service-stdout.log" -Tail 20
+                    }
+                  displayName: Deploy bot as Windows Service
 
 # ==============================================================
 # STAGE 2b – Deploy → QA  (branch: qa)
 # ==============================================================
   - stage: DeployQA
-    displayName: '🚀 Deploy → QA'
+    displayName: 'Deploy to QA'
     dependsOn: Build
     condition: |
       and(
@@ -145,44 +197,93 @@ stages:
       - group: lemotick-qa
     jobs:
       - deployment: DeployQA
-        displayName: Deploy lemotick-bot-qa
+        displayName: Deploy as Windows Service (QA)
         environment: staging
         strategy:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
-                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'bot'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                    docker stop lemotick-bot-qa 2>/dev/null || true
-                    docker rm   lemotick-bot-qa 2>/dev/null || true
-
-                    mkdir -p /var/log/lemotick-bot-qa
-                    docker run -d \
-                      --name lemotick-bot-qa \
-                      --restart unless-stopped \
-                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                      -e "ENV=staging" \
-                      -v /var/log/lemotick-bot-qa:/app/logs \
-                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                    sleep 8
-                    docker ps --filter "name=lemotick-bot-qa" \
-                      --format "table {{.Names}}\t{{.Status}}"
-                    docker logs --tail 20 lemotick-bot-qa
-                    docker image prune -f
-                  displayName: Run lemotick-bot-qa
+                - powershell: |
+                    $serviceName = "LemoTick-Bot-QA"
+                    $appPath = "C:\LemoTick\Bot\QA"
+                    $logPath = "C:\lemotick-logs\bot-qa"
+                    $pythonExe = "python.exe"
+                    $mainScript = "main.py"
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    if (-not (Test-Path $logPath)) {
+                        New-Item -ItemType Directory -Path $logPath -Force
+                    }
+                    
+                    Write-Host "Stopping service if running"
+                    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                    if ($service) {
+                        if ($service.Status -eq 'Running') {
+                            Stop-Service -Name $serviceName -Force
+                            Start-Sleep -Seconds 3
+                        }
+                    }
+                    
+                    Write-Host "Copying bot files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\bot\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Installing Python dependencies"
+                    & python -m pip install -r "$appPath\requirements.txt" --quiet
+                    
+                    Write-Host "Creating environment file"
+                    "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8
+                    "BACKEND_API_URL=$(BACKEND_API_URL)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "BACKEND_API_KEY=$(BACKEND_API_KEY)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "ENV=staging" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "LOG_PATH=$logPath" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    
+                    Write-Host "Installing Windows Service with NSSM"
+                    $nssmPath = "C:\nssm\nssm.exe"
+                    
+                    if ($service) {
+                        & $nssmPath stop $serviceName
+                        & $nssmPath remove $serviceName confirm
+                    }
+                    
+                    & $nssmPath install $serviceName $pythonExe "$appPath\$mainScript"
+                    & $nssmPath set $serviceName AppDirectory $appPath
+                    & $nssmPath set $serviceName DisplayName "LemoTick Trading Bot (QA)"
+                    & $nssmPath set $serviceName Description "LemoTick automated trading bot - QA environment"
+                    & $nssmPath set $serviceName Start SERVICE_AUTO_START
+                    & $nssmPath set $serviceName AppStdout "$logPath\service-stdout.log"
+                    & $nssmPath set $serviceName AppStderr "$logPath\service-stderr.log"
+                    & $nssmPath set $serviceName AppRotateFiles 1
+                    & $nssmPath set $serviceName AppRotateBytes 10485760
+                    
+                    Write-Host "Starting service"
+                    Start-Service -Name $serviceName
+                    Start-Sleep -Seconds 5
+                    
+                    $serviceStatus = Get-Service -Name $serviceName
+                    Write-Host "Service status: $($serviceStatus.Status)"
+                    
+                    if (Test-Path "$logPath\service-stdout.log") {
+                        Write-Host "Recent logs:"
+                        Get-Content "$logPath\service-stdout.log" -Tail 20
+                    }
+                  displayName: Deploy bot as Windows Service
 
 # ==============================================================
 # STAGE 2c – Deploy → Production  (branch: main / master)
-#   ⚠  Add Approval check on "production" Environment
 # ==============================================================
   - stage: DeployProd
-    displayName: '🚀 Deploy → Production'
+    displayName: 'Deploy to Production'
     dependsOn: Build
     condition: |
       and(
@@ -194,34 +295,84 @@ stages:
       - group: lemotick-prod
     jobs:
       - deployment: DeployProd
-        displayName: Deploy lemotick-bot-prod
+        displayName: Deploy as Windows Service (Prod)
         environment: production
         strategy:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    echo "$(DOCKERHUB_TOKEN)" | docker login -u $(DOCKERHUB_USERNAME) --password-stdin
-                    docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'bot'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                    docker stop lemotick-bot-prod 2>/dev/null || true
-                    docker rm   lemotick-bot-prod 2>/dev/null || true
-
-                    mkdir -p /var/log/lemotick-bot-prod
-                    docker run -d \
-                      --name lemotick-bot-prod \
-                      --restart unless-stopped \
-                      -e "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" \
-                      -e "BACKEND_API_URL=$(BACKEND_API_URL)" \
-                      -e "BACKEND_API_KEY=$(BACKEND_API_KEY)" \
-                      -e "ENV=production" \
-                      -v /var/log/lemotick-bot-prod:/app/logs \
-                      $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                    sleep 8
-                    docker ps --filter "name=lemotick-bot-prod" \
-                      --format "table {{.Names}}\t{{.Status}}"
-                    docker logs --tail 20 lemotick-bot-prod
-                    docker image prune -f
-                  displayName: Run lemotick-bot-prod
+                - powershell: |
+                    $serviceName = "LemoTick-Bot-Prod"
+                    $appPath = "C:\LemoTick\Bot\Prod"
+                    $logPath = "C:\lemotick-logs\bot-prod"
+                    $pythonExe = "python.exe"
+                    $mainScript = "main.py"
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    if (-not (Test-Path $logPath)) {
+                        New-Item -ItemType Directory -Path $logPath -Force
+                    }
+                    
+                    Write-Host "Stopping service if running"
+                    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                    if ($service) {
+                        if ($service.Status -eq 'Running') {
+                            Stop-Service -Name $serviceName -Force
+                            Start-Sleep -Seconds 3
+                        }
+                    }
+                    
+                    Write-Host "Copying bot files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\bot\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Installing Python dependencies"
+                    & python -m pip install -r "$appPath\requirements.txt" --quiet
+                    
+                    Write-Host "Creating environment file"
+                    "DERIV_API_TOKEN=$(DERIV_API_TOKEN)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8
+                    "BACKEND_API_URL=$(BACKEND_API_URL)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "BACKEND_API_KEY=$(BACKEND_API_KEY)" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "ENV=production" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    "LOG_PATH=$logPath" | Out-File -FilePath "$appPath\.env" -Encoding UTF8 -Append
+                    
+                    Write-Host "Installing Windows Service with NSSM"
+                    $nssmPath = "C:\nssm\nssm.exe"
+                    
+                    if ($service) {
+                        & $nssmPath stop $serviceName
+                        & $nssmPath remove $serviceName confirm
+                    }
+                    
+                    & $nssmPath install $serviceName $pythonExe "$appPath\$mainScript"
+                    & $nssmPath set $serviceName AppDirectory $appPath
+                    & $nssmPath set $serviceName DisplayName "LemoTick Trading Bot (Production)"
+                    & $nssmPath set $serviceName Description "LemoTick automated trading bot - Production environment"
+                    & $nssmPath set $serviceName Start SERVICE_AUTO_START
+                    & $nssmPath set $serviceName AppStdout "$logPath\service-stdout.log"
+                    & $nssmPath set $serviceName AppStderr "$logPath\service-stderr.log"
+                    & $nssmPath set $serviceName AppRotateFiles 1
+                    & $nssmPath set $serviceName AppRotateBytes 10485760
+                    
+                    Write-Host "Starting service"
+                    Start-Service -Name $serviceName
+                    Start-Sleep -Seconds 5
+                    
+                    $serviceStatus = Get-Service -Name $serviceName
+                    Write-Host "Service status: $($serviceStatus.Status)"
+                    
+                    if (Test-Path "$logPath\service-stdout.log") {
+                        Write-Host "Recent logs:"
+                        Get-Content "$logPath\service-stdout.log" -Tail 20
+                    }
+                  displayName: Deploy bot as Windows Service

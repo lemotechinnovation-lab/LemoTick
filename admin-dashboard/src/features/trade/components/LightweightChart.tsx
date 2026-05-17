@@ -33,29 +33,25 @@ export default function LightweightChart({ data, chartType, barSpacing = 20, act
             width: chartContainerRef.current.clientWidth,
             height: chartContainerRef.current.clientHeight,
             layout: {
-                background: { color: '#0B0633' },
-                textColor: '#E5E7EB',
+                background: { color: '#B4B4C3' },
+                textColor: '#1a1a2e',
                 fontSize: 11,
             },
             grid: {
-                vertLines: { color: '#16124A', visible: true },
-                horzLines: { color: '#16124A', visible: true },
+                vertLines: { color: '#D0D0D8', visible: true },
+                horzLines: { color: '#D0D0D8', visible: true },
             },
             crosshair: {
                 mode: 1,
                 vertLine: {
-                    color: '#2F6BFF',
-                    width: 1,
-                    style: 2,
+                    visible: false,
                 },
                 horzLine: {
-                    color: '#2F6BFF',
-                    width: 1,
-                    style: 2,
+                    visible: false,
                 },
             },
             rightPriceScale: {
-                borderColor: '#16124A',
+                borderColor: '#b8b8d0',
                 visible: true,
                 scaleMargins: {
                     top: 0.1,
@@ -63,7 +59,7 @@ export default function LightweightChart({ data, chartType, barSpacing = 20, act
                 },
             },
             timeScale: {
-                borderColor: '#16124A',
+                borderColor: '#b8b8d0',
                 timeVisible: true,
                 secondsVisible: false,
                 barSpacing: barSpacing,
@@ -756,5 +752,7 @@ export default function LightweightChart({ data, chartType, barSpacing = 20, act
         });
     }, [activeIndicators, data, indicatorSettings]);
 
-    return <div ref={chartContainerRef} className="w-full h-full [&_#tv-attr-logo]:hidden" />;
+    return <div ref={chartContainerRef} className="w-full h-full [&_#tv-attr-logo]:hidden" style={{ backgroundColor: '#B4B4C3' }} />;
 }
+
+

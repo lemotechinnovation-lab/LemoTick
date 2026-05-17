@@ -1,6 +1,7 @@
 import ModernBarChart from '@/components/charts/ModernBarChart';
+import { GlassCard, StatCard, StatusBadge } from '@/components/ui/DesignSystem';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ContentSection, PageContainer, PageGrid, Stack, StatsCard } from '@/components/ui/PageLayoutEnhanced';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { Activity, Building2, DollarSign, Eye, EyeOff, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -85,22 +86,22 @@ export default function BankAccountsPage() {
         setIsRefreshing(false);
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadgeType = (status: string): 'success' | 'error' | 'warning' | 'pending' | 'inactive' => {
         switch (status) {
-            case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
-            case 'pending': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-            case 'suspended': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-            case 'closed': return 'bg-red-500/20 text-red-400 border-red-500/30';
-            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+            case 'active': return 'success';
+            case 'pending': return 'pending';
+            case 'suspended': return 'warning';
+            case 'closed': return 'inactive';
+            default: return 'inactive';
         }
     };
 
-    const getAccountTypeColor = (type: string) => {
+    const getAccountTypeBadgeType = (type: string): 'info' | 'success' | 'warning' => {
         switch (type) {
-            case 'checking': return 'bg-[#2F6BFF]/20 text-[#2F6BFF] border-[#2F6BFF]/30';
-            case 'savings': return 'bg-green-500/20 text-green-400 border-green-500/30';
-            case 'business': return 'bg-[#FFA62B]/20 text-[#FFA62B] border-[#FFA62B]/30';
-            default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+            case 'checking': return 'info';
+            case 'savings': return 'success';
+            case 'business': return 'warning';
+            default: return 'info';
         }
     };
 
@@ -151,34 +152,42 @@ export default function BankAccountsPage() {
             />
 
             <Stack spacing="lg">
-                <PageGrid cols={4}>
-                    <StatsCard
-                        icon={<Building2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard
+                        icon={<Building2 className="w-6 h-6" />}
                         value={`${activeAccounts}/${accounts.length}`}
                         label="Bank Accounts"
-                        iconColor="text-[#2F6BFF]"
+                        variant="blue"
+                        delay={0}
                     />
-                    <StatsCard
-                        icon={<DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />}
-                        value={showBalances ? `${totalBalance.toLocaleString()}` : '••••••'}
+                    <StatCard
+                        icon={<DollarSign className="w-6 h-6" />}
+                        value={showBalances ? `$${totalBalance.toLocaleString()}` : '••••••'}
                         label="Total Balance"
-                        iconColor="text-[#10B981]"
+                        variant="green"
+                        delay={100}
                     />
-                    <StatsCard
-                        icon={<TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />}
-                        value={showBalances ? `${totalDeposits.toLocaleString()}` : '••••••'}
+                    <StatCard
+                        icon={<TrendingUp className="w-6 h-6" />}
+                        value={showBalances ? `$${totalDeposits.toLocaleString()}` : '••••••'}
                         label="Total Deposits"
-                        iconColor="text-[#10B981]"
+                        variant="green"
+                        delay={200}
                     />
-                    <StatsCard
-                        icon={<TrendingDown className="w-5 h-5 sm:w-6 sm:h-6" />}
-                        value={showBalances ? `${totalWithdrawals.toLocaleString()}` : '••••••'}
+                    <StatCard
+                        icon={<TrendingDown className="w-6 h-6" />}
+                        value={showBalances ? `$${totalWithdrawals.toLocaleString()}` : '••••••'}
                         label="Total Withdrawals"
-                        iconColor="text-[#F59E0B]"
+                        variant="orange"
+                        delay={300}
                     />
-                </PageGrid>
+                </div>
 
-                <ContentSection title="Account Balances" description="Compare balances across your linked accounts">
+                <GlassCard className="p-6">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balances</h3>
+                        <p className="text-sm text-black font-medium">Compare balances across your linked accounts</p>
+                    </div>
                     <div className="h-64">
                         <ModernBarChart
                             data={accountComparisonData}
@@ -186,42 +195,52 @@ export default function BankAccountsPage() {
                             animate={true}
                         />
                     </div>
-                </ContentSection>
+                </GlassCard>
 
                 {/* Bank Accounts - 3 COLUMN GRID */}
-                <ContentSection title="Your Bank Accounts">
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Your Bank Accounts</h3>
+                            <p className="text-sm text-black font-medium">Manage your linked bank accounts</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
-                        {accounts.map((account) => (
-                            <div
+                        {accounts.map((account, index) => (
+                            <GlassCard
                                 key={account.id}
-                                className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-[#1a1347]/90 via-[#16124A]/80 to-[#0B0633]/90 backdrop-blur-xl border border-white/10 hover:border-[#2F6BFF]/50 transition-all duration-500 hover:shadow-2xl hover:shadow-[#2F6BFF]/20 hover:-translate-y-1"
+                                variant="blue"
+                                className="p-0 animate-fade-in-up"
+                                style={{ animationDelay: `${index * 100}ms` }}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/5 to-[#2F6BFF]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                                <div className="relative p-5">
+                                <div className="p-5">
                                     {/* Header */}
                                     <div className="flex items-start gap-3 mb-4">
-                                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#2F6BFF] to-[#1E40AF] flex items-center justify-center shadow-lg shadow-[#2F6BFF]/30 group-hover:shadow-[#2F6BFF]/50 transition-all duration-300 group-hover:scale-110">
+                                        <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-brand-blue to-[#1E40AF] flex items-center justify-center shadow-lg shadow-brand-blue/30 group-hover:shadow-brand-blue/50 transition-all duration-300 group-hover:scale-110">
                                             <Building2 className="w-6 h-6 text-white" />
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#2F6BFF] transition-colors duration-300 truncate">
+                                            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-brand-blue transition-colors duration-300 truncate">
                                                 {account.accountName}
                                             </h3>
                                             <div className="flex flex-wrap items-center gap-1.5 mb-2">
                                                 {account.isDefault && (
-                                                    <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] text-white shadow-lg shadow-[#2F6BFF]/30 animate-pulse">
+                                                    <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-gradient-to-r from-brand-blue to-[#3B82F6] text-white shadow-lg shadow-brand-blue/30 animate-pulse">
                                                         ⭐ DEFAULT
                                                     </span>
                                                 )}
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getAccountTypeColor(account.accountType)}`}>
-                                                    {account.accountType.toUpperCase()}
-                                                </span>
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-bold border backdrop-blur-sm ${getStatusColor(account.status)}`}>
-                                                    {account.status.toUpperCase()}
-                                                </span>
+                                                <StatusBadge
+                                                    status={getAccountTypeBadgeType(account.accountType)}
+                                                    label={account.accountType.toUpperCase()}
+                                                    size="sm"
+                                                />
+                                                <StatusBadge
+                                                    status={getStatusBadgeType(account.status)}
+                                                    label={account.status.toUpperCase()}
+                                                    pulse={account.status === 'pending'}
+                                                    size="sm"
+                                                />
                                             </div>
                                             <div className="text-xs text-gray-400 truncate">
                                                 <span className="font-medium text-gray-300">{account.bankName}</span>
@@ -233,10 +252,10 @@ export default function BankAccountsPage() {
 
                                     {/* Balance */}
                                     <div className="relative mb-4">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#10B981]/20 to-[#059669]/20 rounded-xl blur-lg" />
-                                        <div className="relative px-4 py-3 rounded-xl bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 border border-[#10B981]/30 backdrop-blur-sm">
-                                            <div className="text-[10px] font-semibold text-[#10B981] mb-0.5 tracking-wider uppercase">Balance</div>
-                                            <div className="text-2xl font-black text-white tracking-tight">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl blur-lg" />
+                                        <div className="relative px-4 py-3 rounded-xl bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-400/30 backdrop-blur-sm">
+                                            <div className="text-[10px] font-semibold text-green-400 mb-0.5 tracking-wider uppercase">Balance</div>
+                                            <div className="text-2xl font-black text-white tracking-tight drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                                                 {showBalances ? `$${account.balance.toLocaleString()}` : '••••••'}
                                             </div>
                                             <div className="text-xs font-medium text-gray-400">{account.currency}</div>
@@ -245,37 +264,37 @@ export default function BankAccountsPage() {
 
                                     {/* Metrics */}
                                     <div className="grid grid-cols-2 gap-2 mb-4">
-                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#10B981]/10 to-[#059669]/5 border border-[#10B981]/20 hover:border-[#10B981]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#10B981]/10 rounded-full blur-xl group-hover/metric:bg-[#10B981]/20 transition-all duration-300" />
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-400/20 hover:border-green-400/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/10 rounded-full blur-xl group-hover/metric:bg-green-500/20 transition-all duration-300" />
                                             <div className="relative">
                                                 <div className="flex items-center gap-1.5 mb-1">
-                                                    <TrendingUp className="w-3 h-3 text-[#10B981]" />
+                                                    <TrendingUp className="w-3 h-3 text-green-400" />
                                                     <div className="text-[10px] font-semibold text-gray-400 uppercase">Deposits</div>
                                                 </div>
-                                                <div className="text-base font-bold text-[#10B981] truncate">
+                                                <div className="text-base font-bold text-green-400 truncate">
                                                     {showBalances ? `$${account.totalDeposits.toLocaleString()}` : '••••'}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#F59E0B]/10 to-[#D97706]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#F59E0B]/10 rounded-full blur-xl group-hover/metric:bg-[#F59E0B]/20 transition-all duration-300" />
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-accent-orange/10 to-orange-600/5 border border-accent-orange/20 hover:border-accent-orange/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-accent-orange/10 rounded-full blur-xl group-hover/metric:bg-accent-orange/20 transition-all duration-300" />
                                             <div className="relative">
                                                 <div className="flex items-center gap-1.5 mb-1">
-                                                    <TrendingDown className="w-3 h-3 text-[#F59E0B]" />
+                                                    <TrendingDown className="w-3 h-3 text-accent-orange" />
                                                     <div className="text-[10px] font-semibold text-gray-400 uppercase">Withdrawals</div>
                                                 </div>
-                                                <div className="text-base font-bold text-[#F59E0B] truncate">
+                                                <div className="text-base font-bold text-accent-orange truncate">
                                                     {showBalances ? `$${account.totalWithdrawals.toLocaleString()}` : '••••'}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 to-[#1E40AF]/5 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#2F6BFF]/10 rounded-full blur-xl group-hover/metric:bg-[#2F6BFF]/20 transition-all duration-300" />
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-brand-blue/10 to-blue-600/5 border border-brand-blue/20 hover:border-brand-blue/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-brand-blue/10 rounded-full blur-xl group-hover/metric:bg-brand-blue/20 transition-all duration-300" />
                                             <div className="relative">
                                                 <div className="flex items-center gap-1.5 mb-1">
-                                                    <Activity className="w-3 h-3 text-[#2F6BFF]" />
+                                                    <Activity className="w-3 h-3 text-brand-blue" />
                                                     <div className="text-[10px] font-semibold text-gray-400 uppercase">Activity</div>
                                                 </div>
                                                 <div className="text-base font-bold text-white truncate">
@@ -284,11 +303,11 @@ export default function BankAccountsPage() {
                                             </div>
                                         </div>
 
-                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-[#8B5CF6]/10 to-[#7C3AED]/5 border border-[#8B5CF6]/20 hover:border-[#8B5CF6]/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-[#8B5CF6]/10 rounded-full blur-xl group-hover/metric:bg-[#8B5CF6]/20 transition-all duration-300" />
+                                        <div className="group/metric relative overflow-hidden p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 hover:border-purple-500/40 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-purple-500/10 rounded-full blur-xl group-hover/metric:bg-purple-500/20 transition-all duration-300" />
                                             <div className="relative">
                                                 <div className="flex items-center gap-1.5 mb-1">
-                                                    <Building2 className="w-3 h-3 text-[#8B5CF6]" />
+                                                    <Building2 className="w-3 h-3 text-purple-400" />
                                                     <div className="text-[10px] font-semibold text-gray-400 uppercase">Type</div>
                                                 </div>
                                                 <div className="text-base font-bold text-white capitalize truncate">
@@ -305,9 +324,9 @@ export default function BankAccountsPage() {
                                                 setSelectedAccount(account);
                                                 setIsViewModalOpen(true);
                                             }}
-                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg border border-[#2F6BFF]/30 bg-[#16124A]/50 backdrop-blur-sm text-gray-300 hover:text-white hover:border-[#2F6BFF] transition-all duration-300 text-xs font-bold hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg border border-brand-blue/30 bg-[#16124A]/50 backdrop-blur-sm text-gray-300 hover:text-white hover:border-brand-blue transition-all duration-300 text-xs font-bold hover:shadow-lg hover:shadow-brand-blue/20"
                                         >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-[#2F6BFF]/0 via-[#2F6BFF]/10 to-[#2F6BFF]/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
+                                            <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/0 via-brand-blue/10 to-brand-blue/0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700" />
                                             <span className="relative flex items-center justify-center gap-1.5">
                                                 <Eye className="w-3.5 h-3.5" />
                                                 View
@@ -318,7 +337,7 @@ export default function BankAccountsPage() {
                                                 setSelectedAccount(account);
                                                 setIsManageModalOpen(true);
                                             }}
-                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg bg-gradient-to-r from-[#2F6BFF] via-[#3B82F6] to-[#2F6BFF] bg-size-200 bg-pos-0 hover:bg-pos-100 text-white transition-all duration-500 shadow-lg shadow-[#2F6BFF]/30 hover:shadow-xl hover:shadow-[#2F6BFF]/50 text-xs font-bold hover:scale-[1.02]"
+                                            className="flex-1 group/btn relative overflow-hidden px-3 py-2.5 rounded-lg bg-gradient-to-r from-brand-blue via-[#3B82F6] to-brand-blue bg-size-200 bg-pos-0 hover:bg-pos-100 text-white transition-all duration-500 shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/50 text-xs font-bold hover:scale-[1.02]"
                                         >
                                             <span className="relative flex items-center justify-center gap-1.5">
                                                 <Building2 className="w-3.5 h-3.5" />
@@ -327,10 +346,10 @@ export default function BankAccountsPage() {
                                         </button>
                                     </div>
                                 </div>
-                            </div>
+                            </GlassCard>
                         ))}
                     </div>
-                </ContentSection>
+                </div>
             </Stack>
 
             <LinkAccountModal
@@ -356,3 +375,5 @@ export default function BankAccountsPage() {
         </PageContainer>
     );
 }
+
+

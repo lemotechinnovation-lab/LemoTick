@@ -1,4 +1,5 @@
-import { ChevronRight, Info, Percent, TrendingUp } from 'lucide-react';
+import { GlassCard } from '@/components/ui/DesignSystem';
+import { Bot, ChevronRight, Info, Percent, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 
 interface BotSettings {
@@ -66,62 +67,90 @@ export default function BotSettingsPanel({ onStartBot }: BotSettingsPanelProps) 
     const getStrategyRisk = (id: string) => strategies.find(s => s.id === id)?.risk || '';
 
     return (
-        <div className="bg-gradient-to-b from-[#0B0633] via-[#16124A] to-[#0B0633] shrink-0 flex flex-col h-full relative overflow-hidden w-full">
-            {/* Animated Background Effects */}
-            <div className="absolute inset-0 opacity-30 pointer-events-none">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#2F6BFF] rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#FFA62B] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-            </div>
+        <div className="w-full h-full flex flex-col p-1.5 space-y-1 overflow-hidden">
+            {/* Enhanced Header - Micro Compact */}
+            <div className="glass-card-elevated p-1.5 rounded-md border border-purple-500/30 shadow-lg shadow-purple-500/20 backdrop-blur-xl relative overflow-hidden group hover:border-purple-400/50 transition-all">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/5 to-accent-orange/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(168,85,247,0.1),transparent)]"></div>
 
-            {/* Header with Glow */}
-            <div className="px-2 py-2 border-b border-[#2F6BFF]/30 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent relative z-10 shrink-0">
-                <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-[#2F6BFF] rounded-full animate-pulse shadow-lg shadow-[#2F6BFF]/50"></div>
-                    <h2 className="text-white text-xs font-semibold">Robot's settings</h2>
-                    <div className="ml-auto">
-                        <span className="text-[10px] text-[#2F6BFF] font-semibold animate-pulse">● READY</span>
+                <div className="relative z-10 space-y-1">
+                    {/* Title Section */}
+                    <div className="flex items-center gap-1">
+                        <div className="relative w-5 h-5 rounded-md bg-gradient-to-br from-purple-500/50 to-pink-500/50 flex items-center justify-center shadow-lg shadow-purple-500/40 border border-purple-400/30">
+                            <Bot className="w-2.5 h-2.5 text-purple-300 drop-shadow-[0_0_6px_rgba(168,85,247,0.6)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-[9px] font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-accent-orange bg-clip-text text-transparent truncate">
+                                Trading Robots
+                            </h1>
+                        </div>
+                    </div>
+
+                    {/* Quick Stats Grid - Micro Compact */}
+                    <div className="grid grid-cols-3 gap-0.5">
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-purple-400/30 backdrop-blur-sm group/stat cursor-pointer hover:border-purple-400/50 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(168,85,247,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <Bot className="w-2 h-2 text-purple-400 group-hover/stat:scale-110 transition-transform drop-shadow-[0_0_4px_rgba(168,85,247,0.6)]" />
+                                <p className="text-[7px] text-gray-400 font-medium">Active</p>
+                                <p className="text-[8px] font-bold text-purple-400 tabular-nums">0</p>
+                            </div>
+                        </div>
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-green-400/30 backdrop-blur-sm group/stat cursor-pointer hover:border-green-400/50 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <TrendingUp className="w-2 h-2 text-green-400 group-hover/stat:scale-110 transition-transform drop-shadow-[0_0_4px_rgba(34,197,94,0.6)]" />
+                                <p className="text-[7px] text-gray-400 font-medium">Profit</p>
+                                <p className="text-[8px] font-bold text-green-400 tabular-nums">$2.4K</p>
+                            </div>
+                        </div>
+                        <div className="glass-card-elevated p-0.5 rounded-sm border border-brand-blue/30 backdrop-blur-sm group/stat cursor-pointer hover:border-brand-blue/50 transition-all bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.15),transparent)]">
+                            <div className="flex flex-col items-center">
+                                <Percent className="w-2 h-2 text-brand-blue group-hover/stat:scale-110 transition-transform drop-shadow-[0_0_4px_rgba(59,130,246,0.6)]" />
+                                <p className="text-[7px] text-gray-400 font-medium">Win</p>
+                                <p className="text-[8px] font-bold text-brand-blue tabular-nums">72%</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Content - Scrollable */}
-            <div className="flex-1 p-2 pt-2 space-y-2 overflow-y-auto relative z-10 min-h-0">
-                {/* Asset */}
-                <div className="relative">
-                    <div className="flex items-center justify-between mb-0.5">
-                        <p className="text-gray-400 text-[10px]">Trading asset</p>
-                        <div className="relative">
-                            <button
-                                onMouseEnter={() => setShowAssetInfo(true)}
-                                onMouseLeave={() => setShowAssetInfo(false)}
-                                className="text-gray-400 hover:text-[#efdede] transition-colors"
-                            >
-                                <Info className="w-3 h-3" />
-                            </button>
-                            {showAssetInfo && (
-                                <div className="absolute right-0 top-full mt-1 w-44 bg-[#16124A] border border-[#2F6BFF]/30 rounded p-1.5 shadow-lg z-50">
-                                    <p className="text-white text-[8px] leading-relaxed">
-                                        The robot will switch to the most profitable asset if the selected one is below{' '}
-                                        <span className="text-[#2F6BFF] font-semibold">{settings.assetChangeThreshold}%</span> or the market closes
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+            {/* Asset Selection - Micro Compact */}
+            <div className="glass-card-elevated p-1 rounded-md border border-brand-blue/30 shadow-lg shadow-brand-blue/20 backdrop-blur-xl animate-fade-in-up relative hover:border-brand-blue/50 transition-all group">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(59,130,246,0.15),transparent)]"></div>
+                <div className="flex items-center justify-between mb-0.5 relative z-10">
+                    <label className="text-[8px] text-gray-300 font-bold">Asset</label>
+                    <div className="relative">
+                        <button
+                            onMouseEnter={() => setShowAssetInfo(true)}
+                            onMouseLeave={() => setShowAssetInfo(false)}
+                            className="text-gray-400 hover:text-white transition-colors"
+                        >
+                            <Info className="w-2 h-2" />
+                        </button>
+                        {showAssetInfo && (
+                            <div className="absolute right-0 top-full mt-1 w-36 glass-card-elevated border border-brand-blue/30 rounded-md p-1.5 shadow-2xl z-50 backdrop-blur-xl animate-fade-in-up">
+                                <p className="text-white text-[8px] leading-relaxed">
+                                    Robot switches if below{' '}
+                                    <span className="text-brand-blue font-bold">{settings.assetChangeThreshold}%</span>
+                                </p>
+                            </div>
+                        )}
                     </div>
+                </div>
+                <GlassCard variant="blue" className="p-0 relative z-10">
                     <button
                         onClick={() => setShowAssetSelector(!showAssetSelector)}
-                        className="w-full bg-gradient-to-r from-[#16124A] to-[#1E1854] hover:from-[#1E1854] hover:to-[#16124A] rounded-lg p-2 flex items-center justify-between transition-all duration-300 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/50 hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                        className="w-full p-1 flex items-center justify-between hover:bg-brand-blue/10 transition-all duration-300 rounded-md group/btn"
                     >
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 bg-gradient-to-br from-[#2F6BFF] to-[#4A5FD9] rounded flex items-center justify-center shadow-lg shadow-[#2F6BFF]/30 animate-pulse">
-                                <Percent className="w-3 h-3 text-white" />
+                        <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-gradient-to-br from-brand-blue to-blue-600 rounded-sm flex items-center justify-center shadow-lg shadow-brand-blue/30 group-hover/btn:scale-110 transition-transform">
+                                <Percent className="w-2 h-2 text-white" />
                             </div>
-                            <span className="text-white text-[10px] font-medium">{settings.asset} <span className="text-[#2F6BFF] font-bold">{getAssetCorrelation(settings.asset)}%</span></span>
+                            <span className="text-white text-[9px] font-bold">{settings.asset} <span className="text-brand-blue">{getAssetCorrelation(settings.asset)}%</span></span>
                         </div>
-                        <ChevronRight className="w-2.5 h-2.5 text-gray-400" />
+                        <ChevronRight className="w-2.5 h-2.5 text-gray-400 group-hover/btn:text-white transition-colors" />
                     </button>
                     {showAssetSelector && (
-                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#16124A] rounded-lg p-1.5 space-y-0.5 shadow-xl z-50">
+                        <div className="absolute left-0 right-0 top-full mt-0.5 glass-card-elevated rounded-md p-0.5 space-y-0.5 shadow-2xl z-50 border border-brand-blue/30 backdrop-blur-xl animate-fade-in-up">
                             {assets.map(asset => (
                                 <button
                                     key={asset.id}
@@ -129,166 +158,213 @@ export default function BotSettingsPanel({ onStartBot }: BotSettingsPanelProps) 
                                         setSettings({ ...settings, asset: asset.id });
                                         setShowAssetSelector(false);
                                     }}
-                                    className={`w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors ${settings.asset === asset.id ? 'bg-[#2F6BFF] text-white' : 'text-gray-300 hover:bg-[#1E1854]'
+                                    className={`w-full text-left px-1.5 py-0.5 rounded-sm text-[8px] transition-all ${settings.asset === asset.id ? 'bg-brand-blue text-white font-bold shadow-lg shadow-brand-blue/30' : 'text-gray-300 hover:bg-brand-blue/10'
                                         }`}
                                 >
-                                    {asset.id} <span className="text-[#2F6BFF]">{asset.correlation}%</span>
+                                    {asset.id} <span className={settings.asset === asset.id ? 'text-white' : 'text-brand-blue'}>{asset.correlation}%</span>
                                 </button>
                             ))}
                         </div>
                     )}
-                </div>
+                </GlassCard>
+            </div>
 
-                {/* Amount & Duration */}
-                <div className="grid grid-cols-2 gap-1.5">
-                    <div>
-                        <label className="text-gray-400 text-[8px] mb-0.5 block">Initial amount</label>
+            {/* Amount & Duration - Micro Compact */}
+            <div className="grid grid-cols-2 gap-1">
+                <div className="glass-card-elevated p-1 rounded-md border border-green-400/30 shadow-lg shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-green-400/50 transition-all">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]"></div>
+                    <label className="text-[8px] text-gray-300 font-bold mb-0.5 block relative z-10">Amount</label>
+                    <GlassCard variant="green" className="p-0 relative z-10">
                         <input
                             type="number"
                             value={settings.initialAmount}
                             onChange={(e) => setSettings({ ...settings, initialAmount: parseFloat(e.target.value) })}
-                            className="w-full bg-[#16124A] text-white rounded-lg px-1.5 py-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-[#2F6BFF]"
+                            className="w-full bg-transparent text-white rounded-md px-1.5 py-0.5 text-[9px] font-bold focus:outline-none focus:ring-1 focus:ring-green-400/50"
                         />
-                    </div>
-                    <div className="relative">
-                        <label className="text-gray-400 text-[8px] mb-0.5 block">Duration</label>
+                    </GlassCard>
+                </div>
+                <div className="glass-card-elevated p-1 rounded-md border border-accent-orange/30 shadow-lg shadow-accent-orange/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-accent-orange/50 transition-all">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,146,60,0.15),transparent)]"></div>
+                    <label className="text-[8px] text-gray-300 font-bold mb-0.5 block relative z-10">Duration</label>
+                    <GlassCard variant="orange" className="p-0 relative z-10">
                         <button
                             onClick={() => setShowDurationSelector(!showDurationSelector)}
-                            className="w-full bg-[#16124A] hover:bg-[#1E1854] text-white rounded-lg px-1.5 py-1.5 text-[10px] flex items-center justify-between transition-colors"
+                            className="w-full text-white rounded-md px-1.5 py-0.5 text-[9px] font-bold flex items-center justify-between hover:bg-accent-orange/10 transition-colors group/btn"
                         >
                             <span>{getDurationLabel(settings.duration)}</span>
-                            <ChevronRight className="w-3 h-3" />
+                            <ChevronRight className="w-2.5 h-2.5 group-hover/btn:translate-x-0.5 transition-transform" />
                         </button>
-                        {showDurationSelector && (
-                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#16124A] rounded-lg p-1.5 space-y-0.5 shadow-xl z-50">
-                                {durations.map(duration => (
-                                    <button
-                                        key={duration.value}
-                                        onClick={() => {
-                                            setSettings({ ...settings, duration: duration.value });
-                                            setShowDurationSelector(false);
-                                        }}
-                                        className={`w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors ${settings.duration === duration.value ? 'bg-[#2F6BFF] text-white' : 'text-gray-300 hover:bg-[#1E1854]'
-                                            }`}
-                                    >
-                                        {duration.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    </GlassCard>
+                    {showDurationSelector && (
+                        <div className="absolute left-0 right-0 top-full mt-0.5 glass-card-elevated rounded-md p-0.5 space-y-0.5 shadow-2xl z-50 border border-accent-orange/30 backdrop-blur-xl animate-fade-in-up">
+                            {durations.map(duration => (
+                                <button
+                                    key={duration.value}
+                                    onClick={() => {
+                                        setSettings({ ...settings, duration: duration.value });
+                                        setShowDurationSelector(false);
+                                    }}
+                                    className={`w-full text-left px-1.5 py-0.5 rounded-sm text-[8px] transition-all ${settings.duration === duration.value ? 'bg-accent-orange text-white font-bold shadow-lg shadow-accent-orange/30' : 'text-gray-300 hover:bg-accent-orange/10'
+                                        }`}
+                                >
+                                    {duration.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
+            </div>
 
-                {/* Indicator */}
-                <div className="relative">
-                    <p className="text-gray-400 text-[9px] mb-0.5">Technical indicator</p>
+            {/* Indicator - Ultra Compact */}
+            <div className="glass-card-elevated p-1.5 rounded-lg border border-green-400/30 shadow-lg shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-green-400/50 transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]"></div>
+                <label className="text-[9px] text-gray-300 font-bold mb-1 block relative z-10">Technical indicator</label>
+                <GlassCard variant="green" className="p-0 relative z-10">
                     <button
                         onClick={() => setShowIndicatorSelector(!showIndicatorSelector)}
-                        className="w-full bg-gradient-to-r from-[#16124A] to-[#1E1854] hover:from-[#1E1854] hover:to-[#16124A] rounded-lg p-2.5 flex items-center justify-between transition-all duration-300 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/50 hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                        className="w-full p-1.5 flex items-center justify-between hover:bg-green-500/10 transition-all duration-300 rounded-lg group/btn"
                     >
                         <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-red-500 rounded flex items-center justify-center shadow-lg animate-pulse">
-                                <TrendingUp className="w-3.5 h-3.5 text-white" />
+                            <div className="w-5 h-5 bg-gradient-to-br from-green-500 to-green-600 rounded-md flex items-center justify-center shadow-lg group-hover/btn:scale-110 transition-transform">
+                                <TrendingUp className="w-2.5 h-2.5 text-white" />
                             </div>
-                            <span className="text-white text-xs font-medium">{getIndicatorName(settings.indicator)}</span>
+                            <span className="text-white text-[10px] font-bold">{getIndicatorName(settings.indicator)}</span>
                         </div>
-                        <ChevronRight className="w-3 h-3 text-gray-400" />
+                        <ChevronRight className="w-3 h-3 text-gray-400 group-hover/btn:text-white group-hover/btn:translate-x-0.5 transition-all" />
                     </button>
-                    {showIndicatorSelector && (
-                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#16124A] rounded-lg p-1.5 space-y-0.5 shadow-xl z-50">
-                            {indicators.map(indicator => (
-                                <button
-                                    key={indicator.id}
-                                    onClick={() => {
-                                        setSettings({ ...settings, indicator: indicator.id });
-                                        setShowIndicatorSelector(false);
-                                    }}
-                                    className={`w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors ${settings.indicator === indicator.id ? 'bg-[#2F6BFF] text-white' : 'text-gray-300 hover:bg-[#1E1854]'
-                                        }`}
-                                >
-                                    {indicator.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                </GlassCard>
+                {showIndicatorSelector && (
+                    <div className="absolute left-0 right-0 top-full mt-1 glass-card-elevated rounded-lg p-1 space-y-0.5 shadow-2xl z-50 border border-green-400/30 backdrop-blur-xl animate-fade-in-up">
+                        {indicators.map(indicator => (
+                            <button
+                                key={indicator.id}
+                                onClick={() => {
+                                    setSettings({ ...settings, indicator: indicator.id });
+                                    setShowIndicatorSelector(false);
+                                }}
+                                className={`w-full text-left px-2 py-1 rounded-md text-[9px] transition-all ${settings.indicator === indicator.id ? 'bg-green-500 text-white font-bold shadow-lg shadow-green-500/30' : 'text-gray-300 hover:bg-green-500/10'
+                                    }`}
+                            >
+                                {indicator.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
 
-                {/* Strategy */}
-                <div className="relative">
-                    <p className="text-gray-400 text-[9px] mb-0.5">Strategy</p>
+            {/* Indicator - Micro Compact */}
+            <div className="glass-card-elevated p-1 rounded-md border border-green-400/30 shadow-lg shadow-green-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-green-400/50 transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]"></div>
+                <label className="text-[8px] text-gray-300 font-bold mb-0.5 block relative z-10">Indicator</label>
+                <GlassCard variant="green" className="p-0 relative z-10">
+                    <button
+                        onClick={() => setShowIndicatorSelector(!showIndicatorSelector)}
+                        className="w-full p-1 flex items-center justify-between hover:bg-green-500/10 transition-all duration-300 rounded-md group/btn"
+                    >
+                        <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-gradient-to-br from-green-500 to-green-600 rounded-sm flex items-center justify-center shadow-lg group-hover/btn:scale-110 transition-transform">
+                                <TrendingUp className="w-2 h-2 text-white" />
+                            </div>
+                            <span className="text-white text-[9px] font-bold truncate">{getIndicatorName(settings.indicator)}</span>
+                        </div>
+                        <ChevronRight className="w-2.5 h-2.5 text-gray-400 group-hover/btn:text-white group-hover/btn:translate-x-0.5 transition-all" />
+                    </button>
+                </GlassCard>
+                {showIndicatorSelector && (
+                    <div className="absolute left-0 right-0 top-full mt-0.5 glass-card-elevated rounded-md p-0.5 space-y-0.5 shadow-2xl z-50 border border-green-400/30 backdrop-blur-xl animate-fade-in-up">
+                        {indicators.map(indicator => (
+                            <button
+                                key={indicator.id}
+                                onClick={() => {
+                                    setSettings({ ...settings, indicator: indicator.id });
+                                    setShowIndicatorSelector(false);
+                                }}
+                                className={`w-full text-left px-1.5 py-0.5 rounded-sm text-[8px] transition-all ${settings.indicator === indicator.id ? 'bg-green-500 text-white font-bold shadow-lg shadow-green-500/30' : 'text-gray-300 hover:bg-green-500/10'
+                                    }`}
+                            >
+                                {indicator.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Strategy - Micro Compact */}
+            <div className="glass-card-elevated p-1 rounded-md border border-purple-500/30 shadow-lg shadow-purple-500/10 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-purple-500/50 transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(168,85,247,0.15),transparent)]"></div>
+                <label className="text-[8px] text-gray-300 font-bold mb-0.5 block relative z-10">Strategy</label>
+                <GlassCard variant="purple" className="p-0 relative z-10">
                     <button
                         onClick={() => setShowStrategySelector(!showStrategySelector)}
-                        className="w-full bg-gradient-to-r from-[#16124A] to-[#1E1854] hover:from-[#1E1854] hover:to-[#16124A] rounded-lg p-2.5 flex items-center justify-between transition-all duration-300 border border-[#2F6BFF]/20 hover:border-[#2F6BFF]/50 hover:shadow-lg hover:shadow-[#2F6BFF]/20"
+                        className="w-full p-1 flex items-center justify-between hover:bg-purple-500/10 transition-all duration-300 rounded-md group/btn"
                     >
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 bg-gradient-to-br from-[#4A5FD9] to-[#2F6BFF] rounded flex items-center justify-center text-sm shadow-lg animate-pulse">♟️</div>
-                            <div className="text-left">
-                                <div className="text-white text-xs font-medium">{getStrategyName(settings.strategy)}</div>
-                                <span className="text-[#FFA62B] text-[9px]">{getStrategyRisk(settings.strategy)}</span>
+                        <div className="flex items-center gap-1">
+                            <div className="w-4 h-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-sm flex items-center justify-center text-[9px] shadow-lg group-hover/btn:scale-110 transition-transform">♟️</div>
+                            <div className="text-left min-w-0 flex-1">
+                                <div className="text-white text-[9px] font-bold truncate">{getStrategyName(settings.strategy)}</div>
+                                <span className="text-accent-orange text-[7px]">{getStrategyRisk(settings.strategy)}</span>
                             </div>
                         </div>
-                        <ChevronRight className="w-3 h-3 text-gray-400" />
+                        <ChevronRight className="w-2.5 h-2.5 text-gray-400 group-hover/btn:text-white group-hover/btn:translate-x-0.5 transition-all flex-shrink-0" />
                     </button>
-                    {showStrategySelector && (
-                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-[#16124A] rounded-lg p-1.5 space-y-0.5 shadow-xl z-50">
-                            {strategies.map(strategy => (
-                                <button
-                                    key={strategy.id}
-                                    onClick={() => {
-                                        setSettings({ ...settings, strategy: strategy.id });
-                                        setShowStrategySelector(false);
-                                    }}
-                                    className={`w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors ${settings.strategy === strategy.id ? 'bg-[#2F6BFF] text-white' : 'text-gray-300 hover:bg-[#1E1854]'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm">{strategy.icon}</span>
-                                        <span className="font-medium">{strategy.name}</span>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                </GlassCard>
+                {showStrategySelector && (
+                    <div className="absolute left-0 right-0 top-full mt-0.5 glass-card-elevated rounded-md p-0.5 space-y-0.5 shadow-2xl z-50 border border-purple-500/30 backdrop-blur-xl animate-fade-in-up">
+                        {strategies.map(strategy => (
+                            <button
+                                key={strategy.id}
+                                onClick={() => {
+                                    setSettings({ ...settings, strategy: strategy.id });
+                                    setShowStrategySelector(false);
+                                }}
+                                className={`w-full text-left px-1.5 py-0.5 rounded-sm text-[8px] transition-all ${settings.strategy === strategy.id ? 'bg-purple-500 text-white font-bold shadow-lg shadow-purple-500/30' : 'text-gray-300 hover:bg-purple-500/10'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-1">
+                                    <span className="text-[9px]">{strategy.icon}</span>
+                                    <span className="truncate">{strategy.name}</span>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
 
-                {/* Profit Limit */}
-                <div>
-                    <label className="text-gray-400 text-[9px] mb-0.5 block">Profit limit</label>
-                    <div className="flex items-center gap-1.5">
+            {/* Profit Limit - Micro Compact */}
+            <div className="glass-card-elevated p-1 rounded-md border border-green-400/30 shadow-lg shadow-green-500/20 backdrop-blur-xl animate-fade-in-up relative overflow-hidden group hover:border-green-400/50 transition-all">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.15),transparent)]"></div>
+                <label className="text-[8px] text-gray-300 font-bold mb-0.5 block relative z-10">Profit limit</label>
+                <GlassCard variant="green" className="p-0 relative z-10 border border-green-400/20">
+                    <div className="flex items-center gap-1 p-1">
                         <input
                             type="number"
                             value={settings.profitLimit}
                             onChange={(e) => setSettings({ ...settings, profitLimit: parseFloat(e.target.value) })}
-                            className="flex-1 bg-[#16124A] text-white rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#2F6BFF]"
+                            className="flex-1 bg-transparent text-white text-[9px] font-bold focus:outline-none"
                         />
-                        <div className="w-8 h-8 bg-[#2F6BFF] rounded-lg flex items-center justify-center shrink-0">
-                            <span className="text-white text-[10px] font-semibold">ON</span>
+                        <div className="px-1.5 py-0.5 bg-brand-blue rounded-sm shrink-0 shadow-lg shadow-brand-blue/30">
+                            <span className="text-white text-[7px] font-bold">ON</span>
                         </div>
                     </div>
+                </GlassCard>
+            </div>
+
+            {/* Start Button - Micro Compact */}
+            <button
+                onClick={() => onStartBot(settings)}
+                onMouseEnter={() => setIsHoveringStart(true)}
+                onMouseLeave={() => setIsHoveringStart(false)}
+                className="w-full bg-gradient-to-r from-brand-blue via-blue-600 to-brand-blue hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 text-white font-bold py-1.5 rounded-md transition-all duration-300 text-[9px] relative overflow-hidden group shadow-2xl shadow-brand-blue/50 hover:shadow-2xl hover:shadow-brand-blue/70 hover:scale-105 animate-fade-in-up"
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className="flex items-center justify-center gap-1 relative z-10">
+                    <span className="text-xs animate-bounce">🚀</span>
+                    <span>Start robot</span>
+                    {isHoveringStart && <span className="animate-pulse">✨</span>}
                 </div>
-            </div>
-
-            {/* Start Button */}
-            <div className="p-2 border-t border-[#2F6BFF]/30 bg-gradient-to-t from-[#0B0633] to-transparent relative z-10 shrink-0">
-                <button
-                    onClick={() => onStartBot(settings)}
-                    onMouseEnter={() => setIsHoveringStart(true)}
-                    onMouseLeave={() => setIsHoveringStart(false)}
-                    className="w-full bg-gradient-to-r from-[#2F6BFF] via-[#4A5FD9] to-[#2F6BFF] hover:from-[#1557B7] hover:via-[#3A4FC9] hover:to-[#1557B7] text-white font-bold py-2 rounded-lg transition-all duration-300 text-[11px] relative overflow-hidden group shadow-xl shadow-[#2F6BFF]/50 hover:shadow-2xl hover:shadow-[#2F6BFF]/70 hover:scale-105"
-                >
-                    {/* Animated shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-
-                    <div className="flex items-center justify-center gap-1.5 relative z-10">
-                        <span className="text-sm animate-bounce">🚀</span>
-                        <span>Start robot</span>
-                        {isHoveringStart && <span className="animate-pulse">✨</span>}
-                    </div>
-                </button>
-
-                {/* Pulsing glow effect */}
-                <div className="absolute inset-x-2 bottom-2 h-9 bg-[#2F6BFF]/30 blur-xl rounded-lg animate-pulse pointer-events-none"></div>
-            </div>
+            </button>
         </div>
     );
 }
+
+

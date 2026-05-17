@@ -17,3 +17,5 @@ const OpenPositionsPanel: React.FC<OpenPositionsPanelProps> = () => {
 };
 
 export default OpenPositionsPanel;
+
+

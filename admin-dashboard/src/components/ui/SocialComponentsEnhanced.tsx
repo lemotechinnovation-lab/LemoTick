@@ -983,3 +983,5 @@ export function CreatePostInput({ userAvatar, userName, onPost }: CreatePostInpu
         </>
     );
 }
+
+

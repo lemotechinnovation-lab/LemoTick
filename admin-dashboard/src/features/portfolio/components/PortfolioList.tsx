@@ -276,3 +276,5 @@ function PortfolioList({ onEdit }: PortfolioListProps) {
 }
 
 export default PortfolioList;
+
+

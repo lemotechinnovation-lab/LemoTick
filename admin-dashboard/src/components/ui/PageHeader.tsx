@@ -50,15 +50,13 @@ export function PageHeader({
                 )}
 
                 {/* Title */}
-                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-normal mb-2 sm:mb-3 leading-tight uppercase">
-                    <span className="block bg-gradient-to-r from-[#efdede] via-[#B8BEC9] to-[#efdede] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(160,167,181,0.4)]">
-                        {title}
-                    </span>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 leading-tight uppercase text-[#E8B4B8] tracking-wider" style={{ textShadow: '0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3)' }}>
+                    {title}
                 </h1>
 
                 {/* Description */}
                 {description && (
-                    <p className="text-xs sm:text-sm md:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base text-black font-medium max-w-2xl mx-auto leading-relaxed">
                         {description}
                     </p>
                 )}
@@ -77,22 +75,21 @@ export function PageHeader({
                     <div className="flex items-center gap-2 mb-1.5">
                         {/* Icon */}
                         {Icon && (
-                            <div className="w-8 h-8 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-lg flex items-center justify-center shrink-0">
-                                <Icon className={`w-4 h-4 ${iconColor}`} />
+                            <div className="relative w-10 h-10 bg-gradient-to-br from-[#FCB839]/30 to-[#FF8C00]/20 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#FCB839]/20">
+                                <Icon className={`w-5 h-5 ${iconColor} relative z-10`} />
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#FCB839]/20 to-transparent rounded-xl blur-sm pointer-events-none"></div>
                             </div>
                         )}
 
                         {/* Title */}
-                        <h1 className="text-lg sm:text-xl md:text-2xl font-normal uppercase">
-                            <span className="bg-gradient-to-r from-[#efdede] via-[#B8BEC9] to-[#efdede] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(160,167,181,0.4)]">
-                                {title}
-                            </span>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold uppercase text-[#E8B4B8] tracking-wide" style={{ textShadow: '0 0 20px rgba(232, 180, 184, 0.4), 0 0 10px rgba(232, 180, 184, 0.3)' }}>
+                            {title}
                         </h1>
                     </div>
 
                     {/* Description */}
                     {description && (
-                        <p className="text-gray-300 text-xs sm:text-sm ml-0 sm:ml-10">
+                        <p className="text-black font-medium text-xs sm:text-sm ml-0 sm:ml-10">
                             {description}
                         </p>
                     )}
@@ -152,8 +149,10 @@ export function PageHeaderAction({
 export function LiveBadge() {
     return (
         <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-sm text-green-400 font-semibold">Live</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50"></div>
+            <span className="text-base font-bold uppercase tracking-wide" style={{ color: '#10b981', textShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }}>Live</span>
         </div>
     );
 }
+
+

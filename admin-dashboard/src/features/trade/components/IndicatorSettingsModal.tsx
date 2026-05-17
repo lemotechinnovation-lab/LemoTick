@@ -788,3 +788,5 @@ function getDefaultSettings(indicatorId: string): IndicatorSettings {
             return {};
     }
 }
+
+

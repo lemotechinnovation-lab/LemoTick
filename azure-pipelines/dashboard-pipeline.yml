@@ -1,12 +1,12 @@
 # ==============================================================
 # LemoTick – Dashboard Pipeline (React + Vite SPA)
-# CI:     Azure DevOps  (self-hosted agent on the same VM)
-# Deploy: Direct cp to Nginx web root — agent runs ON the server
+# CI:     Azure DevOps  (self-hosted agent on Windows Server VM)
+# Deploy: Direct copy to IIS web root — agent runs ON the server
 #
-# Nginx port mapping:
-#   prod  →  port 80   →  /var/www/lemotick-prod
-#   qa    →  port 8090 →  /var/www/lemotick-qa
-#   dev   →  port 8080 →  /var/www/lemotick-dev
+# IIS port mapping:
+#   prod  →  port 80   →  C:\inetpub\wwwroot\lemotick-prod
+#   qa    →  port 8090 →  C:\inetpub\wwwroot\lemotick-qa
+#   dev   →  port 8080 →  C:\inetpub\wwwroot\lemotick-dev
 # ==============================================================
 
 trigger:
@@ -95,16 +95,42 @@ stages:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    mkdir -p /var/www/lemotick-dev
-                    rm -rf /var/www/lemotick-dev/*
-                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-dev/
-                    chown -R nginx:nginx /var/www/lemotick-dev
-                    chmod -R 755 /var/www/lemotick-dev
-                    chcon -Rt httpd_sys_content_t /var/www/lemotick-dev 2>/dev/null || true
-                    nginx -t && systemctl reload nginx
-                    echo "==> Dashboard (dev) deployed → http://154.66.196.172:8080"
+                - powershell: |
+                    $destPath = "C:\inetpub\wwwroot\lemotick-dev"
+                    $siteName = "LemoTick-Dashboard-Dev"
+                    $port = 8080
+                    
+                    Write-Host "==> Creating directory"
+                    if (-not (Test-Path $destPath)) {
+                        New-Item -ItemType Directory -Path $destPath -Force
+                    }
+                    
+                    Write-Host "==> Removing old files"
+                    Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Copying new build"
+                    Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
+                    
+                    Write-Host "==> Setting IIS permissions"
+                    $acl = Get-Acl $destPath
+                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
+                    $acl.SetAccessRule($accessRule)
+                    Set-Acl $destPath $acl
+                    
+                    Write-Host "==> Configuring IIS site"
+                    Import-Module WebAdministration
+                    
+                    # Create or update site
+                    if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
+                    } else {
+                        New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
+                    }
+                    
+                    # Ensure site is started
+                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Dashboard (dev) deployed → http://YOUR_SERVER_IP:$port"
                   displayName: Deploy dashboard (dev)
 
 # ==============================================================
@@ -129,16 +155,42 @@ stages:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    mkdir -p /var/www/lemotick-qa
-                    rm -rf /var/www/lemotick-qa/*
-                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-qa/
-                    chown -R nginx:nginx /var/www/lemotick-qa
-                    chmod -R 755 /var/www/lemotick-qa
-                    chcon -Rt httpd_sys_content_t /var/www/lemotick-qa 2>/dev/null || true
-                    nginx -t && systemctl reload nginx
-                    echo "==> Dashboard (qa) deployed → http://154.66.196.172:8090"
+                - powershell: |
+                    $destPath = "C:\inetpub\wwwroot\lemotick-qa"
+                    $siteName = "LemoTick-Dashboard-QA"
+                    $port = 8090
+                    
+                    Write-Host "==> Creating directory"
+                    if (-not (Test-Path $destPath)) {
+                        New-Item -ItemType Directory -Path $destPath -Force
+                    }
+                    
+                    Write-Host "==> Removing old files"
+                    Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Copying new build"
+                    Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
+                    
+                    Write-Host "==> Setting IIS permissions"
+                    $acl = Get-Acl $destPath
+                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
+                    $acl.SetAccessRule($accessRule)
+                    Set-Acl $destPath $acl
+                    
+                    Write-Host "==> Configuring IIS site"
+                    Import-Module WebAdministration
+                    
+                    # Create or update site
+                    if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
+                    } else {
+                        New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
+                    }
+                    
+                    # Ensure site is started
+                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Dashboard (qa) deployed → http://YOUR_SERVER_IP:$port"
                   displayName: Deploy dashboard (qa)
 
 # ==============================================================
@@ -164,14 +216,43 @@ stages:
           runOnce:
             deploy:
               steps:
-                - script: |
-                    set -e
-                    mkdir -p /var/www/lemotick-prod
-                    rm -rf /var/www/lemotick-prod/*
-                    cp -r $(Build.SourcesDirectory)/admin-dashboard/dist/. /var/www/lemotick-prod/
-                    chown -R nginx:nginx /var/www/lemotick-prod
-                    chmod -R 755 /var/www/lemotick-prod
-                    chcon -Rt httpd_sys_content_t /var/www/lemotick-prod 2>/dev/null || true
-                    nginx -t && systemctl reload nginx
-                    echo "==> Dashboard (prod) deployed → http://154.66.196.172"
+                - powershell: |
+                    $destPath = "C:\inetpub\wwwroot\lemotick-prod"
+                    $siteName = "LemoTick-Dashboard-Prod"
+                    $port = 80
+                    
+                    Write-Host "==> Creating directory"
+                    if (-not (Test-Path $destPath)) {
+                        New-Item -ItemType Directory -Path $destPath -Force
+                    }
+                    
+                    Write-Host "==> Removing old files"
+                    Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Copying new build"
+                    Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
+                    
+                    Write-Host "==> Setting IIS permissions"
+                    $acl = Get-Acl $destPath
+                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
+                    $acl.SetAccessRule($accessRule)
+                    Set-Acl $destPath $acl
+                    
+                    Write-Host "==> Configuring IIS site"
+                    Import-Module WebAdministration
+                    
+                    # Stop default website if it's using port 80
+                    Stop-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
+                    
+                    # Create or update site
+                    if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
+                    } else {
+                        New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
+                    }
+                    
+                    # Ensure site is started
+                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
+                    
+                    Write-Host "==> Dashboard (prod) deployed → http://YOUR_SERVER_IP"
                   displayName: Deploy dashboard (prod)
