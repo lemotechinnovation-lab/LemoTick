@@ -288,6 +288,18 @@ stages:
                     Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
                     Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
                     
+                    Write-Host "Injecting production config"
+                    $configPath = "$appPath\appsettings.Production.json"
+                    if (Test-Path $configPath) {
+                        $config = Get-Content $configPath -Raw
+                        $config = $config -replace '#{DB_CONNECTION_STRING}#', '$(DB_CONNECTION_STRING)'
+                        $config = $config -replace '#{JWT_SECRET}#', '$(JWT_SECRET)'
+                        $config = $config -replace '#{JWT_ISSUER}#', '$(JWT_ISSUER)'
+                        $config = $config -replace '#{JWT_AUDIENCE}#', '$(JWT_AUDIENCE)'
+                        $config = $config -replace '#{ALLOWED_ORIGINS}#', '$(ALLOWED_ORIGINS)'
+                        $config | Set-Content $configPath -Encoding UTF8
+                    }
+                    
                     Write-Host "Creating app pool"
                     if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
                         New-WebAppPool -Name $appPoolName
@@ -299,16 +311,18 @@ stages:
                     if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
                         Remove-Website -Name $appPoolName
                     }
-                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
                     
                     Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+                    
+                    New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
                     
                     Write-Host "Starting app pool and site"
                     Start-WebAppPool -Name $appPoolName
                     Start-Website -Name $appPoolName
                     
                     Start-Sleep -Seconds 5
-                    Write-Host "Deployment complete - Backend (prod) available at: http://localhost:$port"
+                    Write-Host "Deployment complete - Backend (prod) available at: http://api.lemotechinnovations.co.za:$port"
                   displayName: Deploy to IIS
