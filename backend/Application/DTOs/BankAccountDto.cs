@@ -24,7 +24,7 @@ public class BankAccountDto
     public bool IsPrimary { get; set; }
     public DateTime AddedAt { get; set; }
     public DateTime? VerifiedAt { get; set; }
-    public DateTime? LastUsedAt { get; set; }
+    public DateTime? LastUsedAt { get; set; } 
 }
 
 /// <summary>
