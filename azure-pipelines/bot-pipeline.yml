@@ -33,8 +33,6 @@ pr:
 
 pool:
   name: Default
-  demands:
-    - agent.name -equals lemotick-vm
 
 variables:
   IS_PR: $[eq(variables['Build.Reason'], 'PullRequest')]
