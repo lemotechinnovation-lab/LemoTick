@@ -240,7 +240,10 @@ stages:
                     Import-Module WebAdministration
                     
                     # Stop default website if it's using port 80
-                    Stop-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
+                    $defaultSite = Get-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
+                    if ($defaultSite -and $defaultSite.State -eq "Started") {
+                        Stop-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
+                    }
                     
                     # Create or update site
                     if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
