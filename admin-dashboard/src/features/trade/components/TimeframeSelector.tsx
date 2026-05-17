@@ -80,3 +80,5 @@ export default function TimeframeSelector({ selectedGranularity, onGranularityCh
         </div>
     );
 }
+
+

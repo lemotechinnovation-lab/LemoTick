@@ -227,3 +227,5 @@ export default function TemplatesModal({ isOpen, onClose }: TemplatesModalProps)
         </>
     );
 }
+
+

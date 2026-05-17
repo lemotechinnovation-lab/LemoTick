@@ -1,8 +1,36 @@
+import ModernAreaChart from '@/components/charts/ModernAreaChart';
+import { GlassCard } from '@/components/ui/DesignSystem';
+import {
+    CompactField,
+    CompactFormSection,
+    Divider,
+    FormContainer,
+    FormField,
+    FormGrid,
+    FormSection,
+    Input,
+    Select,
+    Toggle
+} from '@/components/ui/FormComponentsEnhanced';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer, Stack } from '@/components/ui/PageLayoutEnhanced';
 import { validateWithToast, validationToast } from '@/lib/validation-toast';
-import { Bell, Lock, Save, Settings as SettingsIcon, User } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Copy, DollarSign, Eye, Lock, Mail, Phone, Save, Settings as SettingsIcon, Share2, Shield, TrendingUp, User, Users, XCircle } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
-type TabType = 'profile' | 'security' | 'notifications' | 'preferences';
+type TabType = 'profile' | 'security' | 'display' | 'trading' | 'notifications' | 'referrals';
+
+export interface Referral {
+    id: string;
+    name: string;
+    email: string;
+    status: 'active' | 'pending' | 'inactive';
+    signupDate: string;
+    totalTrades: number;
+    commission: number;
+    level: number;
+}
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -28,24 +56,131 @@ export default function SettingsPage() {
         sessionTimeout: '30',
     });
 
+    // Display settings
+    const [displayData, setDisplayData] = useState({
+        theme: 'dark',
+        currency: 'USD',
+        numberFormat: 'en-US',
+        dateFormat: 'MM/DD/YYYY',
+        timeFormat: '12h',
+        chartType: 'candlestick',
+    });
+
+    // Trading settings
+    const [tradingData, setTradingData] = useState({
+        defaultStake: '10',
+        defaultDuration: '5',
+        riskLevel: 'medium',
+        confirmTrades: true,
+        autoClose: false,
+    });
+
     // Notification settings
     const [notificationData, setNotificationData] = useState({
         emailNotifications: true,
+        pushNotifications: false,
         tradeAlerts: true,
         priceAlerts: false,
         newsUpdates: true,
         weeklyReports: true,
         marketingEmails: false,
+        soundEnabled: true,
     });
 
-    // Preference settings
-    const [preferenceData, setPreferenceData] = useState({
-        theme: 'dark',
-        currency: 'USD',
-        dateFormat: 'MM/DD/YYYY',
-        numberFormat: 'en-US',
-        chartType: 'candlestick',
-    });
+    // Referrals data
+    const referralCode = 'ACME2024XYZ';
+    const referralLink = `https://app.example.com/signup?ref=${referralCode}`;
+
+    const [referrals] = useState<Referral[]>([
+        {
+            id: '1',
+            name: 'John Smith',
+            email: 'john.smith@example.com',
+            status: 'active',
+            signupDate: '2024-03-01',
+            totalTrades: 45,
+            commission: 125.50,
+            level: 1,
+        },
+        {
+            id: '2',
+            name: 'Sarah Johnson',
+            email: 'sarah.j@example.com',
+            status: 'active',
+            signupDate: '2024-03-05',
+            totalTrades: 32,
+            commission: 89.25,
+            level: 1,
+        },
+        {
+            id: '3',
+            name: 'Mike Wilson',
+            email: 'mike.w@example.com',
+            status: 'pending',
+            signupDate: '2024-03-08',
+            totalTrades: 0,
+            commission: 0,
+            level: 1,
+        },
+        {
+            id: '4',
+            name: 'Emily Davis',
+            email: 'emily.d@example.com',
+            status: 'active',
+            signupDate: '2024-02-28',
+            totalTrades: 67,
+            commission: 198.75,
+            level: 1,
+        },
+    ]);
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(referralLink);
+        toast.success('Referral link copied to clipboard!');
+    };
+
+    const handleCopyCode = () => {
+        navigator.clipboard.writeText(referralCode);
+        toast.success('Referral code copied to clipboard!');
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Join me on this trading platform',
+                text: `Use my referral code: ${referralCode}`,
+                url: referralLink,
+            });
+        } else {
+            toast.info('Share feature not supported on this browser');
+        }
+    };
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active': return 'text-green-400 bg-green-500/20';
+            case 'pending': return 'text-yellow-400 bg-yellow-500/20';
+            case 'inactive': return 'text-gray-400 bg-gray-500/20';
+            default: return 'text-gray-400 bg-gray-500/20';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'active': return <CheckCircle className="w-4 h-4 text-green-400" />;
+            case 'pending': return <Clock className="w-4 h-4 text-yellow-400" />;
+            case 'inactive': return <XCircle className="w-4 h-4 text-gray-400" />;
+            default: return null;
+        }
+    };
+
+    const totalReferrals = referrals.length;
+    const activeReferrals = referrals.filter(r => r.status === 'active').length;
+    const totalCommission = referrals.reduce((sum, r) => sum + r.commission, 0);
+    const pendingReferrals = referrals.filter(r => r.status === 'pending').length;
+
+    // Commission trend data (last 30 days)
+    const commissionTrend = [12, 15, 18, 22, 19, 25, 28, 32, 29, 35, 38, 42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 78, 82, 85, 89, 92, 95, 98, totalCommission];
 
     const handleSave = async () => {
         // Validate profile data
@@ -108,399 +243,656 @@ export default function SettingsPage() {
     const tabs = [
         { id: 'profile' as TabType, label: 'Profile', icon: User },
         { id: 'security' as TabType, label: 'Security', icon: Lock },
+        { id: 'display' as TabType, label: 'Display', icon: Eye },
+        { id: 'trading' as TabType, label: 'Trading', icon: TrendingUp },
         { id: 'notifications' as TabType, label: 'Notifications', icon: Bell },
-        { id: 'preferences' as TabType, label: 'Preferences', icon: SettingsIcon },
+        { id: 'referrals' as TabType, label: 'Referrals', icon: Users },
     ];
 
     return (
-        <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
-            {/* Page header */}
-            <div className="relative mb-4 p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 via-[#16124A] to-[#FFA62B]/10 border border-[#2F6BFF]/20">
-                <div className="sm:flex sm:justify-between sm:items-center">
-                    <div className="mb-2 sm:mb-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                            <div className="p-1.5 bg-[#2F6BFF]/20 rounded-lg">
-                                <SettingsIcon size={16} className="text-[#2F6BFF]" />
-                            </div>
-                            <h1 className="text-body-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Settings</h1>
-                        </div>
-                        <p className="text-micro text-gray-300 ml-8">Manage your account settings and preferences</p>
-                    </div>
+        <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+            {/* Animated Background Effects */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-brand-blue/15 via-purple-500/10 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-accent-orange/10 via-pink-500/5 to-transparent rounded-full blur-3xl animate-pulse-slow pointer-events-none" style={{ animationDelay: '1s' }}></div>
 
-                    {/* Save Button */}
+            {/* Page Header */}
+            <PageHeader
+                title="SETTINGS"
+                description="Manage your account settings and preferences"
+                icon={SettingsIcon}
+                actions={
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] hover:from-[#2557c9] hover:to-[#2F6BFF] text-white transition-all duration-300 shadow-brand hover-lift text-micro disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-blue to-[#3B82F6] hover:from-[#3B82F6] hover:to-brand-blue text-white disabled:opacity-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-brand-blue/50 text-sm font-semibold group relative overflow-hidden"
                     >
-                        <Save size={14} />
-                        <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none"></div>
+                        <Save className="w-4 h-4 relative z-10" />
+                        <span className="relative z-10">{isSaving ? 'Saving...' : 'Save Changes'}</span>
                     </button>
-                </div>
-            </div>
+                }
+            />
 
-            {/* Tabs */}
-            <div className="mb-3 flex gap-1 p-1 bg-[#0B0633] border border-[#2F6BFF]/30 rounded-lg">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-micro font-semibold transition-all duration-300 ${activeTab === tab.id
-                                ? 'bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] text-white shadow-brand'
-                                : 'text-gray-400 hover:text-[#efdede] hover:bg-[#16124A]'
-                                }`}
-                        >
-                            <Icon size={14} />
-                            <span>{tab.label}</span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* Content Area */}
-            <div className="bg-gradient-to-br from-[#0B0633] to-[#16124A] rounded-lg border border-[#2F6BFF]/30 shadow-xl p-3">
-                {/* Profile Tab */}
-                {activeTab === 'profile' && (
-                    <div className="space-y-3 animate-fadeIn">
-                        <h2 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] font-semibold mb-2">Profile Information</h2>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">First Name</label>
-                                <input
-                                    type="text"
-                                    value={profileData.firstName}
-                                    onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={profileData.lastName}
-                                    onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Email Address</label>
-                            <input
-                                type="email"
-                                value={profileData.email}
-                                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Phone Number</label>
-                            <input
-                                type="tel"
-                                value={profileData.phone}
-                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Country</label>
-                                <select
-                                    value={profileData.country}
-                                    onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
+            <Stack spacing="lg" className="relative z-10">
+                {/* Tabs */}
+                <GlassCard className="p-0 overflow-hidden smooth-hover border border-brand-blue/30 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up">
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-accent-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                    <div className="flex border-b border-brand-blue/30 bg-gradient-to-r from-brand-blue/10 via-transparent to-purple-500/10 relative z-10 overflow-x-auto">
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-4 sm:px-6 py-4 text-sm font-bold transition-all relative overflow-hidden group/tab whitespace-nowrap ${isActive
+                                        ? 'bg-gradient-to-r from-brand-blue/20 to-purple-500/10 text-white border-b-2 border-brand-blue'
+                                        : 'text-gray-400 hover:text-white hover:bg-brand-blue/10'
+                                        }`}
                                 >
-                                    <option value="United States">United States</option>
-                                    <option value="United Kingdom">United Kingdom</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="Australia">Australia</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Timezone</label>
-                                <select
-                                    value={profileData.timezone}
-                                    onChange={(e) => setProfileData({ ...profileData, timezone: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
+                                    {isActive && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/10 via-transparent to-purple-500/10 opacity-0 group-hover/tab:opacity-100 transition-opacity pointer-events-none"></div>
+                                    )}
+                                    <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center shadow-lg border transition-all duration-300 ${isActive
+                                        ? 'bg-gradient-to-br from-brand-blue/30 to-purple-500/30 border-brand-blue/40 group-hover/tab:scale-110'
+                                        : 'bg-gray-500/10 border-gray-500/30 group-hover/tab:bg-brand-blue/20 group-hover/tab:border-brand-blue/30'
+                                        }`}>
+                                        <Icon className={`w-4 h-4 transition-all duration-300 relative z-10 ${isActive ? 'text-brand-blue' : 'text-gray-400 group-hover/tab:text-brand-blue'}`} />
+                                        {isActive && (
+                                            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover/tab:opacity-100 transition-opacity rounded-lg pointer-events-none"></div>
+                                        )}
+                                    </div>
+                                    <span className="relative z-10">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="p-4 sm:p-6 relative z-10">
+                        {/* Profile Tab */}
+                        {activeTab === 'profile' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Profile Information"
+                                    description="Update your personal details and contact information"
+                                    variant="elevated"
+                                    icon={<User className="w-5 h-5 text-[#2F6BFF]" />}
                                 >
-                                    <option value="America/New_York">Eastern Time (ET)</option>
-                                    <option value="America/Chicago">Central Time (CT)</option>
-                                    <option value="America/Denver">Mountain Time (MT)</option>
-                                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                                </select>
-                            </div>
-                        </div>
+                                    <FormGrid columns={3} gap="md">
+                                        <FormField label="First Name" htmlFor="firstName" required compact>
+                                            <Input
+                                                id="firstName"
+                                                type="text"
+                                                value={profileData.firstName}
+                                                onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                                                icon={<User className="w-4 h-4" />}
+                                            />
+                                        </FormField>
+                                        <FormField label="Last Name" htmlFor="lastName" required compact>
+                                            <Input
+                                                id="lastName"
+                                                type="text"
+                                                value={profileData.lastName}
+                                                onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                                            />
+                                        </FormField>
+                                        <FormField label="Email Address" htmlFor="email" required compact>
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={profileData.email}
+                                                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                                                icon={<Mail className="w-4 h-4" />}
+                                            />
+                                        </FormField>
+                                    </FormGrid>
 
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Language</label>
-                            <select
-                                value={profileData.language}
-                                onChange={(e) => setProfileData({ ...profileData, language: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="English">English</option>
-                                <option value="Spanish">Spanish</option>
-                                <option value="French">French</option>
-                                <option value="German">German</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
+                                    <Divider />
 
-                {/* Security Tab */}
-                {activeTab === 'security' && (
-                    <div className="space-y-3 animate-fadeIn">
-                        <h2 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] font-semibold mb-2">Security Settings</h2>
+                                    <CompactFormSection title="Contact & Location" columns={3}>
+                                        <CompactField label="Phone">
+                                            <Input
+                                                variant="compact"
+                                                type="tel"
+                                                value={profileData.phone}
+                                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                                                icon={<Phone className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Country">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.country}
+                                                onChange={(e) => setProfileData({ ...profileData, country: e.target.value })}
+                                            >
+                                                <option value="United States">United States</option>
+                                                <option value="United Kingdom">United Kingdom</option>
+                                                <option value="Canada">Canada</option>
+                                                <option value="Australia">Australia</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Timezone">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.timezone}
+                                                onChange={(e) => setProfileData({ ...profileData, timezone: e.target.value })}
+                                            >
+                                                <option value="America/New_York">Eastern Time (ET)</option>
+                                                <option value="America/Chicago">Central Time (CT)</option>
+                                                <option value="America/Denver">Mountain Time (MT)</option>
+                                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
 
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Current Password</label>
-                            <input
-                                type="password"
-                                value={securityData.currentPassword}
-                                onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                placeholder="Enter current password"
-                            />
-                        </div>
+                                    <Divider />
 
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">New Password</label>
-                                <input
-                                    type="password"
-                                    value={securityData.newPassword}
-                                    onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                    placeholder="Enter new password"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    value={securityData.confirmPassword}
-                                    onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                    placeholder="Confirm new password"
-                                />
-                            </div>
-                        </div>
+                                    <CompactFormSection title="Preferences" columns={2}>
+                                        <CompactField label="Language">
+                                            <Select
+                                                variant="compact"
+                                                value={profileData.language}
+                                                onChange={(e) => setProfileData({ ...profileData, language: e.target.value })}
+                                            >
+                                                <option value="English">English</option>
+                                                <option value="Spanish">Spanish</option>
+                                                <option value="French">French</option>
+                                                <option value="German">German</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
 
-                        <div className="flex items-center justify-between p-2 bg-[#0B0633] border border-gray-700/50 rounded">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Two-Factor Authentication</div>
-                                <div className="text-[10px] text-gray-400">Add an extra layer of security</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={securityData.twoFactorEnabled}
-                                    onChange={(e) => setSecurityData({ ...securityData, twoFactorEnabled: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Session Timeout (minutes)</label>
-                            <select
-                                value={securityData.sessionTimeout}
-                                onChange={(e) => setSecurityData({ ...securityData, sessionTimeout: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="120">2 hours</option>
-                            </select>
-                        </div>
-                    </div>
-                )}
-
-                {/* Notifications Tab */}
-                {activeTab === 'notifications' && (
-                    <div className="space-y-1.5 animate-fadeIn">
-                        <h2 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] font-semibold mb-1.5">Notification Preferences</h2>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Email Notifications</div>
-                                <div className="text-[10px] text-gray-400">Receive notifications via email</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.emailNotifications}
-                                    onChange={(e) => setNotificationData({ ...notificationData, emailNotifications: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Trade Alerts</div>
-                                <div className="text-[10px] text-gray-400">Get notified about trade executions</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.tradeAlerts}
-                                    onChange={(e) => setNotificationData({ ...notificationData, tradeAlerts: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Price Alerts</div>
-                                <div className="text-[10px] text-gray-400">Alerts when prices reach targets</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.priceAlerts}
-                                    onChange={(e) => setNotificationData({ ...notificationData, priceAlerts: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">News Updates</div>
-                                <div className="text-[10px] text-gray-400">Market news and updates</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.newsUpdates}
-                                    onChange={(e) => setNotificationData({ ...notificationData, newsUpdates: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Weekly Reports</div>
-                                <div className="text-[10px] text-gray-400">Weekly performance summaries</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.weeklyReports}
-                                    onChange={(e) => setNotificationData({ ...notificationData, weeklyReports: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-
-                        <div className="flex items-center justify-between p-1.5 bg-[#0B0633] border border-gray-700/50 rounded hover:border-[#2F6BFF]/50 transition-colors">
-                            <div>
-                                <div className="text-micro text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Marketing Emails</div>
-                                <div className="text-[10px] text-gray-400">Promotional offers and updates</div>
-                            </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={notificationData.marketingEmails}
-                                    onChange={(e) => setNotificationData({ ...notificationData, marketingEmails: e.target.checked })}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2F6BFF]"></div>
-                            </label>
-                        </div>
-                    </div>
-                )}
-
-                {/* Preferences Tab */}
-                {activeTab === 'preferences' && (
-                    <div className="space-y-3 animate-fadeIn">
-                        <h2 className="text-small-dashboard text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)] font-semibold mb-2">Application Preferences</h2>
-
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Theme</label>
-                            <select
-                                value={preferenceData.theme}
-                                onChange={(e) => setPreferenceData({ ...preferenceData, theme: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="dark">Dark</option>
-                                <option value="light">Light</option>
-                                <option value="auto">Auto</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Default Currency</label>
-                            <select
-                                value={preferenceData.currency}
-                                onChange={(e) => setPreferenceData({ ...preferenceData, currency: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="USD">USD - US Dollar</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="GBP">GBP - British Pound</option>
-                                <option value="JPY">JPY - Japanese Yen</option>
-                            </select>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Date Format</label>
-                                <select
-                                    value={preferenceData.dateFormat}
-                                    onChange={(e) => setPreferenceData({ ...preferenceData, dateFormat: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
+                        {/* Security Tab */}
+                        {activeTab === 'security' && (
+                            <FormContainer maxWidth="lg">
+                                <FormSection
+                                    title="Security Settings"
+                                    description="Manage your password and authentication settings"
+                                    variant="elevated"
+                                    icon={<Lock className="w-5 h-5 text-[#2F6BFF]" />}
                                 >
-                                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] text-gray-400 mb-1">Number Format</label>
-                                <select
-                                    value={preferenceData.numberFormat}
-                                    onChange={(e) => setPreferenceData({ ...preferenceData, numberFormat: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                                >
-                                    <option value="en-US">1,234.56 (US)</option>
-                                    <option value="de-DE">1.234,56 (EU)</option>
-                                    <option value="fr-FR">1 234,56 (FR)</option>
-                                </select>
-                            </div>
-                        </div>
+                                    <FormField
+                                        label="Current Password"
+                                        htmlFor="currentPassword"
+                                        helpText="Required to change your password"
+                                        inline
+                                    >
+                                        <Input
+                                            id="currentPassword"
+                                            type="password"
+                                            value={securityData.currentPassword}
+                                            onChange={(e) => setSecurityData({ ...securityData, currentPassword: e.target.value })}
+                                            placeholder="Enter current password"
+                                            icon={<Lock className="w-4 h-4" />}
+                                        />
+                                    </FormField>
 
-                        <div>
-                            <label className="block text-[10px] text-gray-400 mb-1">Default Chart Type</label>
-                            <select
-                                value={preferenceData.chartType}
-                                onChange={(e) => setPreferenceData({ ...preferenceData, chartType: e.target.value })}
-                                className="w-full px-2 py-1.5 bg-[#16124A] border border-gray-700/50 rounded text-micro text-[#efdede] focus:outline-none focus:border-[#2F6BFF] transition-colors"
-                            >
-                                <option value="candlestick">Candlestick</option>
-                                <option value="line">Line</option>
-                                <option value="bar">Bar</option>
-                                <option value="area">Area</option>
-                            </select>
-                        </div>
+                                    <Divider />
+
+                                    <FormGrid columns={2} gap="md">
+                                        <FormField label="New Password" htmlFor="newPassword" compact>
+                                            <Input
+                                                id="newPassword"
+                                                type="password"
+                                                value={securityData.newPassword}
+                                                onChange={(e) => setSecurityData({ ...securityData, newPassword: e.target.value })}
+                                                placeholder="Enter new password"
+                                                icon={<Shield className="w-4 h-4" />}
+                                            />
+                                        </FormField>
+                                        <FormField label="Confirm Password" htmlFor="confirmPassword" compact>
+                                            <Input
+                                                id="confirmPassword"
+                                                type="password"
+                                                value={securityData.confirmPassword}
+                                                onChange={(e) => setSecurityData({ ...securityData, confirmPassword: e.target.value })}
+                                                placeholder="Confirm new password"
+                                            />
+                                        </FormField>
+                                    </FormGrid>
+
+                                    <Divider label="Authentication" />
+
+                                    <Toggle
+                                        checked={securityData.twoFactorEnabled}
+                                        onChange={(checked) => setSecurityData({ ...securityData, twoFactorEnabled: checked })}
+                                        label="Two-Factor Authentication"
+                                        description="Add an extra layer of security to your account"
+                                    />
+
+                                    <Divider />
+
+                                    <CompactFormSection title="Session Management" columns={2}>
+                                        <CompactField label="Session Timeout">
+                                            <Select
+                                                variant="compact"
+                                                value={securityData.sessionTimeout}
+                                                onChange={(e) => setSecurityData({ ...securityData, sessionTimeout: e.target.value })}
+                                            >
+                                                <option value="15">15 minutes</option>
+                                                <option value="30">30 minutes</option>
+                                                <option value="60">1 hour</option>
+                                                <option value="120">2 hours</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Notifications Tab */}
+                        {activeTab === 'notifications' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Notification Preferences"
+                                    description="Choose which notifications you want to receive"
+                                    variant="elevated"
+                                    icon={<Bell className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Delivery Methods" columns={2}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.emailNotifications}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, emailNotifications: checked })}
+                                            label="Email Notifications"
+                                            description="Receive via email"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.pushNotifications}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, pushNotifications: checked })}
+                                            label="Push Notifications"
+                                            description="Browser push alerts"
+                                        />
+                                    </CompactFormSection>
+
+                                    <Divider label="Alert Types" />
+
+                                    <CompactFormSection columns={3}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.tradeAlerts}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, tradeAlerts: checked })}
+                                            label="Trade Alerts"
+                                            description="Trade executions"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.priceAlerts}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, priceAlerts: checked })}
+                                            label="Price Alerts"
+                                            description="Price targets"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.newsUpdates}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, newsUpdates: checked })}
+                                            label="News Updates"
+                                            description="Market news"
+                                        />
+                                    </CompactFormSection>
+
+                                    <Divider label="Reports & Marketing" />
+
+                                    <CompactFormSection columns={3}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.weeklyReports}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, weeklyReports: checked })}
+                                            label="Weekly Reports"
+                                            description="Performance summaries"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.marketingEmails}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, marketingEmails: checked })}
+                                            label="Marketing Emails"
+                                            description="Promotional offers"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={notificationData.soundEnabled}
+                                            onChange={(checked) => setNotificationData({ ...notificationData, soundEnabled: checked })}
+                                            label="Sound Enabled"
+                                            description="Notification sounds"
+                                        />
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Display Tab */}
+                        {activeTab === 'display' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Display Preferences"
+                                    description="Customize how information is displayed"
+                                    variant="elevated"
+                                    icon={<Eye className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Appearance" columns={2}>
+                                        <CompactField label="Theme">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.theme}
+                                                onChange={(e) => setDisplayData({ ...displayData, theme: e.target.value })}
+                                            >
+                                                <option value="dark">Dark</option>
+                                                <option value="light">Light</option>
+                                                <option value="auto">Auto</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Default Currency">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.currency}
+                                                onChange={(e) => setDisplayData({ ...displayData, currency: e.target.value })}
+                                            >
+                                                <option value="USD">USD - US Dollar</option>
+                                                <option value="EUR">EUR - Euro</option>
+                                                <option value="GBP">GBP - British Pound</option>
+                                                <option value="JPY">JPY - Japanese Yen</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+
+                                    <Divider label="Formats" />
+
+                                    <CompactFormSection columns={4}>
+                                        <CompactField label="Number Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.numberFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, numberFormat: e.target.value })}
+                                            >
+                                                <option value="en-US">1,234.56 (US)</option>
+                                                <option value="de-DE">1.234,56 (EU)</option>
+                                                <option value="fr-FR">1 234,56 (FR)</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Date Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.dateFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, dateFormat: e.target.value })}
+                                            >
+                                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Time Format">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.timeFormat}
+                                                onChange={(e) => setDisplayData({ ...displayData, timeFormat: e.target.value })}
+                                            >
+                                                <option value="12h">12 Hour</option>
+                                                <option value="24h">24 Hour</option>
+                                            </Select>
+                                        </CompactField>
+                                        <CompactField label="Chart Type">
+                                            <Select
+                                                variant="compact"
+                                                value={displayData.chartType}
+                                                onChange={(e) => setDisplayData({ ...displayData, chartType: e.target.value })}
+                                            >
+                                                <option value="candlestick">Candlestick</option>
+                                                <option value="line">Line</option>
+                                                <option value="bar">Bar</option>
+                                                <option value="area">Area</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Trading Tab */}
+                        {activeTab === 'trading' && (
+                            <FormContainer maxWidth="xl">
+                                <FormSection
+                                    title="Trading Preferences"
+                                    description="Configure your default trading settings"
+                                    variant="elevated"
+                                    icon={<TrendingUp className="w-5 h-5 text-[#2F6BFF]" />}
+                                >
+                                    <CompactFormSection title="Default Values" columns={3}>
+                                        <CompactField label="Default Stake">
+                                            <Input
+                                                variant="compact"
+                                                type="number"
+                                                value={tradingData.defaultStake}
+                                                onChange={(e) => setTradingData({ ...tradingData, defaultStake: e.target.value })}
+                                                icon={<DollarSign className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Duration (min)">
+                                            <Input
+                                                variant="compact"
+                                                type="number"
+                                                value={tradingData.defaultDuration}
+                                                onChange={(e) => setTradingData({ ...tradingData, defaultDuration: e.target.value })}
+                                                icon={<Clock className="w-4 h-4" />}
+                                            />
+                                        </CompactField>
+                                        <CompactField label="Risk Level">
+                                            <Select
+                                                variant="compact"
+                                                value={tradingData.riskLevel}
+                                                onChange={(e) => setTradingData({ ...tradingData, riskLevel: e.target.value })}
+                                            >
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                            </Select>
+                                        </CompactField>
+                                    </CompactFormSection>
+
+                                    <Divider label="Trade Execution" />
+
+                                    <CompactFormSection columns={2}>
+                                        <Toggle
+                                            variant="compact"
+                                            checked={tradingData.confirmTrades}
+                                            onChange={(checked) => setTradingData({ ...tradingData, confirmTrades: checked })}
+                                            label="Confirm Trades"
+                                            description="Ask before placing"
+                                        />
+                                        <Toggle
+                                            variant="compact"
+                                            checked={tradingData.autoClose}
+                                            onChange={(checked) => setTradingData({ ...tradingData, autoClose: checked })}
+                                            label="Auto Close"
+                                            description="Close at expiry"
+                                        />
+                                    </CompactFormSection>
+                                </FormSection>
+                            </FormContainer>
+                        )}
+
+                        {/* Referrals Tab */}
+                        {activeTab === 'referrals' && (
+                            <div className="space-y-6">
+                                {/* Stats Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Total Referrals */}
+                                    <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 hover:border-[#2F6BFF] transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#3B82F6]/20 rounded-xl flex items-center justify-center">
+                                                <Users className="w-5 h-5 text-[#2F6BFF]" />
+                                            </div>
+                                            <span className="text-xs text-gray-400 font-semibold">Total</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-white mb-1">{totalReferrals}</div>
+                                        <div className="text-xs text-gray-400">Referrals</div>
+                                    </div>
+
+                                    {/* Active Referrals */}
+                                    <div className="rounded-2xl border border-green-500/20 bg-[#16124A]/50 p-4 hover:border-green-500 transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-green-500/20 to-green-400/20 rounded-xl flex items-center justify-center">
+                                                <CheckCircle className="w-5 h-5 text-green-400" />
+                                            </div>
+                                            <span className="text-xs text-green-400 font-semibold">Active</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-green-400 mb-1">{activeReferrals}</div>
+                                        <div className="text-xs text-gray-400">Trading</div>
+                                    </div>
+
+                                    {/* Pending Referrals */}
+                                    <div className="rounded-2xl border border-yellow-500/20 bg-[#16124A]/50 p-4 hover:border-yellow-500 transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-yellow-400/20 rounded-xl flex items-center justify-center">
+                                                <Clock className="w-5 h-5 text-yellow-400" />
+                                            </div>
+                                            <span className="text-xs text-yellow-400 font-semibold">Pending</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-white mb-1">{pendingReferrals}</div>
+                                        <div className="text-xs text-gray-400">Not Active</div>
+                                    </div>
+
+                                    {/* Total Commission */}
+                                    <div className="rounded-2xl border border-[#FFA62B]/20 bg-[#16124A]/50 p-4 hover:border-[#FFA62B] transition-all duration-300">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-[#FFA62B]/20 to-[#F59E0B]/20 rounded-xl flex items-center justify-center">
+                                                <DollarSign className="w-5 h-5 text-[#FFA62B]" />
+                                            </div>
+                                            <span className="text-xs text-[#FFA62B] font-semibold">Earned</span>
+                                        </div>
+                                        <div className="text-2xl font-bold text-[#FFA62B] mb-1">${totalCommission.toFixed(2)}</div>
+                                        <div className="text-xs text-gray-400">Commission</div>
+                                    </div>
+                                </div>
+
+                                {/* Commission Trend Chart */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Commission Earnings (Last 30 Days)</h3>
+                                    <ModernAreaChart
+                                        data={commissionTrend}
+                                        color="#FFA62B"
+                                        gradientFrom="#FFA62B"
+                                        gradientTo="#F59E0B"
+                                        height={180}
+                                        showGrid={true}
+                                    />
+                                </div>
+
+                                {/* Referral Link Section */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Your Referral Link</h3>
+
+                                    <div className="space-y-4">
+                                        {/* Referral Code */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Code</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={referralCode}
+                                                    readOnly
+                                                    className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                                />
+                                                <button
+                                                    onClick={handleCopyCode}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                    <span>Copy</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Referral Link */}
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-300 mb-2">Referral Link</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={referralLink}
+                                                    readOnly
+                                                    className="flex-1 px-3 py-2 bg-[#16124A] border border-gray-700/50 rounded-xl text-sm text-[#efdede] focus:outline-none"
+                                                />
+                                                <button
+                                                    onClick={handleCopyLink}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] text-[#2F6BFF] text-xs font-semibold transition-all duration-300"
+                                                >
+                                                    <Copy className="w-4 h-4" />
+                                                    <span>Copy</span>
+                                                </button>
+                                                <button
+                                                    onClick={handleShare}
+                                                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2F6BFF] to-[#3B82F6] hover:from-[#3B82F6] hover:to-[#2F6BFF] text-white text-xs font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+                                                >
+                                                    <Share2 className="w-4 h-4" />
+                                                    <span>Share</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Referrals Table */}
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                    <div className="border-b border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent pb-4 mb-4">
+                                        <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Referral History</h3>
+                                    </div>
+
+                                    <div className="overflow-x-auto w-full">
+                                        <table className="w-full min-w-[600px]">
+                                            <thead>
+                                                <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Email</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Status</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Trades</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Commission</th>
+                                                    <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Signup Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#2F6BFF]/20">
+                                                {referrals.map((referral) => (
+                                                    <tr key={referral.id} className="hover:bg-[#16124A]/50 transition-colors duration-200">
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.name}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="text-xs text-gray-400">{referral.email}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2">
+                                                                {getStatusIcon(referral.status)}
+                                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>
+                                                                    {referral.status.toUpperCase()}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-center whitespace-nowrap">
+                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.totalTrades}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
+                                                            <div className="text-sm text-[#FFA62B] font-semibold">${referral.commission.toFixed(2)}</div>
+                                                        </td>
+                                                        <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
+                                                            <div className="text-xs text-gray-400">{referral.signupDate}</div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
+                </GlassCard>
+            </Stack>
+        </PageContainer>
     );
 }
+
+

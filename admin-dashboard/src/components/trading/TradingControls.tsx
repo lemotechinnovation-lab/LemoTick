@@ -14,3 +14,5 @@ const TradingControls: React.FC<TradingControlsProps> = () => {
 };
 
 export default TradingControls;
+
+

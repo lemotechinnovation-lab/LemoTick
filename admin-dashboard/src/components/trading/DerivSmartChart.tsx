@@ -14,3 +14,5 @@ const DerivSmartChart: React.FC<DerivSmartChartProps> = () => {
 };
 
 export default DerivSmartChart;
+
+

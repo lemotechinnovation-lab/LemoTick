@@ -53,7 +53,7 @@ export default function TradePage() {
         const saved = localStorage.getItem('activeIndicators');
         return saved ? JSON.parse(saved) : [];
     });
-    const [barSpacing, setBarSpacing] = useState(12);
+    const [barSpacing, setBarSpacing] = useState(8);
     const [chartHeight, setChartHeight] = useState(600);
     const [hasTemplates, setHasTemplates] = useState(false);
 
@@ -356,7 +356,7 @@ export default function TradePage() {
         switch (indicatorId) {
             case 'moving_average':
                 return {
-                    color: '#2F6BFF',
+                    color: 'brand-blue',
                     period: 50,
                     field: 'close',
                     type: 'simple',
@@ -364,13 +364,13 @@ export default function TradePage() {
                 };
             case 'rsi':
                 return {
-                    color: '#FFA62B',
+                    color: 'accent-orange',
                     period: 14,
                     field: 'close',
                     overBought: 80,
                     overSold: 20,
-                    overBoughtColor: '#F87171',
-                    overSoldColor: '#10B981',
+                    overBoughtColor: 'error-red',
+                    overSoldColor: 'success-green',
                     showZones: true,
                 };
             case 'macd':
@@ -378,38 +378,38 @@ export default function TradePage() {
                     fastPeriod: 12,
                     slowPeriod: 26,
                     signalPeriod: 9,
-                    increasingColor: '#10B981',
-                    decreasingColor: '#F87171',
+                    increasingColor: 'success-green',
+                    decreasingColor: 'error-red',
                 };
             case 'awesome_oscillator':
                 return {
-                    increasingColor: '#10B981',
-                    decreasingColor: '#F87171',
+                    increasingColor: 'success-green',
+                    decreasingColor: 'error-red',
                 };
             case 'detrended_price':
                 return {
-                    color: '#2F6BFF',
+                    color: 'brand-blue',
                     period: 14,
                     field: 'close',
                     maType: 'simple',
                 };
             case 'price_rate_change':
                 return {
-                    color: '#FFA62B',
+                    color: 'accent-orange',
                     period: 14,
                     field: 'close',
                 };
             case 'stochastic_oscillator':
                 return {
-                    fastColor: '#2F6BFF',
-                    slowColor: '#F87171',
+                    fastColor: 'brand-blue',
+                    slowColor: 'error-red',
                     period: 14,
                     field: 'close',
                     smooth: true,
                     overBought: 80,
                     overSold: 20,
-                    overBoughtColor: '#F87171',
-                    overSoldColor: '#10B981',
+                    overBoughtColor: 'error-red',
+                    overSoldColor: 'success-green',
                     showZones: true,
                 };
             default:
@@ -445,21 +445,21 @@ export default function TradePage() {
 
     if (!isReady) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-[#0D0735] via-[#0B0633] to-[#16124A]/60 gap-6">
+            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-[#B4B4C3] w-full max-w-full via-[#B4B4C3] to-[#A4A4B3]/60 gap-3 sm:gap-4 sm:p-6">
                 <div className="relative">
                     {/* Outer glow ring */}
-                    <div className="absolute inset-0 w-20 h-20 -m-2 rounded-full bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 blur-xl animate-pulse"></div>
+                    <div className="absolute inset-0 w-20 h-20 -m-2 rounded-full bg-gradient-to-r from-brand-blue/20 to-accent-orange/20 blur-xl animate-pulse"></div>
                     {/* Main spinner */}
-                    <div className="relative w-16 h-16 border-4 border-[#2F6BFF]/20 border-t-[#2F6BFF] rounded-full animate-spin shadow-[0_0_20px_rgba(30,109,227,0.5)]"></div>
+                    <div className="relative w-16 h-16 border-4 border-brand-blue/20 border-t-brand-blue rounded-full animate-spin shadow-[0_0_20px_rgba(30,109,227,0.5)]"></div>
                     {/* Counter spinner */}
-                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-[#FFA62B] rounded-full animate-spin shadow-[0_0_20px_rgba(240,122,47,0.5)]" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-accent-orange rounded-full animate-spin shadow-[0_0_20px_rgba(240,122,47,0.5)]" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
                 </div>
                 <div className="text-center space-y-2">
-                    <span className="text-white text-lg font-semibold bg-gradient-to-r from-[#2F6BFF] to-[#FFA62B] bg-clip-text text-transparent">Connecting to Deriv...</span>
+                    <span className="text-white text-base sm:text-lg font-semibold bg-gradient-to-r from-brand-blue to-accent-orange bg-clip-text text-transparent">Connecting to Deriv...</span>
                     <div className="flex gap-1.5 justify-center">
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '300ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '300ms' }}></div>
                     </div>
                 </div>
             </div>
@@ -468,21 +468,21 @@ export default function TradePage() {
 
     if (chartData.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-[#0D0735] via-[#0B0633] to-[#16124A]/60 gap-6">
+            <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-[#B4B4C3] w-full max-w-full via-[#B4B4C3] to-[#A4A4B3]/60 gap-3 sm:gap-4 sm:p-6">
                 <div className="relative">
                     {/* Outer glow ring */}
-                    <div className="absolute inset-0 w-20 h-20 -m-2 rounded-full bg-gradient-to-r from-[#2F6BFF]/20 to-[#FFA62B]/20 blur-xl animate-pulse"></div>
+                    <div className="absolute inset-0 w-20 h-20 -m-2 rounded-full bg-gradient-to-r from-brand-blue/20 to-accent-orange/20 blur-xl animate-pulse"></div>
                     {/* Main spinner */}
-                    <div className="relative w-16 h-16 border-4 border-[#2F6BFF]/20 border-t-[#2F6BFF] rounded-full animate-spin shadow-[0_0_20px_rgba(30,109,227,0.5)]"></div>
+                    <div className="relative w-16 h-16 border-4 border-brand-blue/20 border-t-brand-blue rounded-full animate-spin shadow-[0_0_20px_rgba(30,109,227,0.5)]"></div>
                     {/* Counter spinner */}
-                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-[#FFA62B] rounded-full animate-spin shadow-[0_0_20px_rgba(240,122,47,0.5)]" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                    <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-accent-orange rounded-full animate-spin shadow-[0_0_20px_rgba(240,122,47,0.5)]" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
                 </div>
                 <div className="text-center space-y-2">
-                    <span className="text-white text-lg font-semibold bg-gradient-to-r from-[#2F6BFF] to-[#FFA62B] bg-clip-text text-transparent">Loading chart data...</span>
+                    <span className="text-white text-base sm:text-lg font-semibold bg-gradient-to-r from-brand-blue to-accent-orange bg-clip-text text-transparent">Loading chart data...</span>
                     <div className="flex gap-1.5 justify-center">
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '300ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gradient-to-r from-brand-blue to-[#2557c9] rounded-full animate-bounce shadow-[0_0_8px_rgba(30,109,227,0.6)]" style={{ animationDelay: '300ms' }}></div>
                     </div>
                 </div>
             </div>
@@ -490,33 +490,32 @@ export default function TradePage() {
     }
 
     return (
-        <div className="flex h-full bg-[#0B0633]">
+        <div className="h-full w-full flex flex-col lg:flex-row bg-[#B4B4C3] overflow-hidden">
             {/* Left Side - Chart with Overlay Header */}
-            <div className="flex-1 relative">
+            <div className="flex-1 relative w-full min-w-0 h-full flex flex-col overflow-hidden">
                 {/* Top Bar - Market & Toolbar */}
-                <div className={`absolute top-0 right-0 z-10 px-4 py-3 flex items-center transition-all duration-300 ${isOpenPositionsPanelOpen ? 'left-[220px]' : 'left-0'}`}>
+                <div className="flex-shrink-0 px-4 py-3 flex items-center justify-between transition-all duration-300 relative z-20">
                     {/* Market Selector with Price */}
-                    <MarketSelector
-                        selectedSymbol={symbol}
-                        onSymbolChange={setSymbol}
-                        currentPrice={currentPrice}
-                        priceChange={priceChange}
-                        priceChangePercent={priceChangePercent}
-                    />
-
-                    {/* Spacer */}
-                    <div className="w-12"></div>
+                    <div className="flex-shrink-0">
+                        <MarketSelector
+                            selectedSymbol={symbol}
+                            onSymbolChange={setSymbol}
+                            currentPrice={currentPrice}
+                            priceChange={priceChange}
+                            priceChangePercent={priceChangePercent}
+                        />
+                    </div>
 
                     {/* Chart Toolbar - Centered */}
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="flex items-center gap-2 bg-gradient-to-r from-[#0B0633] via-[#16124A] to-[#0B0633] px-4 py-2 rounded-xl border border-[#2F6BFF]/30 shadow-lg shadow-[#2F6BFF]/20">
+                    <div className="flex items-center justify-center overflow-x-auto scrollbar-hide">
+                        <div className="flex items-center gap-1 bg-gradient-to-r from-[#B4B4C3] via-[#A4A4B3] to-[#B4B4C3] px-2 py-1.5 rounded-lg border border-brand-blue/30 shadow-lg shadow-brand-blue/20">
                             {/* Chart Types & Timeframe */}
                             <button
                                 onClick={() => setIsChartTypesModalOpen(true)}
-                                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Chart Types & Timeframe"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
                             </button>
@@ -524,14 +523,14 @@ export default function TradePage() {
                             {/* Indicators */}
                             <button
                                 onClick={() => setIsIndicatorsModalOpen(true)}
-                                className="relative flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="relative flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Indicators"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
                                 {activeIndicators.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-[#FFA62B] to-[#FF8C42] text-white text-[10px] font-bold rounded-full shadow-lg shadow-[#FFA62B]/50 animate-pulse border border-[#FFA62B]">
+                                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-[16px] px-0.5 bg-gradient-to-r from-accent-orange to-[#FF8C42] text-white text-[9px] font-bold rounded-full shadow-lg shadow-accent-orange/50 animate-pulse border border-accent-orange">
                                         {activeIndicators.length}
                                     </span>
                                 )}
@@ -540,10 +539,10 @@ export default function TradePage() {
                             {/* Templates */}
                             <button
                                 onClick={() => setIsTemplatesModalOpen(true)}
-                                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Templates"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
                                 </svg>
                             </button>
@@ -551,10 +550,10 @@ export default function TradePage() {
                             {/* Drawing Tools */}
                             <button
                                 onClick={() => setIsDrawingToolsModalOpen(true)}
-                                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Drawing Tools"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                             </button>
@@ -563,19 +562,19 @@ export default function TradePage() {
                             <button
                                 onClick={handleDownloadTemplate}
                                 disabled={!hasTemplates}
-                                className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300 border ${hasTemplates
-                                    ? 'bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] border-[#2F6BFF]/30 hover:border-[#2F6BFF] cursor-pointer hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group'
-                                    : 'bg-[#16124A]/30 border-[#16124A]/30 cursor-not-allowed opacity-50'
+                                className={`flex items-center justify-center w-7 h-7 rounded-md transition-all duration-300 border ${hasTemplates
+                                    ? 'bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue border-brand-blue/30 hover:border-brand-blue cursor-pointer hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group'
+                                    : 'bg-[#A4A4B3]/30 border-[#A4A4B3]/30 cursor-not-allowed opacity-50'
                                     }`}
                                 title={hasTemplates ? "Download Template" : "No templates available"}
                             >
-                                <svg className={`w-4 h-4 ${hasTemplates ? 'text-gray-100 group-hover:text-[#efdede] transition-colors' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className={`w-3.5 h-3.5 ${hasTemplates ? 'text-gray-100 group-hover:text-[#efdede] transition-colors' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
                             </button>
 
                             {/* Divider */}
-                            <div className="w-px h-6 bg-gradient-to-b from-transparent via-[#2F6BFF]/50 to-transparent mx-1" />
+                            <div className="w-px h-5 bg-gradient-to-b from-transparent via-brand-blue/50 to-transparent mx-0.5" />
 
                             {/* Zoom Out */}
                             <button
@@ -585,10 +584,10 @@ export default function TradePage() {
                                         return newValue < 5 ? 5 : newValue;
                                     });
                                 }}
-                                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Zoom Out"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
                                 </svg>
                             </button>
@@ -601,10 +600,10 @@ export default function TradePage() {
                                         return newValue > 50 ? 50 : newValue;
                                     });
                                 }}
-                                className="flex items-center justify-center w-9 h-9 bg-gradient-to-br from-[#16124A] to-[#1E1854] hover:from-[#2F6BFF] hover:to-[#4A5FD9] rounded-lg transition-all duration-300 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] hover:scale-110 hover:shadow-lg hover:shadow-[#2F6BFF]/50 group"
+                                className="flex items-center justify-center w-7 h-7 bg-gradient-to-br from-[#A4A4B3] to-[#A4A4B3] hover:from-brand-blue hover:to-brand-blue rounded-md transition-all duration-300 border border-brand-blue/30 hover:border-brand-blue hover:scale-110 hover:shadow-lg hover:shadow-brand-blue/50 group"
                                 title="Zoom In"
                             >
-                                <svg className="w-4 h-4 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-gray-100 group-hover:text-[#efdede] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
                                 </svg>
                             </button>
@@ -612,11 +611,11 @@ export default function TradePage() {
                     </div>
 
                     {/* Right spacer to balance layout */}
-                    <div className="w-[300px]"></div>
+                    <div className="w-0 lg:w-64"></div>
                 </div>
 
                 {/* Chart Area - Full Height with Top Padding */}
-                <div ref={chartContainerRef} className="w-full h-full pt-[85px] relative">
+                <div ref={chartContainerRef} className="absolute inset-0 top-[60px]">
                     <LightweightChart
                         data={chartData}
                         chartType={chartType}
@@ -637,7 +636,7 @@ export default function TradePage() {
                 {/* Portfolio Icon - Bottom Left Corner of Page */}
                 <button
                     onClick={() => setIsOpenPositionsPanelOpen(!isOpenPositionsPanelOpen)}
-                    className="fixed bottom-3 left-66 p-0 bg-[#0B0633]/90 hover:bg-gray-700/90 rounded border border-[#16124A]/50 transition-colors z-40"
+                    className="fixed bottom-3 left-3 sm:left-16 lg:left-66 p-0 bg-[#B4B4C3]/90 hover:bg-gray-700/90 rounded border border-[#A4A4B3]/50 transition-colors z-40"
                     title="Portfolio"
                 >
                     <Briefcase className="w-4 h-4 text-gray-200" />
@@ -660,7 +659,7 @@ export default function TradePage() {
             </div>
 
             {/* Right Side - Trading Panel */}
-            <div className="w-72 bg-[#0B0633] border-l border-[#16124A] flex-shrink-0">
+            <div className="w-full lg:w-64 bg-[#B4B4C3] border-t lg:border-t-0 shrink-0 flex flex-col overflow-hidden h-full">
                 <TradingPanel
                     symbol={symbol}
                     currentPrice={currentPrice}
@@ -669,7 +668,7 @@ export default function TradePage() {
                 />
             </div>
 
-            {/* Chart Types Modal */}
+            {/* Chart Types Modal */}            {/* Chart Types Modal */}
             <ChartTypesModal
                 isOpen={isChartTypesModalOpen}
                 onClose={() => setIsChartTypesModalOpen(false)}
@@ -729,3 +728,5 @@ export default function TradePage() {
         </div>
     );
 }
+
+

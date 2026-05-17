@@ -17,10 +17,11 @@ function SidebarLinkGroup({
   }
 
   return (
-    <li className={`px-3 py-1.5 rounded-lg bg-linear-to-r ${activecondition && 'from-[#2F6BFF]/[0.12] dark:from-[#2F6BFF]/[0.24] to-[#2F6BFF]/[0.04]'}`}>
+    <li>
       {children(handleClick, open)}
     </li>
   );
 }
 
 export default SidebarLinkGroup;
+

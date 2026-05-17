@@ -1,0 +1,693 @@
+/**
+ * UI ENHANCEMENTS 2026
+ * Modern dashboard design patterns based on 2026 trends
+ * 
+ * Key Principles:
+ * - Information density with clear hierarchy
+ * - Purposeful glassmorphism
+ * - Smooth micro-interactions
+ * - Consistent spacing and typography
+ * - Accessibility-first approach
+ * 
+ * Color Scheme:
+ * - Headers: #fa7e0a (Orange)
+ * - Subheaders: #3476fa (Blue)
+ */
+
+/* ============================================
+   TYPOGRAPHY COLORS - ENHANCED VISIBILITY
+   ============================================ */
+
+/* Main Headers (h1, h2) - Darker orange for light background */
+h1, .h1, .heading-primary {
+  color: #d66a00 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+}
+
+h2, .h2, .heading-secondary {
+  color: #d66a00 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.01em;
+}
+
+/* Subheaders (h3, h4, h5, h6) - Darker blue for light background */
+h3, .h3, .heading-tertiary {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h4, .h4, .heading-quaternary {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h5, .h5 {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h6, .h6 {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Section titles and card titles */
+.section-title {
+  color: #d66a00 !important;
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+  color: #2557c9 !important;
+  font-weight: 600 !important;
+  text-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   ENHANCED GLASSMORPHISM SYSTEM
+   ============================================ */
+
+/* Force correct card background - utility class */
+.card-dark,
+.card-correct,
+.card-fixed {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.glass-card {
+  background: rgba(42, 42, 72, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(53, 51, 94, 0.90);
+  border-color: rgba(47, 107, 255, 0.30);
+  box-shadow: 
+    0 12px 48px 0 rgba(47, 107, 255, 0.20),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.glass-card-elevated {
+  background: rgba(53, 51, 94, 0.92);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(47, 107, 255, 0.20);
+  box-shadow: 
+    0 16px 64px 0 rgba(11, 6, 48, 0.45),
+    0 0 0 1px rgba(47, 107, 255, 0.10),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.glass-sidebar {
+  background: rgba(53, 51, 94, 0.95);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border-right: 1px solid rgba(47, 107, 255, 0.15);
+  box-shadow: 
+    4px 0 24px 0 rgba(11, 6, 48, 0.30),
+    inset -1px 0 0 0 rgba(47, 107, 255, 0.10);
+}
+
+.glass-header {
+  background: rgba(53, 51, 94, 0.90);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-bottom: 1px solid rgba(47, 107, 255, 0.15);
+  box-shadow: 
+    0 4px 24px 0 rgba(11, 6, 48, 0.25),
+    inset 0 -1px 0 0 rgba(47, 107, 255, 0.10);
+}
+
+/* ============================================
+   MICRO-INTERACTIONS & ANIMATIONS
+   ============================================ */
+
+.smooth-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-hover:hover {
+  transform: translateY(-2px);
+}
+
+.scale-hover {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-hover:hover {
+  transform: scale(1.02);
+}
+
+.glow-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow-hover:hover {
+  box-shadow: 0 0 32px rgba(47, 107, 255, 0.40);
+}
+
+/* Ripple effect for buttons */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Smooth fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stagger animation for lists */
+.stagger-item {
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0.05s; }
+.stagger-item:nth-child(2) { animation-delay: 0.10s; }
+.stagger-item:nth-child(3) { animation-delay: 0.15s; }
+.stagger-item:nth-child(4) { animation-delay: 0.20s; }
+.stagger-item:nth-child(5) { animation-delay: 0.25s; }
+.stagger-item:nth-child(6) { animation-delay: 0.30s; }
+
+/* ============================================
+   ENHANCED BUTTON SYSTEM
+   ============================================ */
+
+.btn-primary-enhanced {
+  background: linear-gradient(135deg, #2F6BFF 0%, #4A7FFF 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: none;
+  box-shadow: 
+    0 4px 12px rgba(47, 107, 255, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary-enhanced:hover::before {
+  left: 100%;
+}
+
+.btn-primary-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 24px rgba(47, 107, 255, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary-enhanced:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 8px rgba(47, 107, 255, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.btn-secondary-enhanced {
+  background: rgba(53, 51, 94, 0.60);
+  backdrop-filter: blur(12px);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1px solid rgba(47, 107, 255, 0.30);
+  box-shadow: 0 2px 8px rgba(11, 6, 48, 0.20);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary-enhanced:hover {
+  background: rgba(53, 51, 94, 0.80);
+  border-color: rgba(47, 107, 255, 0.50);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(47, 107, 255, 0.25);
+}
+
+/* ============================================
+   ENHANCED INPUT SYSTEM
+   ============================================ */
+
+.input-enhanced {
+  background: rgba(53, 51, 94, 0.50);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(47, 107, 255, 0.20);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: white;
+  font-size: 0.875rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(11, 6, 48, 0.20);
+}
+
+.input-enhanced::placeholder {
+  color: rgba(255, 255, 255, 0.40);
+}
+
+.input-enhanced:focus {
+  outline: none;
+  background: rgba(53, 51, 94, 0.70);
+  border-color: rgba(47, 107, 255, 0.50);
+  box-shadow: 
+    0 0 0 3px rgba(47, 107, 255, 0.15),
+    inset 0 2px 4px rgba(11, 6, 48, 0.20);
+}
+
+.input-enhanced:hover:not(:focus) {
+  border-color: rgba(47, 107, 255, 0.35);
+}
+
+/* ============================================
+   ENHANCED BADGE SYSTEM
+   ============================================ */
+
+.badge-enhanced {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.30);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.15);
+}
+
+.badge-warning {
+  background: rgba(255, 166, 43, 0.15);
+  color: #FFA62B;
+  border: 1px solid rgba(255, 166, 43, 0.30);
+  box-shadow: 0 0 12px rgba(255, 166, 43, 0.15);
+}
+
+.badge-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.30);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+}
+
+.badge-info {
+  background: rgba(47, 107, 255, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(47, 107, 255, 0.30);
+  box-shadow: 0 0 12px rgba(47, 107, 255, 0.15);
+}
+
+/* ============================================
+   ENHANCED NAVIGATION
+   ============================================ */
+
+.nav-item-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item-enhanced::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #2F6BFF, #4A7FFF);
+  transform: scaleY(0);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item-enhanced:hover {
+  background: rgba(47, 107, 255, 0.10);
+  color: white;
+}
+
+.nav-item-enhanced:hover::before {
+  transform: scaleY(1);
+}
+
+.nav-item-enhanced.active {
+  background: linear-gradient(90deg, rgba(47, 107, 255, 0.20), rgba(47, 107, 255, 0.05));
+  color: white;
+  box-shadow: 
+    0 0 20px rgba(47, 107, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nav-item-enhanced.active::before {
+  transform: scaleY(1);
+}
+
+/* ============================================
+   ENHANCED STAT CARDS
+   ============================================ */
+
+.stat-card-enhanced {
+  background: rgba(53, 51, 94, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(47, 107, 255, 0.15);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2F6BFF, #4A7FFF, #FFA62B);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card-enhanced:hover::before {
+  opacity: 1;
+}
+
+.stat-card-enhanced:hover {
+  background: rgba(53, 51, 94, 0.92);
+  border-color: rgba(47, 107, 255, 0.30);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 12px 48px rgba(47, 107, 255, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #ffffff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #3476fa !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  backdrop-filter: blur(8px);
+}
+
+.stat-change.positive {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.stat-change.negative {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+/* ============================================
+   ENHANCED TOOLTIPS
+   ============================================ */
+
+.tooltip-enhanced {
+  position: absolute;
+  background: rgba(11, 6, 48, 0.95);
+  backdrop-filter: blur(16px);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(47, 107, 255, 0.30);
+  box-shadow: 
+    0 8px 32px rgba(11, 6, 48, 0.60),
+    0 0 0 1px rgba(47, 107, 255, 0.20);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.tooltip-enhanced.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   ENHANCED LOADING STATES
+   ============================================ */
+
+.skeleton-enhanced {
+  background: linear-gradient(
+    90deg,
+    rgba(53, 51, 94, 0.60) 0%,
+    rgba(53, 51, 94, 0.80) 50%,
+    rgba(53, 51, 94, 0.60) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.spinner-enhanced {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(47, 107, 255, 0.20);
+  border-top-color: #2F6BFF;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   ENHANCED SCROLLBAR
+   ============================================ */
+
+.scrollbar-enhanced::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-track {
+  background: rgba(53, 51, 94, 0.30);
+  border-radius: 4px;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-thumb {
+  background: rgba(47, 107, 255, 0.40);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.scrollbar-enhanced::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 107, 255, 0.60);
+}
+
+/* Firefox */
+.scrollbar-enhanced {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(47, 107, 255, 0.40) rgba(53, 51, 94, 0.30);
+}
+
+/* ============================================
+   ENHANCED DIVIDERS
+   ============================================ */
+
+.divider-enhanced {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(47, 107, 255, 0.30) 50%,
+    transparent 100%
+  );
+  margin: 1.5rem 0;
+}
+
+.divider-vertical-enhanced {
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(47, 107, 255, 0.30) 50%,
+    transparent 100%
+  );
+  margin: 0 1rem;
+}
+
+/* ============================================
+   ENHANCED FOCUS STATES (Accessibility)
+   ============================================ */
+
+.focus-enhanced:focus-visible {
+  outline: 2px solid #2F6BFF;
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(16px) saturate(180%);
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .btn-primary-enhanced,
+  .btn-secondary-enhanced {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .glass-card,
+  .glass-card-elevated,
+  .glass-sidebar,
+  .glass-header {
+    background: white !important;
+    backdrop-filter: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  .stat-value {
+    -webkit-text-fill-color: initial !important;
+    color: #111827 !important;
+  }
+}

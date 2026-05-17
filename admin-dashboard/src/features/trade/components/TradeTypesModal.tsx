@@ -198,3 +198,5 @@ export default function TradeTypesModal({ isOpen, onClose, selectedType, onTypeS
         </div>
     );
 }
+
+

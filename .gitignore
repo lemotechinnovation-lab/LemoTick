@@ -13,6 +13,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!admin-dashboard/src/lib/
 lib64/
 parts/
 sdist/
@@ -321,6 +322,7 @@ bot_output.log
 
 # Data directories
 data/
+!backend/Infrastructure/Data/
 test_data/
 
 # Logs
@@ -338,3 +340,9 @@ docker-volumes/
 *.backup
 *.bak
 .claude/settings.local.json
+.kiro/specs/how-it-works-redesign/.config.kiro
+.kiro/specs/how-it-works-redesign/design.md
+.kiro/specs/how-it-works-redesign/requirements.md
+.gitignore
+.kiro/specs/how-it-works-redesign/tasks.md
+.kiro/specs/social-networking-feature/.config.kiro

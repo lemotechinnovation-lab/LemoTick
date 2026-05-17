@@ -246,3 +246,5 @@ export default function OpenPositionsPanel({ isOpen, onClose, positions, onSellP
         </div>
     );
 }
+
+

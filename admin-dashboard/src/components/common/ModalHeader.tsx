@@ -8,7 +8,7 @@ interface ModalHeaderProps {
 export default function ModalHeader({ title, onClose }: ModalHeaderProps) {
     return (
         <div
-            className="flex items-center justify-between p-3 border-b border-[#2F6BFF]/30 sticky top-0 z-10 backdrop-blur-xl bg-[#0B0633]/80"
+            className="flex items-center justify-between p-3 border-b border-[#2F6BFF]/30 sticky top-0 z-10 backdrop-blur-xl bg-[#35335e]/90"
             style={{
                 backgroundImage: 'linear-gradient(to right, rgba(47, 107, 255, 0.3), rgba(255, 166, 43, 0.2), rgba(47, 107, 255, 0.3))'
             }}
@@ -25,3 +25,5 @@ export default function ModalHeader({ title, onClose }: ModalHeaderProps) {
         </div>
     );
 }
+
+

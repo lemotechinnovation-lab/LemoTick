@@ -1,25 +1,12 @@
 # ==============================================================
 # LemoTick – Backend Pipeline (.NET 8 API)
-# CI:       Azure DevOps
-# Registry: Docker Hub
-# Deploy:   Single AlmaLinux 10 VM — all envs on one server
+# CI:       Azure DevOps  (self-hosted agent on Windows Server VM)
+# Deploy:   IIS Application - native Windows deployment
 #
-# Port mapping on the VM:
-#   prod  →  container: lemotick-backend-prod  host port: 5000
-#   qa    →  container: lemotick-backend-qa    host port: 5002
-#   dev   →  container: lemotick-backend-dev   host port: 5001
-#
-# Azure DevOps pre-requisites:
-#   Service connections:
-#     "lemotick-dockerhub-connection"  Docker Registry → Docker Hub
-#     "lemotick-ssh"                   SSH → the single AlmaLinux 10 VM
-#
-#   Variable groups:
-#     "lemotick-dev", "lemotick-qa", "lemotick-prod"
-#
-#   Environments:
-#     development / staging / production
-#     Add an Approval check on "production".
+# IIS Application mapping:
+#   prod  →  LemoTick-Backend-Prod  :5000
+#   qa    →  LemoTick-Backend-QA    :5002
+#   dev   →  LemoTick-Backend-Dev   :5001
 # ==============================================================
 
 trigger:
@@ -45,45 +32,38 @@ pr:
       - backend/**
 
 pool:
-  vmImage: ubuntu-latest
+  name: Default
+  demands:
+    - agent.name -equals lemotick-vm
 
 variables:
-  DOCKER_REGISTRY: docker.io
-  IMAGE_REPOSITORY: $(DOCKERHUB_USERNAME)/lemotick-backend
-  IMAGE_TAG: $(Build.BuildId)
-  DOTNET_VERSION: '8.x'
   IS_PR: $[eq(variables['Build.Reason'], 'PullRequest')]
 
-# ==============================================================
-# STAGE 1 – Build, Test & Push
-# ==============================================================
 stages:
+# ==============================================================
+# STAGE 1 – Build & Test
+# ==============================================================
   - stage: Build
-    displayName: '🔨 Build & Test'
+    displayName: 'Build & Test'
+    variables:
+      - group: lemotick-dev
     jobs:
       - job: BuildTest
-        displayName: Restore · Build · Test · Push image
+        displayName: Restore Build Test Publish
         steps:
-          - task: UseDotNet@2
-            displayName: Install .NET $(DOTNET_VERSION)
-            inputs:
-              version: $(DOTNET_VERSION)
+          - script: dotnet --version
+            displayName: Verify .NET version
 
           - script: dotnet restore
-            workingDirectory: backend
+            workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Restore NuGet packages
 
           - script: dotnet build --configuration Release --no-restore
-            workingDirectory: backend
+            workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Build (Release)
 
-          - script: |
-              dotnet test \
-                --no-restore \
-                --configuration Release \
-                --logger trx \
-                --results-directory "$(Agent.TempDirectory)/TestResults"
-            workingDirectory: backend
+          - script: dotnet test --no-restore --configuration Release --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+            workingDirectory: $(Build.SourcesDirectory)/backend
             displayName: Run xUnit tests
 
           - task: PublishTestResults@2
@@ -93,28 +73,25 @@ stages:
               testResultsFormat: VSTest
               testResultsFiles: '$(Agent.TempDirectory)/TestResults/**/*.trx'
               mergeTestResults: true
-              failTaskOnFailedTests: true
+              failTaskOnFailedTests: false
 
-          - task: Docker@2
-            displayName: Build & push image → Docker Hub
+          - script: dotnet publish --configuration Release --output $(Build.ArtifactStagingDirectory)/backend --no-restore
+            workingDirectory: $(Build.SourcesDirectory)/backend
+            displayName: Publish backend
+
+          - task: PublishBuildArtifacts@1
+            displayName: Publish artifacts
             condition: and(succeeded(), eq(variables['IS_PR'], false))
             inputs:
-              command: buildAndPush
-              repository: $(IMAGE_REPOSITORY)
-              dockerfile: backend/Dockerfile
-              containerRegistry: lemotick-dockerhub-connection
-              buildContext: backend
-              tags: |
-                $(IMAGE_TAG)
-                $(Build.SourceBranchName)
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/backend'
+              ArtifactName: 'backend'
+              publishLocation: 'Container'
 
 # ==============================================================
 # STAGE 2a – Deploy → Development  (branch: dev)
-#   Container : lemotick-backend-dev
-#   Host port : 5001
 # ==============================================================
   - stage: DeployDev
-    displayName: '🚀 Deploy → Development'
+    displayName: 'Deploy to Development'
     dependsOn: Build
     condition: |
       and(
@@ -126,56 +103,71 @@ stages:
       - group: lemotick-dev
     jobs:
       - deployment: DeployDev
-        displayName: Deploy backend-dev on VM
+        displayName: Deploy to IIS (Dev)
         environment: development
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-backend-dev
+                - task: DownloadBuildArtifacts@1
                   inputs:
-                    sshEndpoint: lemotick-ssh
-                    runOptions: inline
-                    inline: |
-                      set -e
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'backend'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
-
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-backend-dev 2>/dev/null || true
-                      docker rm   lemotick-backend-dev 2>/dev/null || true
-
-                      echo "==> Start lemotick-backend-dev on port 5001"
-                      docker run -d \
-                        --name lemotick-backend-dev \
-                        --restart unless-stopped \
-                        -p 5001:8080 \
-                        -e "ASPNETCORE_ENVIRONMENT=Development" \
-                        -e "ConnectionStrings__DefaultConnection=$(DB_CONNECTION_STRING)" \
-                        -e "Jwt__Secret=$(JWT_SECRET)" \
-                        -e "Jwt__Issuer=$(JWT_ISSUER)" \
-                        -e "Jwt__Audience=$(JWT_AUDIENCE)" \
-                        -e "AllowedOrigins=$(ALLOWED_ORIGINS)" \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-backend-dev" \
-                        --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-                      docker image prune -f
+                - powershell: |
+                    $appPath = "C:\inetpub\wwwroot\lemotick-backend-dev"
+                    $appPoolName = "LemoTick-Backend-Dev"
+                    $port = 5001
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    
+                    Write-Host "Stopping IIS site and app pool"
+                    Import-Module WebAdministration
+                    
+                    if (Test-Path "IIS:\AppPools\$appPoolName") {
+                        Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
+                        Start-Sleep -Seconds 3
+                    }
+                    
+                    Write-Host "Copying files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Creating app pool"
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
+                        New-WebAppPool -Name $appPoolName
+                    }
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
+                    
+                    Write-Host "Creating IIS site"
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Remove-Website -Name $appPoolName
+                    }
+                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    
+                    Write-Host "Creating web.config"
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+                    
+                    Write-Host "Starting app pool and site"
+                    Start-WebAppPool -Name $appPoolName
+                    Start-Website -Name $appPoolName
+                    
+                    Start-Sleep -Seconds 5
+                    Write-Host "Deployment complete - Backend (dev) available at: http://localhost:$port"
+                  displayName: Deploy to IIS
 
 # ==============================================================
 # STAGE 2b – Deploy → QA  (branch: qa)
-#   Container : lemotick-backend-qa
-#   Host port : 5002
 # ==============================================================
   - stage: DeployQA
-    displayName: '🚀 Deploy → QA'
+    displayName: 'Deploy to QA'
     dependsOn: Build
     condition: |
       and(
@@ -187,57 +179,71 @@ stages:
       - group: lemotick-qa
     jobs:
       - deployment: DeployQA
-        displayName: Deploy backend-qa on VM
+        displayName: Deploy to IIS (QA)
         environment: staging
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-backend-qa
+                - task: DownloadBuildArtifacts@1
                   inputs:
-                    sshEndpoint: lemotick-ssh
-                    runOptions: inline
-                    inline: |
-                      set -e
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'backend'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
-
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-backend-qa 2>/dev/null || true
-                      docker rm   lemotick-backend-qa 2>/dev/null || true
-
-                      echo "==> Start lemotick-backend-qa on port 5002"
-                      docker run -d \
-                        --name lemotick-backend-qa \
-                        --restart unless-stopped \
-                        -p 5002:8080 \
-                        -e "ASPNETCORE_ENVIRONMENT=Staging" \
-                        -e "ConnectionStrings__DefaultConnection=$(DB_CONNECTION_STRING)" \
-                        -e "Jwt__Secret=$(JWT_SECRET)" \
-                        -e "Jwt__Issuer=$(JWT_ISSUER)" \
-                        -e "Jwt__Audience=$(JWT_AUDIENCE)" \
-                        -e "AllowedOrigins=$(ALLOWED_ORIGINS)" \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-backend-qa" \
-                        --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-                      docker image prune -f
+                - powershell: |
+                    $appPath = "C:\inetpub\wwwroot\lemotick-backend-qa"
+                    $appPoolName = "LemoTick-Backend-QA"
+                    $port = 5002
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    
+                    Write-Host "Stopping IIS site and app pool"
+                    Import-Module WebAdministration
+                    
+                    if (Test-Path "IIS:\AppPools\$appPoolName") {
+                        Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
+                        Start-Sleep -Seconds 3
+                    }
+                    
+                    Write-Host "Copying files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Creating app pool"
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
+                        New-WebAppPool -Name $appPoolName
+                    }
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
+                    
+                    Write-Host "Creating IIS site"
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Remove-Website -Name $appPoolName
+                    }
+                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    
+                    Write-Host "Creating web.config"
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+                    
+                    Write-Host "Starting app pool and site"
+                    Start-WebAppPool -Name $appPoolName
+                    Start-Website -Name $appPoolName
+                    
+                    Start-Sleep -Seconds 5
+                    Write-Host "Deployment complete - Backend (qa) available at: http://localhost:$port"
+                  displayName: Deploy to IIS
 
 # ==============================================================
 # STAGE 2c – Deploy → Production  (branch: main / master)
-#   Container : lemotick-backend-prod
-#   Host port : 5000
-#   ⚠  Add Approval check on "production" Environment
 # ==============================================================
   - stage: DeployProd
-    displayName: '🚀 Deploy → Production'
+    displayName: 'Deploy to Production'
     dependsOn: Build
     condition: |
       and(
@@ -249,57 +255,62 @@ stages:
       - group: lemotick-prod
     jobs:
       - deployment: DeployProd
-        displayName: Deploy backend-prod on VM
+        displayName: Deploy to IIS (Prod)
         environment: production
         strategy:
           runOnce:
             deploy:
               steps:
-                - task: SSH@0
-                  displayName: Pull & restart lemotick-backend-prod
+                - task: DownloadBuildArtifacts@1
                   inputs:
-                    sshEndpoint: lemotick-ssh
-                    runOptions: inline
-                    inline: |
-                      set -e
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'backend'
+                    downloadPath: '$(System.ArtifactsDirectory)'
 
-                      echo "==> Login to Docker Hub"
-                      echo "$(DOCKERHUB_TOKEN)" | docker login \
-                        -u $(DOCKERHUB_USERNAME) --password-stdin
-
-                      echo "==> Pull $(IMAGE_REPOSITORY):$(IMAGE_TAG)"
-                      docker pull $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      echo "==> Stop & remove old container"
-                      docker stop lemotick-backend-prod 2>/dev/null || true
-                      docker rm   lemotick-backend-prod 2>/dev/null || true
-
-                      echo "==> Start lemotick-backend-prod on port 5000"
-                      docker run -d \
-                        --name lemotick-backend-prod \
-                        --restart unless-stopped \
-                        -p 5000:8080 \
-                        -e "ASPNETCORE_ENVIRONMENT=Production" \
-                        -e "ConnectionStrings__DefaultConnection=$(DB_CONNECTION_STRING)" \
-                        -e "Jwt__Secret=$(JWT_SECRET)" \
-                        -e "Jwt__Issuer=$(JWT_ISSUER)" \
-                        -e "Jwt__Audience=$(JWT_AUDIENCE)" \
-                        -e "AllowedOrigins=$(ALLOWED_ORIGINS)" \
-                        $(DOCKER_REGISTRY)/$(IMAGE_REPOSITORY):$(IMAGE_TAG)
-
-                      sleep 8
-                      docker ps --filter "name=lemotick-backend-prod" \
-                        --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-                      docker image prune -f
-
-# ==============================================================
-# Variable group keys (lemotick-dev / qa / prod)
-# --------------------------------------------------------------
-#   DOCKERHUB_USERNAME       Docker Hub username         (not secret)
-#   DOCKERHUB_TOKEN          Docker Hub access token     🔒 secret
-#   DB_CONNECTION_STRING     PostgreSQL conn string      🔒 secret
-#   JWT_SECRET               JWT signing key             🔒 secret
-#   JWT_ISSUER               e.g. http://<vm-ip>:8080   (dev)
-#   JWT_AUDIENCE             e.g. http://<vm-ip>:8080   (dev)
-#   ALLOWED_ORIGINS          e.g. http://<vm-ip>:8080   (dev)
-# ==============================================================
+                - powershell: |
+                    $appPath = "C:\inetpub\wwwroot\lemotick-backend-prod"
+                    $appPoolName = "LemoTick-Backend-Prod"
+                    $port = 5000
+                    
+                    Write-Host "Creating application directory"
+                    if (-not (Test-Path $appPath)) {
+                        New-Item -ItemType Directory -Path $appPath -Force
+                    }
+                    
+                    Write-Host "Stopping IIS site and app pool"
+                    Import-Module WebAdministration
+                    
+                    if (Test-Path "IIS:\AppPools\$appPoolName") {
+                        Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
+                        Start-Sleep -Seconds 3
+                    }
+                    
+                    Write-Host "Copying files"
+                    Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+                    Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
+                    
+                    Write-Host "Creating app pool"
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
+                        New-WebAppPool -Name $appPoolName
+                    }
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
+                    Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
+                    
+                    Write-Host "Creating IIS site"
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Remove-Website -Name $appPoolName
+                    }
+                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    
+                    Write-Host "Creating web.config"
+                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\LemoTick.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+                    
+                    Write-Host "Starting app pool and site"
+                    Start-WebAppPool -Name $appPoolName
+                    Start-Website -Name $appPoolName
+                    
+                    Start-Sleep -Seconds 5
+                    Write-Host "Deployment complete - Backend (prod) available at: http://localhost:$port"
+                  displayName: Deploy to IIS

@@ -6,6 +6,7 @@ export const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT) || 30000
 
 // SignalR Configuration
 export const SIGNALR_HUB_URL = import.meta.env.VITE_SIGNALR_HUB_URL || 'https://localhost:5000/notificationHub'
+export const SOCIAL_SIGNALR_HUB_URL = import.meta.env.VITE_SOCIAL_SIGNALR_HUB_URL || 'https://localhost:5000/socialHub'
 
 // App Configuration
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'LemoTick Investor Portal'
@@ -96,7 +97,7 @@ export const BRAND_COLORS = {
     // Background Colors
     darkBackground: '#0B0830',   // Main background (logo navy)
     darkNavy: '#14104A',         // Sidebar background
-    darkCard: '#17124D',         // Cards in dark mode
+    darkCard: '#35335e',         // Cards in dark mode
     lightBackground: '#F6F8FF',  // Dashboard light theme
 
     // Text Colors

@@ -1,23 +1,220 @@
 /* Tailwind CSS v4 */
 @import "tailwindcss";
 
+/* Import Design System */
+@import "./styles/design-system.css";
+@import "./styles/ui-enhancements-2026.css";
+
 /* Custom variants for sidebar */
 @custom-variant dark (&:is(.dark *));
 @custom-variant sidebar-expanded (&:is(.sidebar-expanded *));
 
-@theme {
-  /* Brand Colors */
-  --color-primary: #2F6BFF;
-  --color-accent: #FFA62B;
-  --color-dark: #0B0633;
-  --color-card: #16124A;
-  --color-text: #0F0A2B;
-  --color-text-secondary: #B9BDC7;
-  
-  /* Shadows */
-  --shadow-xs: 0 1px 1px 0 rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.02);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.05);
+/* ============================================
+   GLOBAL TEXT COLOR - DARK FOR LIGHT BACKGROUND
+   ============================================ */
+
+/* Force body text to be dark for readability on light background */
+body,
+html,
+div,
+span,
+p,
+a,
+button,
+input,
+textarea,
+select,
+label,
+li,
+td,
+th,
+em,
+small {
+  color: #1a1a2e !important;
+}
+
+/* Headers use brand colors with enhanced visibility - darker for light background */
+h1, .h1 {
+  color: #d66a00 !important; /* Darker orange for main headers */
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h2, .h2 {
+  color: #d66a00 !important; /* Darker orange for secondary headers */
+  font-weight: 700 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+  color: #2557c9 !important; /* Darker blue for subheaders */
+  font-weight: 600 !important;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Strong/bold text inherits from parent */
+strong {
+  color: inherit !important;
+}
+
+body {
+  color: #FFFFFF !important;
+  background-color: #0B0830;
+}
+
+/* ============================================
+   GLOBAL CARD BACKGROUND - DARK CARDS ON LIGHT BACKGROUND
+   ============================================ */
+
+/* Force all card-like elements to have dark background for contrast */
+[class*="card"],
+[class*="Card"],
+[class*="bg-card"],
+.card,
+.Card,
+div[class*="rounded"],
+div[class*="shadow"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Specific card selectors with higher specificity */
+.bg-card,
+.bg-card\/90,
+.bg-card\/80,
+.bg-card\/70,
+.bg-card\/60,
+.bg-card\/50,
+.bg-card\/40,
+.bg-card\/30 {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Override any hardcoded background colors */
+[class*="bg-[#35335e]"],
+[class*="bg-[#16124A]"],
+[class*="bg-[#0B0633]"],
+[class*="bg-[#54527a]"],
+[class*="bg-slate"],
+[class*="bg-gray"],
+[class*="bg-purple"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+}
+
+/* Modal and dialog backgrounds */
+[role="dialog"],
+[class*="modal"],
+[class*="Modal"],
+[class*="dialog"],
+[class*="Dialog"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Dropdown and menu backgrounds */
+[class*="dropdown"],
+[class*="Dropdown"],
+[class*="menu"],
+[class*="Menu"],
+[role="menu"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Panel and sidebar backgrounds - slightly more opaque */
+[class*="panel"],
+[class*="Panel"],
+[class*="sidebar"],
+[class*="Sidebar"],
+.bg-chrome {
+  background-color: rgba(35, 35, 60, 0.98) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Form input backgrounds */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  background-color: rgba(42, 42, 72, 0.60) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Stat cards and metric cards - need white text */
+[class*="stat"],
+[class*="Stat"],
+[class*="metric"],
+[class*="Metric"] {
+  background-color: rgba(42, 42, 72, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  color: #FFFFFF !important;
+}
+
+/* Force white text inside cards */
+[class*="card"] *,
+[class*="Card"] *,
+[class*="bg-card"] *,
+[class*="stat"] *,
+[class*="Stat"] *,
+[class*="metric"] *,
+[class*="Metric"] * {
+  color: #FFFFFF !important;
+}
+
+/* Keep headers colored inside cards */
+[class*="card"] h1,
+[class*="card"] h2,
+[class*="card"] h3,
+[class*="card"] h4,
+[class*="card"] h5,
+[class*="card"] h6,
+[class*="Card"] h1,
+[class*="Card"] h2,
+[class*="Card"] h3,
+[class*="Card"] h4,
+[class*="Card"] h5,
+[class*="Card"] h6 {
+  color: inherit !important;
+}
+
+/* ============================================
+   LOGO TRANSPARENCY
+   ============================================ */
+
+/* Make all logo images transparent */
+img[src*="logo"],
+img[alt*="logo"],
+img[alt*="Logo"],
+#sidebar img,
+[class*="sidebar"] img,
+[class*="Sidebar"] img {
+  background-color: transparent !important;
+  background: transparent !important;
 }
 
 /* LemoTech Global Styles - MUI Based */
@@ -92,13 +289,38 @@ body {
     font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow: hidden;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    /* Modern gradient background - light gray to slate purple */
+    background: linear-gradient(to right, 
+        #c5c5d0 0%,      /* Light silver gray */
+        #9090a8 50%,     /* Medium slate */
+        #6b6b88 100%     /* Slate purple */
+    );
+    background-attachment: fixed;
+}
+
+/* Smooth gradient animation */
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* HTML element */
+html {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
 }
 
 /* Root container */
 #root {
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Remove default margins */
@@ -378,7 +600,7 @@ svg[width="35"][height="19"] {
   }
   
   .bg-brand-card {
-    background-color: #16124A;
+    background-color: #35335e;
   }
   
   .text-brand-primary {
@@ -398,7 +620,7 @@ svg[width="35"][height="19"] {
   }
   
   .border-brand-card {
-    border-color: #16124A;
+    border-color: #35335e;
   }
   
   .shadow-brand {
@@ -579,6 +801,17 @@ svg[width="35"][height="19"] {
     to { opacity: 1; }
   }
   
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
   @keyframes slideUp {
     from {
       opacity: 0;
@@ -626,3 +859,507 @@ svg[width="35"][height="19"] {
 .animate-shimmer {
   animation: shimmer 3s infinite;
 }
+
+/* ============================================================================
+   RESPONSIVE DESIGN UTILITIES
+   ============================================================================ */
+
+/* Prevent horizontal overflow on all containers */
+.container-responsive {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Safe viewport sizing (accounts for scrollbars) */
+.full-viewport {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+}
+
+/* Responsive padding that scales with screen size */
+.padding-responsive {
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .padding-responsive {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .padding-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .padding-responsive {
+    padding: 2rem;
+  }
+}
+
+/* Safe area insets for notched devices (iPhone X+) */
+.safe-area-inset {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Prevent text overflow */
+.text-responsive {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Responsive images */
+.img-responsive {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Responsive tables - scroll on mobile */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .table-responsive {
+    display: block;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Responsive grid that never overflows */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Touch-friendly minimum sizes */
+@media (max-width: 768px) {
+  button,
+  a[role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent zoom on input focus (iOS) */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Responsive modal/dialog */
+.modal-responsive {
+  width: 100%;
+  max-width: min(90vw, 600px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .modal-responsive {
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* Prevent layout shift */
+.no-layout-shift {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* Responsive flex container */
+.flex-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Ensure no element exceeds viewport */
+* {
+  max-width: 100vw;
+}
+
+/* Override for elements that should exceed (like full-bleed backgrounds) */
+.allow-overflow {
+  max-width: none !important;
+}
+
+/* ===================================
+   PHASE 2: COMPONENT-LEVEL RESPONSIVE FIXES
+   =================================== */
+
+/* Ensure all images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent tables from overflowing */
+table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+/* Responsive text sizing with clamp */
+.text-responsive {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.heading-responsive {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+/* Card responsive padding */
+.card-responsive {
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+}
+
+/* Grid auto-fit for responsive columns */
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+}
+
+/* Flex wrap with responsive gap */
+.flex-wrap-responsive {
+  flex-wrap: wrap;
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Responsive spacing */
+.gap-responsive {
+  gap: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.space-y-responsive > * + * {
+  margin-top: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Prevent horizontal scroll on specific elements */
+.no-horizontal-scroll {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Safe area for notched devices */
+@supports (padding: env(safe-area-inset-left)) {
+  .safe-padding {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .safe-padding-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Responsive dropdowns - slide up from bottom on mobile */
+@media (max-width: 640px) {
+  .dropdown-menu {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    max-width: 100vw !important;
+    border-radius: 1rem 1rem 0 0 !important;
+  }
+}
+
+/* Prevent text overflow */
+.text-ellipsis-responsive {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Responsive aspect ratios */
+.aspect-responsive-16-9 {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.aspect-responsive-4-3 {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+}
+
+.aspect-responsive-1-1 {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+
+/* Responsive charts and visualizations */
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-container > * {
+  max-width: 100%;
+}
+
+/* Responsive navigation - hide scrollbar but allow scroll */
+@media (max-width: 1024px) {
+  nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Responsive video embeds */
+.video-responsive {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.video-responsive iframe,
+.video-responsive object,
+.video-responsive embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive form elements */
+.form-responsive {
+  width: 100%;
+  max-width: 100%;
+}
+
+.form-responsive input,
+.form-responsive textarea,
+.form-responsive select {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Responsive button groups */
+.button-group-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .button-group-responsive button {
+    flex: 1 1 100%;
+  }
+}
+
+/* Responsive card grid */
+.card-grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  width: 100%;
+}
+
+/* Responsive sidebar */
+@media (max-width: 1024px) {
+  .sidebar-responsive {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .sidebar-responsive.open {
+    transform: translateX(0);
+  }
+}
+
+/* Responsive header */
+.header-responsive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  padding: clamp(0.5rem, 2vw, 1rem);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Responsive content wrapper */
+.content-wrapper-responsive {
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(0.75rem, 3vw, 2rem);
+  margin: 0 auto;
+}
+
+/* Responsive stack (vertical on mobile, horizontal on desktop) */
+.stack-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .stack-responsive {
+    flex-direction: row;
+  }
+}
+
+/* Responsive text truncation */
+.truncate-responsive {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .truncate-responsive {
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Responsive icon sizing */
+.icon-responsive {
+  width: clamp(1rem, 3vw, 1.5rem);
+  height: clamp(1rem, 3vw, 1.5rem);
+}
+
+/* Responsive badge */
+.badge-responsive {
+  font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+  padding: clamp(0.125rem, 0.5vw, 0.25rem) clamp(0.375rem, 1vw, 0.5rem);
+}
+
+/* Prevent content from causing horizontal scroll */
+.content-safe {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Responsive container with safe margins */
+.container-safe {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(0.75rem, 3vw, 2rem);
+  padding-right: clamp(0.75rem, 3vw, 2rem);
+}
+
+/* ===================================
+   END PHASE 2 RESPONSIVE FIXES
+   =================================== */
+
+/* ===================================
+   TRADING PAGES RESPONSIVE FIXES
+   =================================== */
+
+/* Hide scrollbar but allow scrolling for toolbars */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Trading page responsive layout */
+@media (max-width: 1024px) {
+  /* Stack chart and panel vertically on mobile/tablet */
+  .trading-layout {
+    flex-direction: column;
+  }
+  
+  /* Make chart take more space on mobile */
+  .chart-container-mobile {
+    min-height: 60vh;
+    max-height: 60vh;
+  }
+  
+  /* Make panel scrollable on mobile */
+  .panel-container-mobile {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+}
+
+/* Chart toolbar responsive */
+@media (max-width: 640px) {
+  /* Make toolbar buttons smaller on mobile */
+  .toolbar-button-mobile {
+    width: 32px;
+    height: 32px;
+  }
+  
+  /* Reduce toolbar padding on mobile */
+  .toolbar-container-mobile {
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+/* ===================================
+   END TRADING PAGES FIXES
+   =================================== */

@@ -1,16 +1,60 @@
+import { useMessageStore } from '@/stores/messageStore';
+import { formatDistanceToNow } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Transition from '../utils/Transition';
 
 interface DropdownMessagesProps {
     align?: string;
+    onMessageClick?: (conversationId: string) => void;
 }
 
-function DropdownMessages({ align }: DropdownMessagesProps) {
+function DropdownMessages({ align, onMessageClick }: DropdownMessagesProps) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const trigger = useRef<HTMLButtonElement>(null);
     const dropdown = useRef<HTMLDivElement>(null);
+
+    const {
+        conversations,
+        totalUnreadCount,
+        loading,
+        fetchConversations,
+        markConversationAsRead,
+    } = useMessageStore();
+
+    // Fetch conversations on mount
+    useEffect(() => {
+        fetchConversations();
+    }, [fetchConversations]);
+
+    // Get only the first 5 conversations for the dropdown
+    const displayConversations = conversations.slice(0, 5);
+
+    const handleConversationClick = async (conversationId: string) => {
+        await markConversationAsRead(conversationId);
+        setDropdownOpen(false);
+        onMessageClick?.(conversationId);
+    };
+
+    const formatTimeAgo = (dateString: string) => {
+        try {
+            return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+        } catch {
+            return 'Recently';
+        }
+    };
+
+    const getOnlineStatusColor = (status?: string) => {
+        switch (status) {
+            case 'online':
+                return 'bg-green-500';
+            case 'away':
+                return 'bg-yellow-500';
+            default:
+                return 'bg-gray-500';
+        }
+    };
 
     // close on click outside
     useEffect(() => {
@@ -46,11 +90,13 @@ function DropdownMessages({ align }: DropdownMessagesProps) {
                 <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-[#1A1547] rounded-full"></div>
+                {totalUnreadCount > 0 && (
+                    <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-[#1A1547] rounded-full"></div>
+                )}
             </button>
 
             <Transition
-                className={`origin-top-right z-[9999] absolute top-full min-w-80 bg-gradient-to-br from-[#1A1547] to-[#16124A] border border-[#2F6BFF]/30 rounded-2xl shadow-2xl shadow-[#2F6BFF]/10 overflow-hidden mt-2 ${align === 'right' ? 'right-0' : 'left-0'}`}
+                className={`origin-top z-[9999] fixed sm:absolute top-16 sm:top-full left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 w-72 sm:w-auto sm:min-w-80 max-w-md bg-gradient-to-br from-[#1A1547] to-[#16124A] border border-[#2F6BFF]/30 rounded-2xl shadow-2xl shadow-[#2F6BFF]/10 overflow-hidden mt-2 ${align === 'right' ? 'sm:right-0' : 'sm:left-0'}`}
                 show={dropdownOpen}
                 enter="transition ease-out duration-200 transform"
                 enterStart="opacity-0 -translate-y-2"
@@ -68,105 +114,88 @@ function DropdownMessages({ align }: DropdownMessagesProps) {
                     <div className="px-4 py-3 border-b border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold text-[#efdede]">Messages</h3>
-                            <span className="text-xs bg-[#2F6BFF]/20 text-[#2F6BFF] px-2 py-0.5 rounded-full font-medium">3 New</span>
+                            {totalUnreadCount > 0 && (
+                                <span className="text-xs bg-[#2F6BFF]/20 text-[#2F6BFF] px-2 py-0.5 rounded-full font-medium">
+                                    {totalUnreadCount} New
+                                </span>
+                            )}
                         </div>
                     </div>
 
                     {/* Messages List */}
                     <div className="max-h-80 overflow-y-auto">
-                        <Link
-                            className="flex items-start gap-3 p-4 hover:bg-[#2F6BFF]/5 transition-all duration-200 border-b border-[#2F6BFF]/10"
-                            to="#0"
-                            onClick={() => setDropdownOpen(false)}
-                        >
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center text-white font-semibold text-sm">
-                                    JD
-                                </div>
+                        {loading ? (
+                            <div className="p-8 text-center">
+                                <div className="w-8 h-8 mx-auto mb-2 border-2 border-[#2F6BFF] border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-sm text-gray-400">Loading messages...</p>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <p className="text-sm font-semibold text-[#efdede] truncate">John Doe</p>
-                                    <span className="text-xs text-gray-400">2m ago</span>
+                        ) : displayConversations.length === 0 ? (
+                            <div className="p-8 text-center">
+                                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 flex items-center justify-center">
+                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
                                 </div>
-                                <p className="text-sm text-gray-300 line-clamp-2">Hey! I wanted to discuss the new trading strategy...</p>
+                                <p className="text-sm text-gray-400 mb-1">No messages</p>
+                                <p className="text-xs text-gray-500">Your inbox is empty</p>
                             </div>
-                            <div className="w-2 h-2 bg-[#2F6BFF] rounded-full flex-shrink-0 mt-2"></div>
-                        </Link>
-
-                        <Link
-                            className="flex items-start gap-3 p-4 hover:bg-[#2F6BFF]/5 transition-all duration-200 border-b border-[#2F6BFF]/10"
-                            to="#0"
-                            onClick={() => setDropdownOpen(false)}
-                        >
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFA62B] to-[#2F6BFF] flex items-center justify-center text-white font-semibold text-sm">
-                                    SM
-                                </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <p className="text-sm font-semibold text-[#efdede] truncate">Sarah Miller</p>
-                                    <span className="text-xs text-gray-400">1h ago</span>
-                                </div>
-                                <p className="text-sm text-gray-300 line-clamp-2">The portfolio analysis report is ready for review</p>
-                            </div>
-                            <div className="w-2 h-2 bg-[#2F6BFF] rounded-full flex-shrink-0 mt-2"></div>
-                        </Link>
-
-                        <Link
-                            className="flex items-start gap-3 p-4 hover:bg-[#2F6BFF]/5 transition-all duration-200 border-b border-[#2F6BFF]/10"
-                            to="#0"
-                            onClick={() => setDropdownOpen(false)}
-                        >
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#22C55E] to-[#2F6BFF] flex items-center justify-center text-white font-semibold text-sm">
-                                    MK
-                                </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <p className="text-sm font-semibold text-[#efdede] truncate">Michael Kim</p>
-                                    <span className="text-xs text-gray-400">3h ago</span>
-                                </div>
-                                <p className="text-sm text-gray-300 line-clamp-2">Great work on the bot configuration! 🚀</p>
-                            </div>
-                            <div className="w-2 h-2 bg-[#2F6BFF] rounded-full flex-shrink-0 mt-2"></div>
-                        </Link>
-
-                        <Link
-                            className="flex items-start gap-3 p-4 hover:bg-[#2F6BFF]/5 transition-all duration-200"
-                            to="#0"
-                            onClick={() => setDropdownOpen(false)}
-                        >
-                            <div className="flex-shrink-0">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#16124A] to-[#2F6BFF] flex items-center justify-center text-white font-semibold text-sm">
-                                    AL
-                                </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <p className="text-sm font-semibold text-gray-400 truncate">Alex Lee</p>
-                                    <span className="text-xs text-gray-400">1d ago</span>
-                                </div>
-                                <p className="text-sm text-gray-400 line-clamp-2">Thanks for the update on the market trends</p>
-                            </div>
-                        </Link>
+                        ) : (
+                            displayConversations.map((conversation) => (
+                                <button
+                                    key={conversation.id}
+                                    className="w-full flex items-start gap-3 p-4 hover:bg-[#2F6BFF]/5 transition-all duration-200 border-b border-[#2F6BFF]/10 text-left"
+                                    onClick={() => handleConversationClick(conversation.id)}
+                                >
+                                    <div className="flex-shrink-0 relative">
+                                        {conversation.participantAvatar ? (
+                                            <img
+                                                src={conversation.participantAvatar}
+                                                alt={conversation.participantName}
+                                                className="w-10 h-10 rounded-full border-2 border-[#2F6BFF]/30"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2F6BFF] to-[#FFA62B] flex items-center justify-center border-2 border-[#2F6BFF]/30">
+                                                <span className="text-white font-semibold text-sm">
+                                                    {conversation.participantName.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {conversation.participantOnlineStatus && (
+                                            <div className={`absolute bottom-0 right-0 w-3 h-3 ${getOnlineStatusColor(conversation.participantOnlineStatus)} border-2 border-[#1A1547] rounded-full`}></div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <p className="text-sm font-semibold text-[#efdede] truncate">{conversation.participantName}</p>
+                                            <span className="text-xs text-gray-400">{formatTimeAgo(conversation.updatedAt)}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-300 line-clamp-2">
+                                            {conversation.lastMessage?.content || 'No messages yet'}
+                                        </p>
+                                    </div>
+                                    {conversation.unreadCount > 0 && (
+                                        <div className="w-2 h-2 bg-[#2F6BFF] rounded-full flex-shrink-0 mt-2"></div>
+                                    )}
+                                </button>
+                            ))
+                        )}
                     </div>
 
                     {/* Footer */}
-                    <div className="px-4 py-3 border-t border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/5 to-transparent">
-                        <Link
-                            to="/messages"
-                            className="text-sm text-[#2F6BFF] hover:text-[#FFA62B] font-semibold transition-colors flex items-center justify-center gap-1"
-                            onClick={() => setDropdownOpen(false)}
-                        >
-                            View all messages
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </Link>
-                    </div>
+                    {displayConversations.length > 0 && (
+                        <div className="px-4 py-3 border-t border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/5 to-transparent">
+                            <Link
+                                to="/messages"
+                                className="text-sm text-[#2F6BFF] hover:text-[#FFA62B] font-semibold transition-colors flex items-center justify-center gap-1"
+                                onClick={() => setDropdownOpen(false)}
+                            >
+                                View all messages
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </Transition>
         </div>
@@ -174,3 +203,5 @@ function DropdownMessages({ align }: DropdownMessagesProps) {
 }
 
 export default DropdownMessages;
+
+

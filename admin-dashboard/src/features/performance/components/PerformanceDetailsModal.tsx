@@ -108,7 +108,7 @@ function PerformanceDetailsModal({ metric, onClose }: PerformanceDetailsModalPro
                             <div className="bg-[#0B0633] rounded-md p-2 border border-gray-700/50">
                                 <div className="text-micro text-gray-400 mb-0.5">Sharpe Ratio</div>
                                 <div className={`text-small-dashboard font-tabular font-semibold ${metric.sharpeRatio >= 2 ? 'text-green-400' :
-                                        metric.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'
+                                    metric.sharpeRatio >= 1 ? 'text-yellow-400' : 'text-red-400'
                                     }`}>
                                     {metric.sharpeRatio.toFixed(2)}
                                 </div>
@@ -175,3 +175,5 @@ function PerformanceDetailsModal({ metric, onClose }: PerformanceDetailsModalPro
 }
 
 export default PerformanceDetailsModal;
+
+

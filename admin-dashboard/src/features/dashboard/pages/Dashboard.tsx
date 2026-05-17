@@ -1,27 +1,35 @@
-import { Activity, Bot, LayoutDashboard, TrendingUp, Wallet } from 'lucide-react';
+import ModernAreaChart from '@/components/charts/ModernAreaChart';
+import ModernBarChart from '@/components/charts/ModernBarChart';
+import ModernDonutChart from '@/components/charts/ModernDonutChart';
+import { ProgressBar, TableCell, TableRow } from '@/components/dashboard/DashboardComponents';
+import { StatCard, StatusBadge } from '@/components/ui/DesignSystem';
+import { LiveBadge, PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer, PageSection } from '@/components/ui/PageLayoutEnhanced';
+import {
+  Activity,
+  AlertTriangle,
+  ArrowDownRight,
+  BarChart3,
+  Bot,
+  Calendar,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  TrendingDown,
+  TrendingUp,
+  Wallet
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-import Datepicker from '../../../components/Datepicker';
-import FilterButton from '../../../components/DropdownFilter';
-
-// Import dashboard cards
-import DashboardCard01 from '../../../partials/dashboard/DashboardCard01';
-import DashboardCard02 from '../../../partials/dashboard/DashboardCard02';
-import DashboardCard03 from '../../../partials/dashboard/DashboardCard03';
-import DashboardCard04 from '../../../partials/dashboard/DashboardCard04';
-import DashboardCard05 from '../../../partials/dashboard/DashboardCard05';
-import DashboardCard06 from '../../../partials/dashboard/DashboardCard06';
-import DashboardCard07 from '../../../partials/dashboard/DashboardCard07';
-import DashboardCard08 from '../../../partials/dashboard/DashboardCard08';
-import DashboardCard09 from '../../../partials/dashboard/DashboardCard09';
-import DashboardCard10 from '../../../partials/dashboard/DashboardCard10';
-import DashboardCard11 from '../../../partials/dashboard/DashboardCard11';
-import DashboardCard12 from '../../../partials/dashboard/DashboardCard12';
-import DashboardCard13 from '../../../partials/dashboard/DashboardCard13';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Dashboard() {
+  const navigate = useNavigate();
+
   // Fake real-time data
   const [counter, setCounter] = useState(0);
+
+  // Alert state
+  const [showAlert, setShowAlert] = useState(true);
 
   // Dummy data arrays for stats
   const balanceData = [52231, 52450, 52680, 52900, 53120, 53350, 53580, 53800, 54020, 54250];
@@ -46,6 +54,8 @@ function Dashboard() {
     tradesChange: 2,
     activeBots: botsData[0],
     botsChange: 1,
+    winRate: 68.5,
+    totalTrades: 142,
   });
 
   // Fake update every 3 seconds
@@ -83,11 +93,13 @@ function Dashboard() {
       tradesChange: tradesData[nextIndex] - tradesData[dataIndex],
       activeBots: botsData[nextIndex],
       botsChange: botsData[nextIndex] - botsData[dataIndex],
+      winRate: 68.5 + Math.random() * 2,
+      totalTrades: 142 + nextIndex,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [counter]);
 
-  // Sparkline component - Line Chart for Balance with smooth curves
+  // Sparkline component - Line Chart
   const LineSparkline = ({ data, color = '#2F6BFF' }: { data: number[], color?: string }) => {
     if (data.length < 2) return null;
 
@@ -100,233 +112,39 @@ function Dashboard() {
       y: 100 - ((value - min) / range) * 100
     }));
 
-    // Create smooth curve using bezier curves
     const createSmoothPath = (points: { x: number; y: number }[]) => {
       if (points.length < 2) return '';
-
       let path = `M ${points[0].x},${points[0].y}`;
-
       for (let i = 0; i < points.length - 1; i++) {
         const current = points[i];
         const next = points[i + 1];
-
-        // Calculate control points for smooth curve (tension = 0.4)
         const tension = 0.4;
         const dx = next.x - current.x;
         const dy = next.y - current.y;
-
         const cp1x = current.x + dx * tension;
         const cp1y = current.y + dy * tension;
         const cp2x = next.x - dx * tension;
         const cp2y = next.y - dy * tension;
-
         path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
       }
-
       return path;
     };
 
     return (
-      <svg className="w-full h-6" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg className="w-full h-16" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={`gradient-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
         <path
-          fill="none"
+          fill={`url(#gradient-${color})`}
           stroke={color}
           strokeWidth="2"
-          d={createSmoothPath(points)}
+          d={`${createSmoothPath(points)} L 100,100 L 0,100 Z`}
           vectorEffect="non-scaling-stroke"
-          opacity="0.8"
         />
-      </svg>
-    );
-  };
-
-  // Area Chart for Profit/Loss (green above zero, red below) with smooth curves
-  const AreaSparkline = ({ data, color = '#10B981' }: { data: number[], color?: string }) => {
-    if (data.length < 2) return null;
-
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min || 1;
-
-    const points = data.map((value, index) => ({
-      x: (index / (data.length - 1)) * 100,
-      y: 100 - ((value - min) / range) * 100
-    }));
-
-    // Create smooth curve path
-    const createSmoothPath = (points: { x: number; y: number }[]) => {
-      if (points.length < 2) return '';
-
-      let path = `M ${points[0].x},${points[0].y}`;
-
-      for (let i = 0; i < points.length - 1; i++) {
-        const current = points[i];
-        const next = points[i + 1];
-
-        const tension = 0.4;
-        const dx = next.x - current.x;
-        const dy = next.y - current.y;
-
-        const cp1x = current.x + dx * tension;
-        const cp1y = current.y + dy * tension;
-        const cp2x = next.x - dx * tension;
-        const cp2y = next.y - dy * tension;
-
-        path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
-      }
-
-      return path;
-    };
-
-    const pathData = createSmoothPath(points);
-    const areaPath = `${pathData} L 100,100 L 0,100 Z`;
-
-    return (
-      <svg className="w-full h-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path
-          fill={`${color}20`}
-          stroke={color}
-          strokeWidth="2"
-          d={areaPath}
-          vectorEffect="non-scaling-stroke"
-          opacity="0.8"
-        />
-      </svg>
-    );
-  };
-
-  // Candlestick Chart for Profit/Loss with smooth curves
-  const CandlestickChart = ({ data }: { data: number[] }) => {
-    if (data.length < 2) return null;
-
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min || 1;
-
-    const points = data.map((value, index) => ({
-      x: (index / (data.length - 1)) * 100,
-      y: 100 - ((value - min) / range) * 100
-    }));
-
-    // Create smooth curve path
-    const createSmoothPath = (points: { x: number; y: number }[]) => {
-      if (points.length < 2) return '';
-
-      let path = `M ${points[0].x},${points[0].y}`;
-
-      for (let i = 0; i < points.length - 1; i++) {
-        const current = points[i];
-        const next = points[i + 1];
-
-        const tension = 0.4;
-        const dx = next.x - current.x;
-        const dy = next.y - current.y;
-
-        const cp1x = current.x + dx * tension;
-        const cp1y = current.y + dy * tension;
-        const cp2x = next.x - dx * tension;
-        const cp2y = next.y - dy * tension;
-
-        path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
-      }
-
-      return path;
-    };
-
-    // Determine color based on trend
-    const isPositive = data[data.length - 1] >= data[0];
-    const color = isPositive ? '#10B981' : '#EF4444';
-
-    return (
-      <svg className="w-full h-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path
-          fill="none"
-          stroke={color}
-          strokeWidth="2"
-          d={createSmoothPath(points)}
-          vectorEffect="non-scaling-stroke"
-          opacity="0.8"
-        />
-      </svg>
-    );
-  };
-
-  // Bar Chart for Active Trades with rounded bars
-  const BarSparkline = ({ data, color = '#F59E0B' }: { data: number[], color?: string }) => {
-    if (data.length < 2) return null;
-
-    const max = Math.max(...data) || 1;
-
-    return (
-      <svg className="w-full h-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {data.map((value, index) => {
-          const barWidth = 100 / data.length - 3;
-          const barHeight = (value / max) * 100;
-          const x = (index * 100) / data.length + 1.5;
-          const y = 100 - barHeight;
-
-          return (
-            <rect
-              key={index}
-              x={x}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              fill={color}
-              opacity="0.7"
-              rx="1"
-            />
-          );
-        })}
-      </svg>
-    );
-  };
-
-  // Donut Chart for Active Bots with enhanced styling
-  const DonutChart = ({ value, max = 10, color = '#8B5CF6' }: { value: number, max?: number, color?: string }) => {
-    const percentage = (value / max) * 100;
-    const circumference = 2 * Math.PI * 40;
-    const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <svg className="w-16 h-16 mx-auto" viewBox="0 0 100 100">
-        {/* Background circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          stroke="#2F6BFF"
-          strokeWidth="10"
-          opacity="0.15"
-        />
-        {/* Progress circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r="40"
-          fill="none"
-          stroke={color}
-          strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform="rotate(-90 50 50)"
-          style={{ transition: 'stroke-dashoffset 0.5s ease' }}
-          opacity="0.9"
-        />
-        {/* Center text */}
-        <text
-          x="50"
-          y="50"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          fill={color}
-          fontSize="24"
-          fontWeight="bold"
-        >
-          {value}
-        </text>
       </svg>
     );
   };
@@ -336,153 +154,755 @@ function Dashboard() {
     return `R ${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Stats cards with real-time data
-  const stats = [
-    {
-      title: 'Total Balance',
-      value: formatCurrency(userStats.totalBalance),
-      change: `${userStats.profitChange >= 0 ? '+' : ''}${userStats.profitChange.toFixed(1)}%`,
-      trend: userStats.profitChange >= 0 ? 'up' : 'down',
-      icon: Wallet,
-      color: 'blue',
-      history: balanceHistory,
-      sparklineColor: '#2F6BFF',
-      chartType: 'line',
-    },
-    {
-      title: 'Total Profit/Loss',
-      value: formatCurrency(userStats.totalProfit),
-      change: `${userStats.profitChange >= 0 ? '+' : ''}${userStats.profitChange.toFixed(1)}%`,
-      trend: userStats.totalProfit >= 0 ? 'up' : 'down',
-      icon: TrendingUp,
-      color: 'green',
-      history: profitHistory,
-      sparklineColor: userStats.totalProfit >= 0 ? '#10B981' : '#EF4444',
-      chartType: 'candlestick',
-    },
-    {
-      title: 'Active Trades',
-      value: userStats.activeTrades.toString(),
-      change: userStats.tradesChange > 0 ? `+${userStats.tradesChange}` : '0',
-      trend: 'up',
-      icon: Activity,
-      color: 'orange',
-      history: tradesHistory,
-      sparklineColor: '#F59E0B',
-      chartType: 'donut',
-      currentValue: userStats.activeTrades,
-    },
-    {
-      title: 'Active Bots',
-      value: userStats.activeBots.toString(),
-      change: userStats.botsChange > 0 ? `+${userStats.botsChange}` : '0',
-      trend: 'up',
-      icon: Bot,
-      color: 'purple',
-      history: botsHistory,
-      sparklineColor: '#8B5CF6',
-      chartType: 'donut',
-      currentValue: userStats.activeBots,
-    },
+  // Recent trades data
+  const recentTrades = [
+    { pair: 'EUR/USD', type: 'Buy', profit: 245.50, status: 'closed', time: '2 min ago' },
+    { pair: 'BTC/USD', type: 'Sell', profit: -120.00, status: 'closed', time: '5 min ago' },
+    { pair: 'GBP/USD', type: 'Buy', profit: 180.25, status: 'closed', time: '12 min ago' },
+    { pair: 'ETH/USD', type: 'Buy', profit: 320.00, status: 'open', time: '15 min ago' },
+    { pair: 'USD/JPY', type: 'Sell', profit: 95.75, status: 'open', time: '18 min ago' },
+  ];
+
+  // Quick actions
+  const quickActions = [
+    { title: 'New Trade', icon: TrendingUp, link: '/trade', color: 'from-[#2F6BFF] to-[#3B82F6]', iconColor: 'text-white', borderColor: 'border-[#2F6BFF]/30', shadowColor: 'shadow-[#2F6BFF]/20' },
+    { title: 'My Robots', icon: Bot, link: '/my-robots', color: 'from-[#8B5CF6] to-[#A78BFA]', iconColor: 'text-white', borderColor: 'border-[#8B5CF6]/30', shadowColor: 'shadow-[#8B5CF6]/20' },
+    { title: 'Portfolio', icon: BarChart3, link: '/portfolio', color: 'from-[#10B981] to-[#34D399]', iconColor: 'text-white', borderColor: 'border-[#10B981]/30', shadowColor: 'shadow-[#10B981]/20' },
+    { title: 'Transactions', icon: DollarSign, link: '/transactions', color: 'from-[#F59E0B] to-[#FBBF24]', iconColor: 'text-white', borderColor: 'border-[#F59E0B]/30', shadowColor: 'shadow-[#F59E0B]/20' },
   ];
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-4 w-full max-w-9xl mx-auto">
-      {/* Dashboard header */}
-      <div className="relative mb-4 p-3 rounded-lg bg-gradient-to-br from-[#2F6BFF]/10 via-[#16124A] to-[#FFA62B]/10 border border-[#2F6BFF]/20">
-        <div className="sm:flex sm:justify-between sm:items-center">
-          <div className="mb-2 sm:mb-0">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-[#2F6BFF]/20 rounded-lg">
-                <LayoutDashboard size={16} className="text-[#2F6BFF]" />
-              </div>
-              <h1 className="text-body-dashboard font-bold text-[#efdede] drop-shadow-[0_0_6px_rgba(160,167,181,0.3)]">Dashboard</h1>
-              {/* Connection status indicator */}
-              <div className="flex items-center gap-1.5 ml-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[9px] text-gray-400">Live</span>
-              </div>
-            </div>
-            <p className="text-micro text-gray-300 ml-8">Welcome back! Here's your trading overview today.</p>
-          </div>
-
-          <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-            <FilterButton align="right" />
-            <Datepicker align="right" />
-            <button className="btn bg-gradient-to-r from-[#2F6BFF] to-[#2557c9] hover:from-[#2557c9] hover:to-[#2F6BFF] text-white px-4 py-1.5 rounded-lg transition-all duration-300 flex items-center gap-1.5 shadow-brand hover-lift">
-              <svg className="fill-current shrink-0 xs:hidden" width="14" height="14" viewBox="0 0 16 16">
-                <path d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z" />
-              </svg>
-              <span className="max-xs:sr-only text-micro font-semibold">Apply</span>
+    <PageContainer maxWidth="xl" className="fade-in-up relative overflow-hidden">
+      {/* Page Header */}
+      <PageHeader
+        title="DASHBOARD"
+        description="Welcome back! Here's your trading overview today."
+        icon={BarChart3}
+        actions={
+          <div className="flex items-center gap-3">
+            <LiveBadge />
+            <button className="px-4 py-2 bg-card/40 hover:bg-card/60 text-white rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Today
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Real-time Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
-        {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="relative overflow-hidden bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-lg p-3 border border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60 transition-all duration-300 hover-lift group"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-[#2F6BFF]/5 rounded-full blur-xl group-hover:bg-[#2F6BFF]/10 transition-all duration-300"></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <div className={`p-2 bg-gradient-to-br from-[#2F6BFF]/20 to-[#2F6BFF]/5 rounded group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon size={18} className="text-[#2F6BFF]" />
-                </div>
-                <span className={`text-[10px] font-semibold ${stat.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-                  {stat.change}
-                </span>
+      {/* Stats Grid - Enhanced with Glassmorphism */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Account Balance */}
+          <StatCard
+            icon={<Wallet className="w-6 h-6" />}
+            value={formatCurrency(userStats.totalBalance)}
+            label="Account Balance"
+            subtitle="Updated just now"
+            change={{
+              value: userStats.profitChange,
+              isPositive: userStats.profitChange >= 0
+            }}
+            variant="blue"
+            delay={0}
+          />
+
+          {/* Total Profit */}
+          <StatCard
+            icon={<TrendingUp className="w-6 h-6" />}
+            value={formatCurrency(userStats.totalProfit)}
+            label="Total Profit"
+            subtitle="This month"
+            change={{
+              value: userStats.profitChange,
+              isPositive: userStats.profitChange >= 0
+            }}
+            variant="green"
+            delay={100}
+          />
+
+          {/* Win Rate */}
+          <StatCard
+            icon={<Activity className="w-6 h-6" />}
+            value={`${userStats.winRate.toFixed(1)}%`}
+            label="Win Rate"
+            subtitle="Above average"
+            badge={`${userStats.totalTrades} trades`}
+            variant="purple"
+            delay={200}
+          />
+
+          {/* Active Bots */}
+          <StatCard
+            icon={<Bot className="w-6 h-6" />}
+            value={userStats.activeBots.toString()}
+            label="Active Bots"
+            subtitle="All operational"
+            badge={userStats.botsChange > 0 ? `+${userStats.botsChange}` : 'Running'}
+            badgeVariant="success"
+            variant="orange"
+            delay={300}
+          />
+        </div>
+      </PageSection>
+
+      {/* Account Status & Compliance - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Account Status */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <CheckCircle className="w-6 h-6 text-green-400 relative z-20" style={{ opacity: 1 }} />
               </div>
-              <div className="text-small-dashboard font-bold text-[#efdede] font-tabular drop-shadow-[0_0_6px_rgba(160,167,181,0.3)] mb-0.5">{stat.value}</div>
-              <div className="text-[10px] text-gray-400 mb-2">{stat.title}</div>
-              {/* Chart based on type */}
-              <div className="mt-2">
-                {stat.chartType === 'line' && <LineSparkline data={stat.history} color={stat.sparklineColor} />}
-                {stat.chartType === 'candlestick' && <CandlestickChart data={stat.history} />}
-                {stat.chartType === 'bar' && <BarSparkline data={stat.history} color={stat.sparklineColor} />}
-                {stat.chartType === 'donut' && <DonutChart value={stat.currentValue || 0} max={10} color={stat.sparklineColor} />}
+              <StatusBadge status="active" pulse={true} />
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Account Status</p>
+              <p className="text-2xl font-bold text-green-400 mb-1">Active</p>
+              <p className="text-xs text-gray-500">Tier II - R50,000</p>
+            </div>
+          </div>
+
+          {/* Drawdown Monitor */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-yellow-400/30 shadow-xl shadow-yellow-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center shadow-lg border border-yellow-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <AlertTriangle className="w-6 h-6 text-yellow-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-400/30">
+                Safe zone
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Drawdown Monitor</p>
+              <p className="text-2xl font-bold text-yellow-400 mb-1">3.2%</p>
+              <p className="text-xs text-gray-500 mb-3">of 5% maximum</p>
+              <ProgressBar
+                label="Current Drawdown"
+                current={3.2}
+                max={5}
+                unit="%"
+                colorScheme="yellow"
+                warning={true}
+              />
+            </div>
+          </div>
+
+          {/* Profit Target */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingUp className="w-6 h-6 text-green-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-400/30">
+                <TrendingUp className="w-3 h-3" />
+                On track
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-xs text-gray-400 mb-1 font-semibold uppercase tracking-wide">Profit Target</p>
+              <p className="text-2xl font-bold text-green-400 mb-1">8.5%</p>
+              <p className="text-xs text-gray-500 mb-3">of 10% target</p>
+              <ProgressBar
+                label="Progress to Target"
+                current={8.5}
+                max={10}
+                unit="%"
+                colorScheme="green"
+              />
+            </div>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Advanced Trading Metrics - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Advanced Trading Metrics</h2>
+          <p className="text-sm text-black font-medium">Key performance indicators for professional traders</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Sharpe Ratio */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#8B5CF6]/20 to-[#A78BFA]/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <TrendingUp className="w-5 h-5 text-[#8B5CF6] relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Sharpe Ratio</div>
+                <div className="text-lg font-bold text-white">2.15</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Rating</span>
+              <span className="text-xs font-semibold text-green-400">Excellent</span>
+            </div>
+          </div>
+
+          {/* Max Drawdown */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#EF4444]/20 to-[#F87171]/20 flex items-center justify-center shadow-lg border border-red-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <ArrowDownRight className="w-5 h-5 text-[#EF4444] relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Max Drawdown</div>
+                <div className="text-lg font-bold text-white">8.5%</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Status</span>
+              <span className="text-xs font-semibold text-green-400">Safe</span>
+            </div>
+          </div>
+
+          {/* Profit Factor */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#2F6BFF]/20 to-[#4A90E2]/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-[#2F6BFF] relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Profit Factor</div>
+                <div className="text-lg font-bold text-white">2.65</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Target</span>
+              <span className="text-xs font-semibold text-gray-400">&gt;2.0</span>
+            </div>
+          </div>
+
+          {/* Total Trades */}
+          <div className="glass-card-elevated p-5 rounded-2xl smooth-hover border border-cyan-500/20 shadow-xl shadow-cyan-500/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#06B6D4]/20 to-[#22D3EE]/20 flex items-center justify-center shadow-lg border border-cyan-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-[#06B6D4] relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wide">Total Trades</div>
+                <div className="text-lg font-bold text-white">{userStats.totalTrades}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-700/50 relative z-10">
+              <span className="text-xs text-gray-400">Active</span>
+              <span className="text-xs font-semibold text-primary">{userStats.activeTrades}</span>
+            </div>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Quick Actions - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Quick Actions</h2>
+          <p className="text-sm text-black font-medium">Common tasks and shortcuts</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickActions.map((action, idx) => (
+            <button
+              key={idx}
+              onClick={() => navigate(action.link)}
+              className={`glass-card-elevated p-5 rounded-2xl smooth-hover border ${action.borderColor} shadow-xl ${action.shadowColor} backdrop-blur-xl relative group animate-fade-in-up`}
+              style={{ animationDelay: `${idx * 50}ms` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg border ${action.borderColor} transition-transform mb-3 mx-auto`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <action.icon className={`w-6 h-6 ${action.iconColor} relative z-20 drop-shadow-lg`} strokeWidth={2.5} />
+              </div>
+              <p className="text-sm font-bold text-center text-white transition-colors group-hover:text-white">{action.title}</p>
+            </button>
+          ))}
+        </div>
+      </PageSection>
+
+      {/* Recent Trades - Enhanced Table */}
+      <PageSection spacing="normal">
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div>
+              <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Recent Trades</h2>
+              <p className="text-sm text-black font-medium">Your latest trading activity</p>
+            </div>
+            <Link to="/trade" className="text-brand-blue hover:text-accent-orange text-sm font-semibold transition-colors flex items-center gap-1 group/link">
+              <span>View All</span>
+              <span className="group-hover/link:translate-x-1 inline-block transition-transform">→</span>
+            </Link>
+          </div>
+          <div className="overflow-x-auto relative z-10">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="bg-gradient-to-r from-primary/5 to-transparent">
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Pair</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Type</th>
+                  <th className="text-right px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Profit/Loss</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Status</th>
+                  <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTrades.map((trade, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-white font-bold">{trade.pair}</TableCell>
+                    <TableCell>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Buy'
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
+                        {trade.type}
+                      </span>
+                    </TableCell>
+                    <TableCell align="right" className={`font-bold ${trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
+                    </TableCell>
+                    <TableCell align="center">
+                      <StatusBadge
+                        status={trade.status === 'open' ? 'active' : 'inactive'}
+                        label={trade.status}
+                      />
+                    </TableCell>
+                    <TableCell className="text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {trade.time}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Performance Overview - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Trading Activity */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trading Activity</h3>
+            </div>
+            <div className="space-y-3 sm:space-y-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Total Trades</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.totalTrades}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Active Trades</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.activeTrades}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Win Rate</span>
+                <span className="text-sm sm:text-base text-green-400 font-bold">{userStats.winRate.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Active Bots</span>
+                <span className="text-sm sm:text-base text-white font-bold">{userStats.activeBots}</span>
               </div>
             </div>
           </div>
-        ))}
-      </div>
 
+          {/* Account Summary */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Wallet className="w-5 h-5 text-green-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-green-400 transition-colors uppercase">Account Summary</h3>
+            </div>
+            <div className="space-y-3 sm:space-y-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Account Balance</span>
+                <span className="text-sm sm:text-base text-white font-bold truncate ml-2">{formatCurrency(userStats.totalBalance)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Total Profit</span>
+                <span className="text-sm sm:text-base text-green-400 font-bold truncate ml-2">{formatCurrency(userStats.totalProfit)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Today's Change</span>
+                <span className={`text-sm sm:text-base font-bold ${userStats.profitChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {userStats.profitChange >= 0 ? '+' : ''}{userStats.profitChange.toFixed(2)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm sm:text-base text-gray-400">Account Type</span>
+                <span className="px-2 sm:px-3 py-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full text-xs sm:text-sm text-primary font-semibold shrink-0">
+                  Live
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageSection>
 
+      {/* Performance Charts - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Trading Volume Chart */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trading Volume (Last 7 Days)</h3>
+            </div>
+            <div className="relative z-10">
+              <ModernBarChart
+                data={[
+                  { label: 'Mon', value: 24, color: '#2F6BFF' },
+                  { label: 'Tue', value: 31, color: '#2F6BFF' },
+                  { label: 'Wed', value: 28, color: '#2F6BFF' },
+                  { label: 'Thu', value: 35, color: '#2F6BFF' },
+                  { label: 'Fri', value: 42, color: '#10B981' },
+                  { label: 'Sat', value: 38, color: '#10B981' },
+                  { label: 'Sun', value: 45, color: '#10B981' },
+                ]}
+                height={240}
+                showValues={true}
+                animate={true}
+                yAxisLabel="Trades"
+                xAxisLabel="Day of Week"
+              />
+            </div>
+          </div>
 
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* Line chart (Forex Trading) */}
-        <DashboardCard01 />
-        {/* Line chart (Crypto Trading) */}
-        <DashboardCard02 />
-        {/* Line chart (Stocks Trading) */}
-        <DashboardCard03 />
-        {/* Bar chart (Manual vs Bot Trading) */}
-        <DashboardCard04 />
-        {/* Line chart (Portfolio Value Real Time) */}
-        <DashboardCard05 />
-        {/* Doughnut chart (Trading Distribution) */}
-        <DashboardCard06 />
-        {/* Table (Top Trading Pairs) */}
-        <DashboardCard07 />
-        {/* Line chart (Portfolio Growth Over Time) */}
-        <DashboardCard08 />
-        {/* Stacked bar chart (Profit VS Loss) */}
-        <DashboardCard09 />
-        {/* Card (Top Traders) */}
-        <DashboardCard10 />
-        {/* Card (Reasons for Losses) */}
-        <DashboardCard11 />
-        {/* Card (Recent Trading Activity) */}
-        <DashboardCard12 />
-        {/* Card (Deposits/Withdrawals) */}
-        <DashboardCard13 />
-      </div>
-    </div>
+          {/* Asset Allocation */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-purple-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-purple-400 transition-colors uppercase">Asset Allocation</h3>
+            </div>
+            <div className="relative z-10">
+              <ModernDonutChart
+                data={[
+                  { label: 'Forex', value: 45, color: '#2F6BFF' },
+                  { label: 'Crypto', value: 30, color: '#10B981' },
+                  { label: 'Indices', value: 15, color: '#F59E0B' },
+                  { label: 'Commodities', value: 10, color: '#8B5CF6' },
+                ]}
+                size={220}
+                thickness={35}
+                showLegend={true}
+                animate={true}
+                centerText="Total"
+                centerValue="100%"
+              />
+            </div>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Performance Trends - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+              <TrendingUp className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Account Balance Trend (30 Days)</h3>
+              <p className="text-sm text-black font-medium">Your account performance over the last month</p>
+            </div>
+          </div>
+          <div className="relative z-10">
+            <ModernAreaChart
+              data={[
+                50000, 50500, 51200, 50800, 51500, 52100, 51800, 52500,
+                53200, 52800, 53500, 54200, 53800, 54500, 55200, 54800,
+                55500, 56200, 55800, 56500, 57200, 56800, 57500, 58200,
+                57800, 58500, 59200, 58800, 59500, 60200
+              ]}
+              xLabels={['Day 1', 'Day 5', 'Day 10', 'Day 15', 'Day 20', 'Day 25', 'Day 30']}
+              color="#2F6BFF"
+              gradientFrom="#2F6BFF"
+              gradientTo="#FFA62B"
+              height={280}
+              showGrid={true}
+              yAxisLabel="Balance (R)"
+              xAxisLabel="Days"
+              animate={true}
+            />
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Trade Distribution & Statistics - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Trade Distribution */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trade Distribution</h3>
+                <p className="text-sm text-black font-medium">Pie chart visualization</p>
+              </div>
+            </div>
+            <div className="relative z-10">
+              <ModernDonutChart
+                data={[
+                  { label: 'Winning Trades', value: 97, color: '#10B981' },
+                  { label: 'Losing Trades', value: 45, color: '#EF4444' },
+                ]}
+                size={200}
+                thickness={30}
+                showLegend={true}
+                animate={true}
+                centerText="Total"
+                centerValue="142"
+              />
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 border border-green-400/30 shadow-lg shadow-green-500/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-sm text-white">Winning Trades</span>
+                  </div>
+                  <span className="text-sm font-semibold text-white">97 (68.3%)</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-400/30 shadow-lg shadow-red-500/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <span className="text-sm text-white">Losing Trades</span>
+                  </div>
+                  <span className="text-sm font-semibold text-white">45 (31.7%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trade Statistics */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-purple-500/20 shadow-xl shadow-purple-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center shadow-lg border border-purple-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <BarChart3 className="w-5 h-5 text-purple-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-purple-400 transition-colors uppercase">Trade Statistics</h3>
+            </div>
+            <div className="space-y-3 relative z-10">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Average Win</span>
+                <span className="text-sm font-semibold text-green-400">R 850,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Average Loss</span>
+                <span className="text-sm font-semibold text-red-400">R 320,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Best Trade</span>
+                <span className="text-sm font-semibold text-green-400">R 2 450,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Worst Trade</span>
+                <span className="text-sm font-semibold text-red-400">R -890,00</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-brand-blue/10 border border-brand-blue/30 shadow-lg hover:shadow-xl hover:shadow-brand-blue/20 transition-all">
+                <span className="text-sm text-white">Avg Trade Duration</span>
+                <span className="text-sm font-semibold text-white">4.2 hours</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Best & Worst Trades - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Top 5 Best Trades */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-green-400/30 shadow-xl shadow-green-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center shadow-lg border border-green-400/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingUp className="w-5 h-5 text-green-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-green-400 transition-colors uppercase">Top 5 Best Trades</h3>
+            </div>
+            <div className="space-y-2 relative z-10">
+              {[
+                { pair: 'BTC/USD', type: 'Buy', profit: 2450, date: '2024-03-15', duration: '6h 30m' },
+                { pair: 'EUR/USD', type: 'Sell', profit: 1850, date: '2024-03-14', duration: '4h 15m' },
+                { pair: 'ETH/USD', type: 'Buy', profit: 1620, date: '2024-03-13', duration: '5h 45m' },
+                { pair: 'GBP/USD', type: 'Buy', profit: 1450, date: '2024-03-12', duration: '3h 20m' },
+                { pair: 'XAU/USD', type: 'Sell', profit: 1280, date: '2024-03-11', duration: '7h 10m' },
+              ].map((trade, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 hover:bg-green-500/20 transition-all border border-green-400/30 shadow-lg hover:shadow-xl hover:shadow-green-500/20 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center shrink-0 border border-green-400/30">
+                      <span className="text-xs font-bold text-green-400">#{index + 1}</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">{trade.pair}</div>
+                      <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-green-400">R {trade.profit.toLocaleString()},00</div>
+                    <StatusBadge
+                      status={trade.type === 'Buy' ? 'success' : 'error'}
+                      label={trade.type}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top 5 Worst Trades */}
+          <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-red-500/20 shadow-xl shadow-red-500/10 backdrop-blur-xl relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div className="flex items-center gap-3 mb-4 relative z-10">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-500/20 to-rose-500/20 flex items-center justify-center shadow-lg border border-red-500/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <TrendingDown className="w-5 h-5 text-red-400 relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-red-400 transition-colors uppercase">Top 5 Worst Trades</h3>
+            </div>
+            <div className="space-y-2 relative z-10">
+              {[
+                { pair: 'USD/JPY', type: 'Sell', profit: -890, date: '2024-03-10', duration: '2h 45m' },
+                { pair: 'AUD/USD', type: 'Buy', profit: -720, date: '2024-03-09', duration: '3h 30m' },
+                { pair: 'EUR/GBP', type: 'Sell', profit: -650, date: '2024-03-08', duration: '1h 55m' },
+                { pair: 'USD/CAD', type: 'Buy', profit: -580, date: '2024-03-07', duration: '4h 20m' },
+                { pair: 'NZD/USD', type: 'Sell', profit: -520, date: '2024-03-06', duration: '2h 15m' },
+              ].map((trade, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all border border-red-400/30 shadow-lg hover:shadow-xl hover:shadow-red-500/20 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center shrink-0 border border-red-400/30">
+                      <span className="text-xs font-bold text-red-400">#{index + 1}</span>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">{trade.pair}</div>
+                      <div className="text-xs text-gray-400 font-medium">{trade.date} • {trade.duration}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-red-400">R {trade.profit.toLocaleString()},00</div>
+                    <StatusBadge
+                      status={trade.type === 'Buy' ? 'success' : 'error'}
+                      label={trade.type}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </PageSection>
+
+      {/* Live Activity Logs - Enhanced */}
+      <PageSection spacing="normal">
+        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          <div className="flex items-center justify-between mb-4 relative z-10">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue/20 to-accent-orange/20 flex items-center justify-center shadow-lg border border-brand-blue/30 transition-transform">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none z-0"></div>
+                <Activity className="w-5 h-5 text-brand-blue relative z-20" style={{ opacity: 1 }} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Live Activity Logs</h3>
+                <p className="text-sm text-black font-medium">Real-time bot activity and trade execution</p>
+              </div>
+            </div>
+            <StatusBadge status="active" label="LIVE" pulse={true} />
+          </div>
+          <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative z-10">
+            {[
+              { time: '19:49:53', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
+              { time: '19:49:43', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
+              { time: '14:32:15', bot: 'Scalper Bot Alpha', message: 'Trade executed: BUY R_100 at 1.2345 - Profit: +R12.50', type: 'success' },
+              { time: '14:30:42', bot: 'Trend Follower Beta', message: 'Signal detected: Bullish trend on R_75', type: 'info' },
+              { time: '14:28:33', bot: 'Scalper Bot Alpha', message: 'Trade closed: SELL R_100 at 1.2389 - Profit: +R8.75', type: 'success' },
+              { time: '14:25:18', bot: 'Range Trader Gamma', message: 'Bot paused: Daily loss limit reached (-R340.50)', type: 'warning' },
+              { time: '14:22:05', bot: 'Trend Follower Beta', message: 'Trade failed: Insufficient balance', type: 'error' },
+            ].map((log, index) => {
+              const typeStyles = {
+                info: 'bg-gradient-to-r from-primary/10 to-transparent border-brand-blue/30 shadow-brand-blue/20',
+                success: 'bg-gradient-to-r from-green-500/10 to-transparent border-green-400/30 shadow-green-500/20',
+                warning: 'bg-gradient-to-r from-yellow-500/10 to-transparent border-yellow-400/30 shadow-yellow-500/20',
+                error: 'bg-gradient-to-r from-red-500/10 to-transparent border-red-400/30 shadow-red-500/20',
+              };
+              const iconColors = {
+                info: 'text-primary',
+                success: 'text-green-400',
+                warning: 'text-yellow-400',
+                error: 'text-red-400',
+              };
+              const statusMap = {
+                info: 'pending' as const,
+                success: 'success' as const,
+                warning: 'warning' as const,
+                error: 'error' as const,
+              };
+              return (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 p-3 rounded-xl ${typeStyles[log.type as keyof typeof typeStyles]} hover:bg-opacity-80 transition-all border shadow-lg animate-fade-in-up`}
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Clock className={`w-4 h-4 ${iconColors[log.type as keyof typeof iconColors]}`} />
+                    <span className="text-xs font-mono text-gray-400 font-medium">{log.time}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-white mb-1">{log.bot}</div>
+                    <div className="text-xs text-gray-300 font-medium">{log.message}</div>
+                  </div>
+                  <StatusBadge status={statusMap[log.type as keyof typeof statusMap]} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </PageSection>
+    </PageContainer>
   );
 }
 
 export default Dashboard;
+
+
+
+
+
+
+

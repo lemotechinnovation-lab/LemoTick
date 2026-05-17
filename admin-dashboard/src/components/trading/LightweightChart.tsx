@@ -14,3 +14,5 @@ const LightweightChart: React.FC<LightweightChartProps> = () => {
 };
 
 export default LightweightChart;
+
+

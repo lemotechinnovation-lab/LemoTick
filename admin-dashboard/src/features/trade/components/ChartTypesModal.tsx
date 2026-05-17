@@ -44,36 +44,44 @@ export default function ChartTypesModal({
 
     return (
         <>
-            {/* Backdrop */}
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fadeIn" onClick={onClose} />
+            {/* Backdrop with enhanced blur */}
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-xl z-40 animate-fadeIn" onClick={onClose}>
+                {/* Animated Background Orbs */}
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-blue/20 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            </div>
 
-            {/* Modal */}
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] bg-[#0B0633] rounded-2xl shadow-2xl z-50 border border-[#2F6BFF]/30 animate-slideUp">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-[#2F6BFF]/20">
-                    <h2 className="text-section-header text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">Chart Types</h2>
+            {/* Modal with enhanced glass effect */}
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] bg-gradient-to-br from-[#0B0633]/95 via-[#16124A]/95 to-[#0B0633]/95 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-brand-blue/30 z-50 border border-brand-blue/30 animate-slideUp">
+                {/* Header with gradient */}
+                <div className="relative flex items-center justify-between px-6 py-4 border-b border-brand-blue/20 bg-gradient-to-r from-brand-blue/10 to-transparent">
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 to-transparent opacity-50" />
+                    <h2 className="relative text-xl font-bold bg-gradient-to-r from-brand-blue via-violet-400 to-brand-blue bg-clip-text text-transparent">
+                        Chart Types
+                    </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-200 hover:text-[#efdede] hover:bg-[#16124A] rounded-lg p-1.5 transition-all duration-300"
+                        className="relative text-gray-300 hover:text-white hover:bg-brand-blue/20 rounded-lg p-2 transition-all duration-300 hover:scale-110 hover:rotate-90"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
-                    {/* Chart Types */}
-                    <div className="grid grid-cols-4 gap-3 mb-6">
-                        {CHART_TYPES.map((type) => (
+                <div className="p-6 space-y-6">
+                    {/* Chart Types Grid */}
+                    <div className="grid grid-cols-4 gap-3">
+                        {CHART_TYPES.map((type, index) => (
                             <button
                                 key={type.id}
                                 onClick={() => onChartTypeChange(type.id)}
-                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${selectedChartType === type.id
-                                    ? 'border-[#2F6BFF] bg-[#2F6BFF]/20 shadow-lg shadow-[#2F6BFF]/30'
-                                    : 'border-[#16124A] hover:border-[#2F6BFF]/50 bg-[#16124A]/30 hover:bg-[#16124A]/50'
+                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-110 animate-fade-in-up ${selectedChartType === type.id
+                                    ? 'border-brand-blue bg-gradient-to-br from-brand-blue/30 to-violet-600/30 shadow-lg shadow-brand-blue/50'
+                                    : 'border-[#16124A] hover:border-brand-blue/50 bg-[#16124A]/30 hover:bg-[#16124A]/50'
                                     }`}
+                                style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="w-10 h-10 flex items-center justify-center mb-1.5">
+                                <div className="w-10 h-10 flex items-center justify-center mb-2">
                                     {type.id === 'area' && (
                                         <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
                                             <path d="M5 30 L10 25 L15 28 L20 20 L25 23 L30 15 L35 18 L35 35 L5 35 Z" fill="#8B5CF6" opacity="0.3" stroke="#8B5CF6" strokeWidth="2" />
@@ -106,7 +114,7 @@ export default function ChartTypesModal({
                                         </svg>
                                     )}
                                 </div>
-                                <span className={`text-small-dashboard ${selectedChartType === type.id ? 'text-violet-400' : 'text-gray-100'
+                                <span className={`text-sm font-medium transition-colors ${selectedChartType === type.id ? 'text-violet-400' : 'text-gray-200'
                                     }`}>
                                     {type.label}
                                 </span>
@@ -114,11 +122,16 @@ export default function ChartTypesModal({
                         ))}
                     </div>
 
-                    {/* Time Interval */}
-                    <div>
-                        <h3 className="text-data-label text-[#efdede] drop-shadow-[0_0_3px_rgba(160,167,181,0.2)] mb-2">Time Interval</h3>
-                        <div className="grid grid-cols-4 gap-1.5">
-                            {TIME_INTERVALS.map((interval) => {
+                    {/* Time Interval Section */}
+                    <div className="space-y-3 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                        <h3 className="text-base font-semibold bg-gradient-to-r from-accent-orange to-yellow-400 bg-clip-text text-transparent flex items-center gap-2">
+                            <svg className="w-5 h-5 text-accent-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Time Interval
+                        </h3>
+                        <div className="grid grid-cols-4 gap-2">
+                            {TIME_INTERVALS.map((interval, index) => {
                                 const isTickInterval = interval.value === 0;
                                 const isDisabled = isTickInterval && selectedChartType !== 'area';
 
@@ -127,12 +140,13 @@ export default function ChartTypesModal({
                                         key={interval.value}
                                         onClick={() => !isDisabled && onIntervalChange(interval.value)}
                                         disabled={isDisabled}
-                                        className={`px-3 py-1.5 rounded text-small-dashboard transition-all ${selectedInterval === interval.value
-                                            ? 'bg-[#2F6BFF] text-white'
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 animate-fade-in-up ${selectedInterval === interval.value
+                                            ? 'bg-gradient-to-r from-accent-orange to-yellow-500 text-white shadow-lg shadow-accent-orange/30 scale-105'
                                             : isDisabled
                                                 ? 'bg-[#0B0633]/30 text-gray-600 cursor-not-allowed'
-                                                : 'bg-[#0B0633]/50 text-gray-100 hover:bg-[#16124A]'
+                                                : 'bg-[#0B0633]/50 text-gray-200 hover:bg-[#16124A] hover:scale-105 hover:border-accent-orange/30 border border-transparent'
                                             }`}
+                                        style={{ animationDelay: `${250 + index * 30}ms` }}
                                     >
                                         {interval.label}
                                     </button>
@@ -145,3 +159,5 @@ export default function ChartTypesModal({
         </>
     );
 }
+
+
