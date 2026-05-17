@@ -323,6 +323,7 @@ bot_output.log
 # Data directories
 data/
 !backend/Infrastructure/Data/
+!admin-dashboard/src/features/social/data/
 test_data/
 
 # Logs
