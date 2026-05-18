@@ -3,10 +3,8 @@
 # CI:     Azure DevOps  (self-hosted agent on Windows Server VM)
 # Deploy: Direct copy to IIS web root — agent runs ON the server
 #
-# IIS port mapping:
-#   prod  →  port 80   →  C:\inetpub\wwwroot\lemotick-prod
-#   qa    →  port 8090 →  C:\inetpub\wwwroot\lemotick-qa
-#   dev   →  port 8080 →  C:\inetpub\wwwroot\lemotick-dev
+# Each environment builds with its own variable group so
+# VITE_* env vars are correctly baked into the bundle.
 # ==============================================================
 
 trigger:
@@ -39,22 +37,20 @@ variables:
 
 stages:
 # ==============================================================
-# STAGE 1 – Install, Lint, Type-check & Build
+# STAGE 1 – Lint & Type-check only (no build, no env vars needed)
 # ==============================================================
-  - stage: Build
-    displayName: '🔨 Build'
-    variables:
-      - group: lemotick-dev
+  - stage: Validate
+    displayName: 'Lint & Type-check'
     jobs:
-      - job: Build
-        displayName: Install · Lint · Type-check · Vite build
+      - job: Validate
+        displayName: Lint · Type-check
         steps:
           - script: node --version && npm --version
             displayName: Verify Node.js version
 
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
-            displayName: Install dependencies (ci)
+            displayName: Install dependencies
 
           - script: npm run lint
             workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
@@ -66,27 +62,15 @@ stages:
             displayName: Type check
             continueOnError: true
 
-          - script: npm run build
-            workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
-            displayName: Vite build
-            env:
-              VITE_API_BASE_URL: $(VITE_API_BASE_URL)
-              VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
-              VITE_SOCIAL_SIGNALR_HUB_URL: $(VITE_SOCIAL_SIGNALR_HUB_URL)
-              VITE_ENABLE_REAL_TIME_UPDATES: $(VITE_ENABLE_REAL_TIME_UPDATES)
-              VITE_ENABLE_2FA: $(VITE_ENABLE_2FA)
-              VITE_DERIV_APP_ID: $(VITE_DERIV_APP_ID)
-              VITE_DERIV_WS_ENDPOINT: $(VITE_DERIV_WS_ENDPOINT)
-
 # ==============================================================
-# STAGE 2a – Deploy → Development  (branch: dev)
+# STAGE 2a – Build & Deploy → Development  (branch: dev)
 # ==============================================================
   - stage: DeployDev
-    displayName: '🚀 Deploy → Development'
-    dependsOn: Build
+    displayName: 'Build & Deploy → Development'
+    dependsOn: Validate
     condition: |
       and(
-        succeeded('Build'),
+        succeeded('Validate'),
         eq(variables['IS_PR'], false),
         eq(variables['Build.SourceBranchName'], 'dev')
       )
@@ -94,59 +78,62 @@ stages:
       - group: lemotick-dev
     jobs:
       - deployment: DeployDev
-        displayName: Copy dist → /var/www/lemotick-dev
+        displayName: Build & Deploy (Dev)
         environment: development
         strategy:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
+                - script: npm ci
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Install dependencies
+
+                - script: npm run build
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Vite build (dev)
+                  env:
+                    VITE_API_BASE_URL: $(VITE_API_BASE_URL)
+                    VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
+                    VITE_SOCIAL_SIGNALR_HUB_URL: $(VITE_SOCIAL_SIGNALR_HUB_URL)
+                    VITE_ENABLE_REAL_TIME_UPDATES: $(VITE_ENABLE_REAL_TIME_UPDATES)
+                    VITE_ENABLE_2FA: $(VITE_ENABLE_2FA)
+                    VITE_DERIV_APP_ID: $(VITE_DERIV_APP_ID)
+                    VITE_DERIV_WS_ENDPOINT: $(VITE_DERIV_WS_ENDPOINT)
+
                 - powershell: |
                     $destPath = "C:\inetpub\wwwroot\lemotick-dev"
                     $siteName = "LemoTick-Dashboard-Dev"
                     $port = 8080
-                    
-                    Write-Host "==> Creating directory"
-                    if (-not (Test-Path $destPath)) {
-                        New-Item -ItemType Directory -Path $destPath -Force
-                    }
-                    
-                    Write-Host "==> Removing old files"
+
+                    if (-not (Test-Path $destPath)) { New-Item -ItemType Directory -Path $destPath -Force }
                     Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Copying new build"
                     Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
-                    
-                    Write-Host "==> Setting IIS permissions"
+
                     $acl = Get-Acl $destPath
-                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
-                    $acl.SetAccessRule($accessRule)
+                    $acl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")))
                     Set-Acl $destPath $acl
-                    
-                    Write-Host "==> Configuring IIS site"
+
                     Import-Module WebAdministration
-                    
-                    # Create or update site
                     if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
                         Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
                     } else {
                         New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
                     }
-                    
-                    # Ensure site is started
-                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Dashboard (dev) deployed → http://YOUR_SERVER_IP:$port"
-                  displayName: Deploy dashboard (dev)
+                    try { Start-Website -Name $siteName -ErrorAction Stop } catch {}
+                    Write-Host "==> Dashboard (dev) deployed → https://dev.lemotechinnovations.co.za"
+                  displayName: Deploy to IIS (Dev)
 
 # ==============================================================
-# STAGE 2b – Deploy → QA  (branch: qa)
+# STAGE 2b – Build & Deploy → QA  (branch: qa)
 # ==============================================================
   - stage: DeployQA
-    displayName: '🚀 Deploy → QA'
-    dependsOn: Build
+    displayName: 'Build & Deploy → QA'
+    dependsOn: Validate
     condition: |
       and(
-        succeeded('Build'),
+        succeeded('Validate'),
         eq(variables['IS_PR'], false),
         eq(variables['Build.SourceBranchName'], 'qa')
       )
@@ -154,60 +141,62 @@ stages:
       - group: lemotick-qa
     jobs:
       - deployment: DeployQA
-        displayName: Copy dist → /var/www/lemotick-qa
+        displayName: Build & Deploy (QA)
         environment: staging
         strategy:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
+                - script: npm ci
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Install dependencies
+
+                - script: npm run build
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Vite build (qa)
+                  env:
+                    VITE_API_BASE_URL: $(VITE_API_BASE_URL)
+                    VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
+                    VITE_SOCIAL_SIGNALR_HUB_URL: $(VITE_SOCIAL_SIGNALR_HUB_URL)
+                    VITE_ENABLE_REAL_TIME_UPDATES: $(VITE_ENABLE_REAL_TIME_UPDATES)
+                    VITE_ENABLE_2FA: $(VITE_ENABLE_2FA)
+                    VITE_DERIV_APP_ID: $(VITE_DERIV_APP_ID)
+                    VITE_DERIV_WS_ENDPOINT: $(VITE_DERIV_WS_ENDPOINT)
+
                 - powershell: |
                     $destPath = "C:\inetpub\wwwroot\lemotick-qa"
                     $siteName = "LemoTick-Dashboard-QA"
                     $port = 8090
-                    
-                    Write-Host "==> Creating directory"
-                    if (-not (Test-Path $destPath)) {
-                        New-Item -ItemType Directory -Path $destPath -Force
-                    }
-                    
-                    Write-Host "==> Removing old files"
+
+                    if (-not (Test-Path $destPath)) { New-Item -ItemType Directory -Path $destPath -Force }
                     Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Copying new build"
                     Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
-                    
-                    Write-Host "==> Setting IIS permissions"
+
                     $acl = Get-Acl $destPath
-                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
-                    $acl.SetAccessRule($accessRule)
+                    $acl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")))
                     Set-Acl $destPath $acl
-                    
-                    Write-Host "==> Configuring IIS site"
+
                     Import-Module WebAdministration
-                    
-                    # Create or update site
                     if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
                         Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
                     } else {
                         New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
                     }
-                    
-                    # Ensure site is started
-                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Dashboard (qa) deployed → http://YOUR_SERVER_IP:$port"
-                  displayName: Deploy dashboard (qa)
+                    try { Start-Website -Name $siteName -ErrorAction Stop } catch {}
+                    Write-Host "==> Dashboard (qa) deployed → https://qa.lemotechinnovations.co.za"
+                  displayName: Deploy to IIS (QA)
 
 # ==============================================================
-# STAGE 2c – Deploy → Production  (branch: main / master)
-#   ⚠  Add Approval check on "production" Environment
+# STAGE 2c – Build & Deploy → Production  (branch: main / master)
 # ==============================================================
   - stage: DeployProd
-    displayName: '🚀 Deploy → Production'
-    dependsOn: Build
+    displayName: 'Build & Deploy → Production'
+    dependsOn: Validate
     condition: |
       and(
-        succeeded('Build'),
+        succeeded('Validate'),
         eq(variables['IS_PR'], false),
         in(variables['Build.SourceBranchName'], 'main', 'master')
       )
@@ -215,52 +204,53 @@ stages:
       - group: lemotick-prod
     jobs:
       - deployment: DeployProd
-        displayName: Copy dist → /var/www/lemotick-prod
+        displayName: Build & Deploy (Prod)
         environment: production
         strategy:
           runOnce:
             deploy:
               steps:
+                - checkout: self
+
+                - script: npm ci
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Install dependencies
+
+                - script: npm run build
+                  workingDirectory: $(Build.SourcesDirectory)/admin-dashboard
+                  displayName: Vite build (prod)
+                  env:
+                    VITE_API_BASE_URL: $(VITE_API_BASE_URL)
+                    VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
+                    VITE_SOCIAL_SIGNALR_HUB_URL: $(VITE_SOCIAL_SIGNALR_HUB_URL)
+                    VITE_ENABLE_REAL_TIME_UPDATES: $(VITE_ENABLE_REAL_TIME_UPDATES)
+                    VITE_ENABLE_2FA: $(VITE_ENABLE_2FA)
+                    VITE_DERIV_APP_ID: $(VITE_DERIV_APP_ID)
+                    VITE_DERIV_WS_ENDPOINT: $(VITE_DERIV_WS_ENDPOINT)
+
                 - powershell: |
                     $destPath = "C:\inetpub\wwwroot\lemotick-prod"
                     $siteName = "LemoTick-Dashboard-Prod"
-                    $port = 80
-                    
-                    Write-Host "==> Creating directory"
-                    if (-not (Test-Path $destPath)) {
-                        New-Item -ItemType Directory -Path $destPath -Force
-                    }
-                    
-                    Write-Host "==> Removing old files"
+
+                    if (-not (Test-Path $destPath)) { New-Item -ItemType Directory -Path $destPath -Force }
                     Remove-Item -Path "$destPath\*" -Recurse -Force -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Copying new build"
                     Copy-Item -Path "$(Build.SourcesDirectory)\admin-dashboard\dist\*" -Destination $destPath -Recurse -Force
-                    
-                    Write-Host "==> Setting IIS permissions"
+
                     $acl = Get-Acl $destPath
-                    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
-                    $acl.SetAccessRule($accessRule)
+                    $acl.SetAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS","ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")))
                     Set-Acl $destPath $acl
-                    
-                    Write-Host "==> Configuring IIS site"
+
                     Import-Module WebAdministration
-                    
-                    # Stop default website if it's using port 80
                     $defaultSite = Get-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
                     if ($defaultSite -and $defaultSite.State -eq "Started") {
                         Stop-Website -Name "Default Web Site" -ErrorAction SilentlyContinue
                     }
-                    
-                    # Create or update site
+
                     if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
                         Set-ItemProperty "IIS:\Sites\$siteName" -Name physicalPath -Value $destPath
                     } else {
-                        New-Website -Name $siteName -Port $port -PhysicalPath $destPath -Force
+                        New-Website -Name $siteName -Port 443 -PhysicalPath $destPath -Force
                     }
-                    
-                    # Ensure site is started
-                    Start-Website -Name $siteName -ErrorAction SilentlyContinue
-                    
-                    Write-Host "==> Dashboard (prod) deployed → http://YOUR_SERVER_IP"
-                  displayName: Deploy dashboard (prod)
+                    try { Start-Website -Name $siteName -ErrorAction Stop } catch {}
+                    Write-Host "==> Dashboard (prod) deployed → https://lemotechinnovations.co.za"
+                  displayName: Deploy to IIS (Prod)
