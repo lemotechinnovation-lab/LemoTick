@@ -1,6 +1,6 @@
 {
   "name": "lemotick-admin-dashboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LemoTick Admin Dashboard - Investor Management System",
   "type": "module",
   "scripts": {
