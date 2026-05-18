@@ -170,8 +170,11 @@ stages:
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
 
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
-                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$appPoolName" -Name physicalPath -Value $appPath
+                    } else {
+                        New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    }
 
                     $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
@@ -252,8 +255,11 @@ stages:
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
 
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
-                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$appPoolName" -Name physicalPath -Value $appPath
+                    } else {
+                        New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
+                    }
 
                     $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
@@ -334,8 +340,13 @@ stages:
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
 
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
-                    New-Website -Name $appPoolName -Port 443 -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
+                        Set-ItemProperty "IIS:\Sites\$appPoolName" -Name physicalPath -Value $appPath
+                        Write-Host "Updated existing site physical path"
+                    } else {
+                        New-Website -Name $appPoolName -Port 443 -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
+                        Write-Host "Created new site"
+                    }
 
                     $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
