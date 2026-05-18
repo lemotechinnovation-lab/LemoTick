@@ -43,6 +43,8 @@ stages:
 # ==============================================================
   - stage: Build
     displayName: '🔨 Build'
+    variables:
+      - group: lemotick-dev
     jobs:
       - job: Build
         displayName: Install · Lint · Type-check · Vite build
@@ -70,6 +72,11 @@ stages:
             env:
               VITE_API_BASE_URL: $(VITE_API_BASE_URL)
               VITE_SIGNALR_HUB_URL: $(VITE_SIGNALR_HUB_URL)
+              VITE_SOCIAL_SIGNALR_HUB_URL: $(VITE_SOCIAL_SIGNALR_HUB_URL)
+              VITE_ENABLE_REAL_TIME_UPDATES: $(VITE_ENABLE_REAL_TIME_UPDATES)
+              VITE_ENABLE_2FA: $(VITE_ENABLE_2FA)
+              VITE_DERIV_APP_ID: $(VITE_DERIV_APP_ID)
+              VITE_DERIV_WS_ENDPOINT: $(VITE_DERIV_WS_ENDPOINT)
 
 # ==============================================================
 # STAGE 2a – Deploy → Development  (branch: dev)
