@@ -180,8 +180,8 @@ stages:
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
 
                     New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
-                    Start-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
-                    Start-Website -Name $appPoolName -ErrorAction SilentlyContinue
+                    try { Start-WebAppPool -Name $appPoolName -ErrorAction Stop } catch {}
+                    try { Start-Website -Name $appPoolName -ErrorAction Stop } catch {}
                     Start-Sleep -Seconds 5
                     Write-Host "Deployment complete - Backend (dev) at http://localhost:$port"
                   displayName: Deploy to IIS (Dev)
@@ -265,8 +265,8 @@ stages:
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
 
                     New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
-                    Start-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
-                    Start-Website -Name $appPoolName -ErrorAction SilentlyContinue
+                    try { Start-WebAppPool -Name $appPoolName -ErrorAction Stop } catch {}
+                    try { Start-Website -Name $appPoolName -ErrorAction Stop } catch {}
                     Start-Sleep -Seconds 5
                     Write-Host "Deployment complete - Backend (qa) at http://localhost:$port"
                   displayName: Deploy to IIS (QA)
@@ -351,8 +351,8 @@ stages:
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
 
                     New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
-                    Start-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
-                    Start-Website -Name $appPoolName -ErrorAction SilentlyContinue
+                    try { Start-WebAppPool -Name $appPoolName -ErrorAction Stop } catch {}
+                    try { Start-Website -Name $appPoolName -ErrorAction Stop } catch {}
                     Start-Sleep -Seconds 5
                     Write-Host "Deployment complete - Backend (prod) at https://api.lemotechinnovations.co.za"
                   displayName: Deploy to IIS (Prod)
