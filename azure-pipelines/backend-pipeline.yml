@@ -335,7 +335,7 @@ stages:
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
 
                     if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
-                    New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
+                    New-Website -Name $appPoolName -Port 443 -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
 
                     $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
                     $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force

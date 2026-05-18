@@ -23,7 +23,7 @@ public class AnalyticsController : ControllerBase
     }
 
     /// <summary>
-    /// Get monthly performance analytics for a portfolio
+    /// Get monthly performance analytics for a portfolio 
     /// </summary>
     [HttpGet("portfolio/{portfolioId}/monthly-performance")]
     public async Task<IActionResult> GetMonthlyPerformance(Guid portfolioId, [FromQuery] int months = 12)

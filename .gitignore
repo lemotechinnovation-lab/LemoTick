@@ -350,3 +350,4 @@ docker-volumes/
 .gitignore
 .kiro/specs/how-it-works-redesign/tasks.md
 .kiro/specs/social-networking-feature/.config.kiro
+azure-pipelines/setup-iis-sites.ps1
