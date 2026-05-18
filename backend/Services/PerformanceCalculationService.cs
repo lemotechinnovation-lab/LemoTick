@@ -47,7 +47,14 @@ public class PerformanceCalculationService : BackgroundService
                 _logger.LogError(ex, "Error during performance calculation");
             }
 
-            await Task.Delay(_period, stoppingToken);
+            try
+            {
+                await Task.Delay(_period, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 }

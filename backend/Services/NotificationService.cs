@@ -37,7 +37,14 @@ public class NotificationService : BackgroundService
                 _logger.LogError(ex, "Error processing notifications");
             }
 
-            await Task.Delay(_period, stoppingToken);
+            try
+            {
+                await Task.Delay(_period, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 }
