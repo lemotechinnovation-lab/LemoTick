@@ -7,6 +7,22 @@
 #   prod  →  LemoTick-Backend-Prod  :5000
 #   qa    →  LemoTick-Backend-QA    :5002
 #   dev   →  LemoTick-Backend-Dev   :5001
+#
+# Variable group keys must match appsettings.json token names:
+#   ConnectionStrings:DefaultConnection
+#   ConnectionStrings:SqlServerConnection
+#   Jwt:Key
+#   Jwt:Issuer
+#   Jwt:Audience
+#   AllowedOrigins
+#   Email:SmtpHost
+#   Email:SmtpPort
+#   Email:SmtpUser
+#   Email:SmtpPassword
+#   Email:FromEmail
+#   PayFast:MerchantId
+#   PayFast:MerchantKey
+#   PayFast:Passphrase
 # ==============================================================
 
 trigger:
@@ -118,48 +134,54 @@ stages:
                     $appPath = "C:\inetpub\wwwroot\lemotick-backend-dev"
                     $appPoolName = "LemoTick-Backend-Dev"
                     $port = 5001
-                    
-                    Write-Host "Creating application directory"
-                    if (-not (Test-Path $appPath)) {
-                        New-Item -ItemType Directory -Path $appPath -Force
-                    }
-                    
-                    Write-Host "Stopping IIS site and app pool"
+
+                    if (-not (Test-Path $appPath)) { New-Item -ItemType Directory -Path $appPath -Force }
+
                     Import-Module WebAdministration
-                    
                     if (Test-Path "IIS:\AppPools\$appPoolName") {
                         Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
                         Start-Sleep -Seconds 3
                     }
-                    
-                    Write-Host "Copying files"
+
                     Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
                     Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
-                    
-                    Write-Host "Creating app pool"
-                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
-                        New-WebAppPool -Name $appPoolName
-                    }
+
+                    # Replace #{Token}# placeholders in appsettings.json
+                    $settingsPath = "$appPath\appsettings.json"
+                    $settings = Get-Content $settingsPath -Raw
+                    $settings = $settings -replace '#{ConnectionStrings:DefaultConnection}#',   '$(ConnectionStrings:DefaultConnection)'
+                    $settings = $settings -replace '#{ConnectionStrings:SqlServerConnection}#', '$(ConnectionStrings:SqlServerConnection)'
+                    $settings = $settings -replace '#{Jwt:Key}#',                               '$(Jwt:Key)'
+                    $settings = $settings -replace '#{Jwt:Issuer}#',                            '$(Jwt:Issuer)'
+                    $settings = $settings -replace '#{Jwt:Audience}#',                          '$(Jwt:Audience)'
+                    $settings = $settings -replace '#{AllowedOrigins}#',                        '$(AllowedOrigins)'
+                    $settings = $settings -replace '#{Email:SmtpHost}#',                        '$(Email:SmtpHost)'
+                    $settings = $settings -replace '#{Email:SmtpPort}#',                        '$(Email:SmtpPort)'
+                    $settings = $settings -replace '#{Email:SmtpUser}#',                        '$(Email:SmtpUser)'
+                    $settings = $settings -replace '#{Email:SmtpPassword}#',                    '$(Email:SmtpPassword)'
+                    $settings = $settings -replace '#{Email:FromEmail}#',                       '$(Email:FromEmail)'
+                    $settings = $settings -replace '#{PayFast:MerchantId}#',                    '$(PayFast:MerchantId)'
+                    $settings = $settings -replace '#{PayFast:MerchantKey}#',                   '$(PayFast:MerchantKey)'
+                    $settings = $settings -replace '#{PayFast:Passphrase}#',                    '$(PayFast:Passphrase)'
+                    $settings | Set-Content $settingsPath -Encoding UTF8
+                    Write-Host "Token replacement complete"
+
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) { New-WebAppPool -Name $appPoolName }
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
-                    
-                    Write-Host "Creating IIS site"
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
-                        Remove-Website -Name $appPoolName
-                    }
+
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
-                    
-                    Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
-                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
-                    
-                    Write-Host "Starting app pool and site"
+
+                    $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Development" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+
+                    New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
                     Start-WebAppPool -Name $appPoolName
                     Start-Website -Name $appPoolName
-                    
                     Start-Sleep -Seconds 5
-                    Write-Host "Deployment complete - Backend (dev) available at: http://localhost:$port"
-                  displayName: Deploy to IIS
+                    Write-Host "Deployment complete - Backend (dev) at http://localhost:$port"
+                  displayName: Deploy to IIS (Dev)
 
 # ==============================================================
 # STAGE 2b – Deploy → QA  (branch: qa)
@@ -194,48 +216,54 @@ stages:
                     $appPath = "C:\inetpub\wwwroot\lemotick-backend-qa"
                     $appPoolName = "LemoTick-Backend-QA"
                     $port = 5002
-                    
-                    Write-Host "Creating application directory"
-                    if (-not (Test-Path $appPath)) {
-                        New-Item -ItemType Directory -Path $appPath -Force
-                    }
-                    
-                    Write-Host "Stopping IIS site and app pool"
+
+                    if (-not (Test-Path $appPath)) { New-Item -ItemType Directory -Path $appPath -Force }
+
                     Import-Module WebAdministration
-                    
                     if (Test-Path "IIS:\AppPools\$appPoolName") {
                         Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
                         Start-Sleep -Seconds 3
                     }
-                    
-                    Write-Host "Copying files"
+
                     Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
                     Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
-                    
-                    Write-Host "Creating app pool"
-                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
-                        New-WebAppPool -Name $appPoolName
-                    }
+
+                    # Replace #{Token}# placeholders in appsettings.json
+                    $settingsPath = "$appPath\appsettings.json"
+                    $settings = Get-Content $settingsPath -Raw
+                    $settings = $settings -replace '#{ConnectionStrings:DefaultConnection}#',   '$(ConnectionStrings:DefaultConnection)'
+                    $settings = $settings -replace '#{ConnectionStrings:SqlServerConnection}#', '$(ConnectionStrings:SqlServerConnection)'
+                    $settings = $settings -replace '#{Jwt:Key}#',                               '$(Jwt:Key)'
+                    $settings = $settings -replace '#{Jwt:Issuer}#',                            '$(Jwt:Issuer)'
+                    $settings = $settings -replace '#{Jwt:Audience}#',                          '$(Jwt:Audience)'
+                    $settings = $settings -replace '#{AllowedOrigins}#',                        '$(AllowedOrigins)'
+                    $settings = $settings -replace '#{Email:SmtpHost}#',                        '$(Email:SmtpHost)'
+                    $settings = $settings -replace '#{Email:SmtpPort}#',                        '$(Email:SmtpPort)'
+                    $settings = $settings -replace '#{Email:SmtpUser}#',                        '$(Email:SmtpUser)'
+                    $settings = $settings -replace '#{Email:SmtpPassword}#',                    '$(Email:SmtpPassword)'
+                    $settings = $settings -replace '#{Email:FromEmail}#',                       '$(Email:FromEmail)'
+                    $settings = $settings -replace '#{PayFast:MerchantId}#',                    '$(PayFast:MerchantId)'
+                    $settings = $settings -replace '#{PayFast:MerchantKey}#',                   '$(PayFast:MerchantKey)'
+                    $settings = $settings -replace '#{PayFast:Passphrase}#',                    '$(PayFast:Passphrase)'
+                    $settings | Set-Content $settingsPath -Encoding UTF8
+                    Write-Host "Token replacement complete"
+
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) { New-WebAppPool -Name $appPoolName }
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
-                    
-                    Write-Host "Creating IIS site"
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
-                        Remove-Website -Name $appPoolName
-                    }
+
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -Force
-                    
-                    Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /><environmentVariable name="ConnectionStrings__DefaultConnection" value="$(DB_CONNECTION_STRING)" /><environmentVariable name="Jwt__Secret" value="$(JWT_SECRET)" /><environmentVariable name="Jwt__Issuer" value="$(JWT_ISSUER)" /><environmentVariable name="Jwt__Audience" value="$(JWT_AUDIENCE)" /><environmentVariable name="AllowedOrigins" value="$(ALLOWED_ORIGINS)" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
-                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
-                    
-                    Write-Host "Starting app pool and site"
+
+                    $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Staging" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+
+                    New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
                     Start-WebAppPool -Name $appPoolName
                     Start-Website -Name $appPoolName
-                    
                     Start-Sleep -Seconds 5
-                    Write-Host "Deployment complete - Backend (qa) available at: http://localhost:$port"
-                  displayName: Deploy to IIS
+                    Write-Host "Deployment complete - Backend (qa) at http://localhost:$port"
+                  displayName: Deploy to IIS (QA)
 
 # ==============================================================
 # STAGE 2c – Deploy → Production  (branch: main / master)
@@ -270,59 +298,51 @@ stages:
                     $appPath = "C:\inetpub\wwwroot\lemotick-backend-prod"
                     $appPoolName = "LemoTick-Backend-Prod"
                     $port = 5000
-                    
-                    Write-Host "Creating application directory"
-                    if (-not (Test-Path $appPath)) {
-                        New-Item -ItemType Directory -Path $appPath -Force
-                    }
-                    
-                    Write-Host "Stopping IIS site and app pool"
+
+                    if (-not (Test-Path $appPath)) { New-Item -ItemType Directory -Path $appPath -Force }
+
                     Import-Module WebAdministration
-                    
                     if (Test-Path "IIS:\AppPools\$appPoolName") {
                         Stop-WebAppPool -Name $appPoolName -ErrorAction SilentlyContinue
                         Start-Sleep -Seconds 3
                     }
-                    
-                    Write-Host "Copying files"
+
                     Remove-Item -Path "$appPath\*" -Recurse -Force -ErrorAction SilentlyContinue
                     Copy-Item -Path "$(System.ArtifactsDirectory)\backend\*" -Destination $appPath -Recurse -Force
-                    
-                    Write-Host "Injecting production config"
-                    $configPath = "$appPath\appsettings.Production.json"
-                    if (Test-Path $configPath) {
-                        $config = Get-Content $configPath -Raw
-                        $config = $config -replace '#{DB_CONNECTION_STRING}#', '$(DB_CONNECTION_STRING)'
-                        $config = $config -replace '#{JWT_SECRET}#', '$(JWT_SECRET)'
-                        $config = $config -replace '#{JWT_ISSUER}#', '$(JWT_ISSUER)'
-                        $config = $config -replace '#{JWT_AUDIENCE}#', '$(JWT_AUDIENCE)'
-                        $config = $config -replace '#{ALLOWED_ORIGINS}#', '$(ALLOWED_ORIGINS)'
-                        $config | Set-Content $configPath -Encoding UTF8
-                    }
-                    
-                    Write-Host "Creating app pool"
-                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) {
-                        New-WebAppPool -Name $appPoolName
-                    }
+
+                    # Replace #{Token}# placeholders in appsettings.json
+                    $settingsPath = "$appPath\appsettings.json"
+                    $settings = Get-Content $settingsPath -Raw
+                    $settings = $settings -replace '#{ConnectionStrings:DefaultConnection}#',   '$(ConnectionStrings:DefaultConnection)'
+                    $settings = $settings -replace '#{ConnectionStrings:SqlServerConnection}#', '$(ConnectionStrings:SqlServerConnection)'
+                    $settings = $settings -replace '#{Jwt:Key}#',                               '$(Jwt:Key)'
+                    $settings = $settings -replace '#{Jwt:Issuer}#',                            '$(Jwt:Issuer)'
+                    $settings = $settings -replace '#{Jwt:Audience}#',                          '$(Jwt:Audience)'
+                    $settings = $settings -replace '#{AllowedOrigins}#',                        '$(AllowedOrigins)'
+                    $settings = $settings -replace '#{Email:SmtpHost}#',                        '$(Email:SmtpHost)'
+                    $settings = $settings -replace '#{Email:SmtpPort}#',                        '$(Email:SmtpPort)'
+                    $settings = $settings -replace '#{Email:SmtpUser}#',                        '$(Email:SmtpUser)'
+                    $settings = $settings -replace '#{Email:SmtpPassword}#',                    '$(Email:SmtpPassword)'
+                    $settings = $settings -replace '#{Email:FromEmail}#',                       '$(Email:FromEmail)'
+                    $settings = $settings -replace '#{PayFast:MerchantId}#',                    '$(PayFast:MerchantId)'
+                    $settings = $settings -replace '#{PayFast:MerchantKey}#',                   '$(PayFast:MerchantKey)'
+                    $settings = $settings -replace '#{PayFast:Passphrase}#',                    '$(PayFast:Passphrase)'
+                    $settings | Set-Content $settingsPath -Encoding UTF8
+                    Write-Host "Token replacement complete"
+
+                    if (-not (Test-Path "IIS:\AppPools\$appPoolName")) { New-WebAppPool -Name $appPoolName }
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name managedRuntimeVersion -Value ""
                     Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name startMode -Value "AlwaysRunning"
-                    
-                    Write-Host "Creating IIS site"
-                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) {
-                        Remove-Website -Name $appPoolName
-                    }
+
+                    if (Get-Website -Name $appPoolName -ErrorAction SilentlyContinue) { Remove-Website -Name $appPoolName }
                     New-Website -Name $appPoolName -Port $port -PhysicalPath $appPath -ApplicationPool $appPoolName -HostHeader "api.lemotechinnovations.co.za" -Force
-                    
-                    Write-Host "Creating web.config"
-                    $webConfigContent = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
-                    $webConfigContent | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
-                    
+
+                    $webConfig = '<?xml version="1.0" encoding="utf-8"?><configuration><location path="." inheritInChildApplications="false"><system.webServer><handlers><add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" /></handlers><aspNetCore processPath="dotnet" arguments=".\InvestorManagementSystem.API.dll" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" hostingModel="inprocess"><environmentVariables><environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /></environmentVariables></aspNetCore></system.webServer></location></configuration>'
+                    $webConfig | Out-File -FilePath "$appPath\web.config" -Encoding UTF8 -Force
+
                     New-Item -ItemType Directory -Path "$appPath\logs" -Force | Out-Null
-                    
-                    Write-Host "Starting app pool and site"
                     Start-WebAppPool -Name $appPoolName
                     Start-Website -Name $appPoolName
-                    
                     Start-Sleep -Seconds 5
-                    Write-Host "Deployment complete - Backend (prod) available at: http://api.lemotechinnovations.co.za:$port"
-                  displayName: Deploy to IIS
+                    Write-Host "Deployment complete - Backend (prod) at http://api.lemotechinnovations.co.za:$port"
+                  displayName: Deploy to IIS (Prod)

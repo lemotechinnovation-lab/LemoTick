@@ -176,6 +176,9 @@ logs/
 bot/config/credentials.demo.env
 bot/config/credentials.live.env
 
+# Azure DevOps variable group files (contain secrets - never commit!)
+azure-pipelines/variable-groups/
+
 # Secrets and configuration
 secrets.json
 appsettings.Development.json
