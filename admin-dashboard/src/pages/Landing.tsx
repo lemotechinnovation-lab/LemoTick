@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 
 function Landing() {
     return (
-        <div className="min-h-screen bg-[#B1B1C1] relative overflow-hidden">
+        <div className="min-h-screen bg-[#B1B1C1] relative">
             {/* Animated Background Effects - Matching Enhanced Pages */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-brand-blue/40 rounded-full blur-[150px] animate-pulse-slow"></div>

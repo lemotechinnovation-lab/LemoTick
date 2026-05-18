@@ -22,15 +22,15 @@ function PublicLayout({ children }: PublicLayoutProps) {
                 <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#2F6BFF]/30 to-transparent"></div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-20">
-                        <div>
+                    <div className="flex justify-between items-center" style={{ height: '64px' }}>
+                        <div className="shrink-0">
                             {/* Logo */}
-                            <Link to="/" className="flex items-center group shrink-0 transition-transform hover:scale-105">
+                            <Link to="/" className="flex items-center group transition-transform hover:scale-105">
                                 <img
                                     src={logoFull}
                                     alt="LemoTick"
                                     className="drop-shadow-sm"
-                                    style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '180px' }}
+                                    style={{ imageRendering: 'crisp-edges', height: 'auto', width: 'auto', maxWidth: '140px' }}
                                 />
                             </Link>
                         </div>
@@ -38,7 +38,7 @@ function PublicLayout({ children }: PublicLayoutProps) {
                         {/* Navigation Links - Desktop & Mobile Menu */}
                         <PublicNavigation />
 
-                        {/* CTA Buttons - Hidden on mobile, shown on desktop */}
+                        {/* CTA Buttons - Desktop only */}
                         <div className="hidden lg:flex items-center space-x-4 shrink-0">
                             <Link
                                 to="/login"
@@ -65,7 +65,7 @@ function PublicLayout({ children }: PublicLayoutProps) {
             </nav>
 
             {/* Main Content */}
-            <main className="relative pt-20 pb-16">
+            <main className="relative pb-16" style={{ paddingTop: '64px' }}>
                 {children}
             </main>
 
