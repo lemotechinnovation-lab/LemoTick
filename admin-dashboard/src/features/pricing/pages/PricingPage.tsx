@@ -172,7 +172,7 @@ export default function PricingPage() {
                     {plans.map((plan) => (
                         <div
                             key={plan.id}
-                            className={`relative bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl border p-6 transition-all duration-300 ${plan.popular
+                            className={`relative bg-gradient-to-br from-[#16124A] to-[#0B0633] rounded-2xl border p-4 sm:p-6 transition-all duration-300 ${plan.popular
                                 ? 'border-[#2F6BFF] shadow-lg shadow-[#2F6BFF]/20'
                                 : 'border-[#2F6BFF]/30 hover:border-[#2F6BFF]/60'
                                 }`}

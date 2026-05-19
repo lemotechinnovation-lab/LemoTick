@@ -41,61 +41,82 @@
    TYPOGRAPHY SYSTEM
    ============================================ */
 
-/* Main Page Headers - Orange #FCB839, Bold, Stand Out */
+/* Main Page Headers */
 h1, .h1,
 .page-title,
 [class*="PageHeader"] h1 {
   color: var(--color-header-primary) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.05em !important;
-  text-shadow: 0 0 20px rgba(252, 184, 57, 0.4), 0 0 40px rgba(252, 184, 57, 0.2) !important;
-  filter: drop-shadow(0 4px 12px rgba(252, 184, 57, 0.3)) !important;
-  font-size: 2rem !important; /* 32px - larger for more prominence */
-  line-height: 1.2 !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  text-shadow: 0 0 30px rgba(252, 184, 57, 0.5), 0 0 60px rgba(252, 184, 57, 0.25) !important;
+  filter: drop-shadow(0 4px 16px rgba(252, 184, 57, 0.35)) !important;
+  font-size: clamp(2rem, 5vw, 3.5rem) !important;
+  line-height: 1.1 !important;
 }
 
-/* Section/Sub Headers - Blue #326FF9, Bold, No Shadow, Consistent Size, UPPERCASE */
+/* Hero headings override - allow responsive sizing */
+.hero-heading {
+  font-size: clamp(2.25rem, 8vw, 5rem) !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.4), 0 0 80px rgba(47,107,255,0.15) !important;
+  filter: none !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Auth page headings - compact, fits inside card */
+.auth-heading {
+  font-size: 1rem !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Section/Sub Headers */
 h2, .h2,
 .section-title,
 h3, .h3,
 .subsection-title {
   color: var(--color-section-header) !important;
-  font-weight: 700 !important;
-  font-size: 1.125rem !important; /* 18px - consistent across all pages */
-  line-height: 1.5 !important;
-  letter-spacing: 0.01em !important;
-  text-shadow: none !important;
+  font-weight: 800 !important;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem) !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0.03em !important;
+  text-shadow: 0 0 20px rgba(50, 111, 249, 0.3) !important;
   filter: none !important;
   text-transform: uppercase !important;
 }
 
-/* Smaller Headers - Also use blue for consistency */
+/* Smaller Headers */
 h4, .h4,
 h5, .h5,
 h6, .h6 {
   color: var(--color-section-header) !important;
-  font-weight: 600 !important;
-  font-size: 1rem !important; /* 16px */
+  font-weight: 700 !important;
+  font-size: 1rem !important;
   text-shadow: none !important;
   filter: none !important;
 }
 
-/* Body Text Hierarchy - White for cards, Black for light backgrounds */
+/* Body Text Hierarchy - White for all backgrounds */
 p:not([class*="card"] *):not([class*="Card"] *):not([class*="stat"] *):not([class*="Stat"] *), 
 .text-body:not([class*="card"] *):not([class*="Card"] *):not([class*="stat"] *):not([class*="Stat"] *) {
-  color: #000000 !important;
+  color: #E5E7EB !important;
   line-height: 1.6 !important;
-  font-weight: 500 !important; /* Medium weight for better visibility */
+  font-weight: 500 !important;
 }
 
 .text-secondary {
-  color: #1F2937 !important;
+  color: #D1D5DB !important;
   font-weight: 500 !important;
 }
 
 .text-muted,
 .text-tertiary {
-  color: #374151 !important;
+  color: #9CA3AF !important;
   font-weight: 400 !important;
 }
 

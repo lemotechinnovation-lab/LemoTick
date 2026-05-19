@@ -358,9 +358,9 @@ function PortfolioPage() {
                 {/* Performance Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     {/* Asset Allocation */}
-                    <GlassCard className="p-6">
+                    <GlassCard className="p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Asset Allocation</h3>
+                            <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] uppercase">Asset Allocation</h3>
                             <PieChart className="w-5 h-5 text-brand-blue" />
                         </div>
                         <div className="h-48 flex items-center justify-center text-white font-medium mb-6">
@@ -402,9 +402,9 @@ function PortfolioPage() {
                     </GlassCard>
 
                     {/* Performance Metrics */}
-                    <GlassCard className="p-6">
+                    <GlassCard className="p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Performance Metrics</h3>
+                            <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] uppercase">Performance Metrics</h3>
                             <Percent className="w-5 h-5 text-brand-blue" />
                         </div>
                         <div className="space-y-4">

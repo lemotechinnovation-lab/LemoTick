@@ -32,7 +32,7 @@ function About() {
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                 OUR MISSION
                             </h2>
-                            <p className="text-base text-black leading-relaxed">
+                            <p className="text-base text-gray-200 leading-relaxed">
                                 To create the most transparent, trader-aligned prop trading platform in South Africa — one that removes conflicts of interest, delivers verifiable payouts, and recognizes real skill.
                             </p>
                         </Stack>
@@ -158,7 +158,7 @@ function About() {
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                 A TRUSTED TEAM OF BUILDERS
                             </h2>
-                            <p className="text-base text-black leading-relaxed">
+                            <p className="text-base text-gray-200 leading-relaxed">
                                 LemoTick is built by experienced traders, engineers, and financial professionals focused on modernizing prop trading fairly and transparently in South Africa.
                             </p>
                         </Stack>
@@ -226,7 +226,7 @@ function About() {
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                 THE PLATFORM WHERE TRADERS GET PAID
                             </h2>
-                            <p className="text-base text-black leading-relaxed">
+                            <p className="text-base text-gray-200 leading-relaxed">
                                 LemoTick's long-term vision is to become the standard for prop trading in South Africa, offering a transparent path to performance rewards for elite traders.
                             </p>
                         </Stack>

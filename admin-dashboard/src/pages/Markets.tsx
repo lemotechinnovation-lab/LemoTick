@@ -159,7 +159,7 @@ function Markets() {
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                 WHY TRADE WITH LEMOTICK
                             </h2>
-                            <p className="text-base text-black">
+                            <p className="text-base text-gray-200">
                                 Professional trading infrastructure designed for serious traders
                             </p>
                         </Stack>

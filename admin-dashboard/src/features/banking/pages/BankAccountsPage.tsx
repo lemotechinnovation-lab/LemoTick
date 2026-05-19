@@ -183,12 +183,12 @@ export default function BankAccountsPage() {
                     />
                 </div>
 
-                <GlassCard className="p-6">
+                <GlassCard className="p-4 sm:p-6">
                     <div className="mb-4">
-                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balances</h3>
-                        <p className="text-sm text-black font-medium">Compare balances across your linked accounts</p>
+                        <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balances</h3>
+                        <p className="text-sm text-gray-200 font-medium">Compare balances across your linked accounts</p>
                     </div>
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                         <ModernBarChart
                             data={accountComparisonData}
                             showValues={true}
@@ -202,7 +202,7 @@ export default function BankAccountsPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Your Bank Accounts</h3>
-                            <p className="text-sm text-black font-medium">Manage your linked bank accounts</p>
+                            <p className="text-sm text-gray-200 font-medium">Manage your linked bank accounts</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">

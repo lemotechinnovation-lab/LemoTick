@@ -691,3 +691,82 @@ h6, .h6 {
     color: #111827 !important;
   }
 }
+
+/* ============================================
+   MOBILE RESPONSIVE ENHANCEMENTS
+   ============================================ */
+
+/* Reduce GlassCard padding on small screens */
+@media (max-width: 480px) {
+  .glass-card-elevated,
+  [class*="glass-card"] {
+    padding: 0.875rem !important;
+  }
+
+  /* Reduce stat card icon size on mobile */
+  .stat-card-wrapper .w-12 {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+}
+
+/* Ensure all page content has minimum side padding */
+@media (max-width: 640px) {
+  /* Any direct child of main that doesn't have its own padding */
+  main > div:not([class*="p-"]):not([class*="px-"]) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Tables: force horizontal scroll */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Table cells: allow wrapping for content cells */
+  td, th {
+    white-space: normal;
+    min-width: 80px;
+  }
+
+  /* Prevent wide fixed-width elements from overflowing */
+  [style*="width: "],
+  [style*="min-width: "] {
+    max-width: 100% !important;
+  }
+}
+
+/* Responsive flex wrapping for action bars */
+@media (max-width: 640px) {
+  .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Stack filter/action bars on mobile */
+  .flex.gap-2.items-center:has(button, select, input) {
+    flex-wrap: wrap;
+  }
+}
+
+/* Ensure dropdowns don't overflow viewport */
+@media (max-width: 640px) {
+  [data-radix-popper-content-wrapper],
+  [class*="DropdownMenu"],
+  [class*="dropdown-content"] {
+    max-width: calc(100vw - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+  }
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 1024px) {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}

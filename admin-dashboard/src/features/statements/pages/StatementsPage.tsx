@@ -259,7 +259,7 @@ export default function StatementsPage() {
 
                 {/* Statement Size Trend */}
                 <ContentSection title="Statement File Sizes" description="File size trends across recent statements">
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                         <ModernAreaChart
                             data={statementSizeData}
                             color="#8B5CF6"
@@ -322,7 +322,56 @@ export default function StatementsPage() {
 
                     {/* Statements Table */}
                     <div className="bg-[#16124A]/50 rounded-2xl border border-[#2F6BFF]/20 shadow-xl overflow-hidden mt-4">
-                        <div className="overflow-x-auto w-full">
+
+                        {/* ── MOBILE: stacked card view ── */}
+                        <div className="sm:hidden divide-y divide-[#2F6BFF]/10">
+                            {paginatedStatements.length === 0 ? (
+                                <div className="text-center py-10 text-gray-400 text-sm">No statements found</div>
+                            ) : paginatedStatements.map((statement) => (
+                                <div key={statement.id} className="p-4 hover:bg-[#2F6BFF]/5 transition-colors">
+                                    {/* Row 1: period + badges */}
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                        <div>
+                                            <div className="text-sm text-white font-semibold">{statement.period}</div>
+                                            <div className="text-xs text-gray-400">{statement.startDate} – {statement.endDate}</div>
+                                        </div>
+                                        <div className="flex gap-1.5 flex-wrap justify-end">
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getTypeColor(statement.type)}`}>{statement.type.toUpperCase()}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(statement.status)}`}>{statement.status.toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                    {/* Row 2: stats */}
+                                    <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+                                        <div className="bg-[#2F6BFF]/5 rounded-lg p-2">
+                                            <div className="text-gray-400 mb-0.5">Transactions</div>
+                                            <div className="text-white font-semibold">{statement.totalTransactions}</div>
+                                        </div>
+                                        <div className="bg-[#2F6BFF]/5 rounded-lg p-2">
+                                            <div className="text-gray-400 mb-0.5">Opening</div>
+                                            <div className="text-white font-semibold">${statement.openingBalance.toLocaleString()}</div>
+                                        </div>
+                                        <div className="bg-[#2F6BFF]/5 rounded-lg p-2">
+                                            <div className="text-gray-400 mb-0.5">Closing</div>
+                                            <div className="text-white font-semibold">${statement.closingBalance.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                    {/* Row 3: actions */}
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => handleView(statement)} disabled={statement.status !== 'available'}
+                                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-xs font-semibold transition-all border border-[#2F6BFF]/30 disabled:opacity-30 disabled:cursor-not-allowed">
+                                            <Eye className="w-3.5 h-3.5" /> View
+                                        </button>
+                                        <button onClick={() => handleDownload(statement)} disabled={statement.status !== 'available'}
+                                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs font-semibold transition-all border border-green-500/30 disabled:opacity-30 disabled:cursor-not-allowed">
+                                            <Download className="w-3.5 h-3.5" /> Download
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ── DESKTOP: full table ── */}
+                        <div className="hidden sm:block overflow-x-auto w-full">
                             <table className="w-full min-w-[600px]">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
@@ -344,14 +393,10 @@ export default function StatementsPage() {
                                                 <div className="text-xs text-gray-400">{statement.startDate} - {statement.endDate}</div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(statement.type)}`}>
-                                                    {statement.type.toUpperCase()}
-                                                </span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeColor(statement.type)}`}>{statement.type.toUpperCase()}</span>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(statement.status)}`}>
-                                                    {statement.status.toUpperCase()}
-                                                </span>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(statement.status)}`}>{statement.status.toUpperCase()}</span>
                                             </td>
                                             <td className="px-4 py-4 text-right whitespace-nowrap">
                                                 <div className="text-sm text-white font-semibold">{statement.totalTransactions}</div>
@@ -367,21 +412,13 @@ export default function StatementsPage() {
                                             </td>
                                             <td className="px-4 py-4 text-center whitespace-nowrap">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleView(statement)}
-                                                        disabled={statement.status !== 'available'}
-                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-xs font-semibold transition-all duration-200 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] disabled:opacity-30 disabled:cursor-not-allowed"
-                                                    >
-                                                        <Eye className="w-4 h-4" />
-                                                        <span>View</span>
+                                                    <button onClick={() => handleView(statement)} disabled={statement.status !== 'available'}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2F6BFF]/20 hover:bg-[#2F6BFF]/30 text-[#2F6BFF] text-xs font-semibold transition-all duration-200 border border-[#2F6BFF]/30 hover:border-[#2F6BFF] disabled:opacity-30 disabled:cursor-not-allowed">
+                                                        <Eye className="w-4 h-4" /><span>View</span>
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDownload(statement)}
-                                                        disabled={statement.status !== 'available'}
-                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs font-semibold transition-all duration-200 border border-green-500/30 hover:border-green-500 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                        <span>Download</span>
+                                                    <button onClick={() => handleDownload(statement)} disabled={statement.status !== 'available'}
+                                                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs font-semibold transition-all duration-200 border border-green-500/30 hover:border-green-500 disabled:opacity-30 disabled:cursor-not-allowed">
+                                                        <Download className="w-4 h-4" /><span>Download</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -389,11 +426,8 @@ export default function StatementsPage() {
                                     ))}
                                 </tbody>
                             </table>
-
                             {paginatedStatements.length === 0 && (
-                                <div className="text-center py-12 text-gray-400 text-sm">
-                                    No statements found matching your criteria
-                                </div>
+                                <div className="text-center py-12 text-gray-400 text-sm">No statements found matching your criteria</div>
                             )}
                         </div>
 

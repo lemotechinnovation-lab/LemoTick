@@ -326,7 +326,7 @@ function Pricing() {
                                 <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                     A MODEL BUILT FOR TRADERS
                                 </h2>
-                                <p className="text-base text-black">
+                                <p className="text-base text-gray-200">
                                     Your Evaluation fee grants access to:
                                 </p>
                                 <div className="grid md:grid-cols-2 gap-6">
@@ -374,7 +374,7 @@ function Pricing() {
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">
                                 FREQUENTLY ASKED QUESTIONS
                             </h2>
-                            <p className="text-base text-black">
+                            <p className="text-base text-gray-200">
                                 Find quick answers
                             </p>
                         </Stack>

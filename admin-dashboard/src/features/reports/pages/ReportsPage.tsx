@@ -181,9 +181,9 @@ function ReportsPage() {
                 </div>
 
                 {/* Reports Generation Chart */}
-                <GlassCard className="p-6 smooth-hover border border-brand-blue/30 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <GlassCard className="p-4 sm:p-6 smooth-hover border border-brand-blue/30 shadow-2xl shadow-brand-blue/10 backdrop-blur-xl relative group animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                     <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-accent-orange/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 relative z-10 uppercase">Reports Generated (Last 6 Months)</h3>
+                    <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-4 relative z-10 uppercase">Reports Generated (Last 6 Months)</h3>
                     <div className="relative z-10">
                         <ModernBarChart
                             data={reportsPerMonth}
@@ -215,7 +215,7 @@ function ReportsPage() {
                 {/* Reports Cards - 3 COLUMN GRID */}
                 <div className="animate-fade-in-up" style={{ animationDelay: '300ms' }}>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold text-[#E8B4B8] uppercase">Available Reports</h2>
+                        <h2 className="text-base sm:text-lg font-bold text-[#E8B4B8] uppercase">Available Reports</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
                         {filteredReports.map((report, index) => {

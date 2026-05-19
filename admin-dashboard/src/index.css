@@ -1363,3 +1363,106 @@ table {
 /* ===================================
    END TRADING PAGES FIXES
    =================================== */
+
+/* ============================================
+   MOBILE RESPONSIVE FIXES
+   ============================================ */
+
+/* Prevent block-level elements from causing horizontal scroll */
+body, main, section, article, aside, header, footer, nav, div {
+  max-width: 100%;
+}
+
+/* Allow images and media to be responsive */
+img, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* SVG should not be constrained */
+svg {
+  overflow: visible;
+}
+
+/* Responsive typography scaling */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  /* Reduce heading sizes on small screens */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.125rem !important;
+  }
+
+  h3, h4 {
+    font-size: 1rem !important;
+  }
+}
+
+/* Ensure flex containers don't overflow */
+.flex {
+  min-width: 0;
+}
+
+/* Responsive table: horizontal scroll */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dropdown menus: clamp to viewport on mobile */
+@media (max-width: 640px) {
+  [class*="dropdown"],
+  [class*="Dropdown"],
+  [role="menu"],
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 1rem) !important;
+  }
+}
+
+/* Fix for mobile viewport height (address bar) */
+.h-screen {
+  height: 100dvh;
+}
+
+.min-h-screen {
+  min-height: 100dvh;
+}
+
+/* Touch-friendly interactive elements */
+@media (max-width: 1024px) {
+  button,
+  a,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Exception for inline/icon-only elements */
+  button.inline-btn,
+  a.inline-link {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+/* Stat/metric cards: responsive grid on mobile */
+@media (max-width: 640px) {
+  /* Reduce inner padding of glass cards on mobile */
+  [class*="glass-card"] {
+    padding: 0.75rem !important;
+  }
+}
+
+/* Charts: ensure they don't overflow on mobile */
+[class*="recharts"],
+[class*="chartjs"],
+canvas {
+  max-width: 100% !important;
+}

@@ -281,12 +281,12 @@ export default function TransactionsPage() {
                 </div>
 
                 {/* Transaction Flow Chart */}
-                <GlassCard className="p-6">
+                <GlassCard className="p-4 sm:p-6">
                     <div className="mb-4">
-                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Transaction Activity</h3>
-                        <p className="text-sm text-black font-medium">Daily transaction volume over the last 7 days</p>
+                        <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Transaction Activity</h3>
+                        <p className="text-sm text-gray-200 font-medium">Daily transaction volume over the last 7 days</p>
                     </div>
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                         <ModernBarChart
                             data={transactionFlowData}
                             showValues={true}
@@ -350,7 +350,58 @@ export default function TransactionsPage() {
 
                     {/* Transactions Table */}
                     <GlassCard variant="blue" className="overflow-hidden mt-4 p-0">
-                        <div className="overflow-x-auto w-full">
+
+                        {/* ── MOBILE: stacked card view ── */}
+                        <div className="sm:hidden divide-y divide-brand-blue/10">
+                            {paginatedTransactions.length === 0 ? (
+                                <div className="text-center py-10 text-gray-400 text-sm">No transactions found</div>
+                            ) : paginatedTransactions.map((transaction, index) => (
+                                <div
+                                    key={transaction.id}
+                                    className="p-4 hover:bg-brand-blue/5 transition-colors animate-fade-in-up"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
+                                    {/* Row 1: icon + description + amount */}
+                                    <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-9 h-9 bg-gradient-to-br from-brand-blue/20 to-brand-blue/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-brand-blue/30">
+                                                {getTypeIcon(transaction.type)}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-sm text-white font-semibold truncate">{transaction.description}</div>
+                                                <div className="text-xs text-gray-400">{transaction.reference}</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <div className={`text-sm font-bold ${transaction.amount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                                {transaction.amount >= 0 ? '+' : ''}{transaction.amount.toLocaleString()} {transaction.currency}
+                                            </div>
+                                            {transaction.fee && transaction.fee > 0 && (
+                                                <div className="text-xs text-gray-400">Fee: ${transaction.fee}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Row 2: date + badges + view */}
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-xs text-gray-400">{transaction.date} · {transaction.timestamp}</span>
+                                            <StatusBadge status={getTypeBadgeType(transaction.type)} label={transaction.type.toUpperCase()} size="md" />
+                                            <StatusBadge status={getStatusBadgeType(transaction.status)} label={transaction.status.toUpperCase()} pulse={transaction.status === 'pending'} size="md" />
+                                        </div>
+                                        <button
+                                            onClick={() => { setSelectedTransaction(transaction); setIsViewModalOpen(true); }}
+                                            className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand-blue/20 hover:bg-brand-blue/30 text-brand-blue text-xs font-semibold transition-all border border-brand-blue/30"
+                                        >
+                                            <Eye className="w-3 h-3" />
+                                            View
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ── DESKTOP: full table ── */}
+                        <div className="hidden sm:block overflow-x-auto w-full">
                             <table className="w-full min-w-[600px]">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-brand-blue/10 to-transparent border-b border-brand-blue/30">
@@ -386,19 +437,10 @@ export default function TransactionsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <StatusBadge
-                                                    status={getTypeBadgeType(transaction.type)}
-                                                    label={transaction.type.toUpperCase()}
-                                                    size="md"
-                                                />
+                                                <StatusBadge status={getTypeBadgeType(transaction.type)} label={transaction.type.toUpperCase()} size="md" />
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <StatusBadge
-                                                    status={getStatusBadgeType(transaction.status)}
-                                                    label={transaction.status.toUpperCase()}
-                                                    pulse={transaction.status === 'pending'}
-                                                    size="md"
-                                                />
+                                                <StatusBadge status={getStatusBadgeType(transaction.status)} label={transaction.status.toUpperCase()} pulse={transaction.status === 'pending'} size="md" />
                                             </td>
                                             <td className="px-4 py-4 text-right whitespace-nowrap">
                                                 <div className={`text-sm font-bold ${transaction.amount >= 0 ? 'text-green-400' : 'text-white'}`}>
@@ -413,10 +455,7 @@ export default function TransactionsPage() {
                                             </td>
                                             <td className="px-4 py-4 text-center whitespace-nowrap">
                                                 <button
-                                                    onClick={() => {
-                                                        setSelectedTransaction(transaction);
-                                                        setIsViewModalOpen(true);
-                                                    }}
+                                                    onClick={() => { setSelectedTransaction(transaction); setIsViewModalOpen(true); }}
                                                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-blue/20 hover:bg-brand-blue/30 text-brand-blue text-xs font-semibold transition-all duration-200 border border-brand-blue/30 hover:border-brand-blue hover:shadow-lg hover:shadow-brand-blue/20"
                                                 >
                                                     <Eye className="w-4 h-4" />
@@ -427,11 +466,8 @@ export default function TransactionsPage() {
                                     ))}
                                 </tbody>
                             </table>
-
                             {paginatedTransactions.length === 0 && (
-                                <div className="text-center py-12 text-gray-400 text-sm">
-                                    No transactions found matching your criteria
-                                </div>
+                                <div className="text-center py-12 text-gray-400 text-sm">No transactions found matching your criteria</div>
                             )}
                         </div>
 

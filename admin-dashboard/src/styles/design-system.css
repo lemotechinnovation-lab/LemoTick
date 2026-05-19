@@ -344,23 +344,27 @@
 .nav-item {
   display: flex;
   align-items: center;
-  padding: var(--spacing-3) var(--spacing-3);
+  padding: 0.65rem var(--spacing-3);
   border-radius: var(--radius-xl);
   color: var(--color-text-primary);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   transition: all var(--transition-base);
   cursor: pointer;
+  min-height: 44px; /* touch target */
+  border: 1px solid transparent;
 }
 
 .nav-item:hover {
-  background-color: rgba(53, 51, 94, 0.40);
+  background-color: rgba(47, 107, 255, 0.10);
+  border-color: rgba(47, 107, 255, 0.15);
   box-shadow: 0 0 15px rgba(47, 107, 255, 0.1);
 }
 
 .nav-item-active {
-  background: linear-gradient(90deg, rgba(47, 107, 255, 0.20), rgba(47, 107, 255, 0.05));
-  box-shadow: var(--shadow-glow-primary);
+  background: linear-gradient(90deg, rgba(47, 107, 255, 0.22), rgba(47, 107, 255, 0.06));
+  border-color: rgba(47, 107, 255, 0.35) !important;
+  box-shadow: var(--shadow-glow-primary), inset 0 0 20px rgba(47,107,255,0.05);
 }
 
 .nav-item-active .nav-icon {
@@ -487,5 +491,127 @@
   :root {
     --spacing-6: 1rem;    /* Reduce padding on mobile */
     --spacing-8: 1.5rem;
+  }
+}
+
+/* ============================================
+   MOBILE RESPONSIVENESS - GLOBAL FIXES
+   ============================================ */
+
+/* Prevent horizontal overflow on all screens */
+html, body, #root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure tables scroll horizontally on mobile */
+.table-wrapper,
+[class*="table-container"],
+[class*="TableContainer"] {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  min-width: 100%;
+}
+
+/* Cards: reduce padding on mobile */
+@media (max-width: 640px) {
+  .card,
+  .card-glass {
+    padding: var(--spacing-4);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Stat cards stack better on mobile */
+  .stat-card {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  /* Modals go full-width on mobile */
+  .modal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100dvh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+  }
+
+  /* Dropdowns: prevent overflow off-screen */
+  .dropdown {
+    max-width: calc(100vw - 2rem);
+    right: 0;
+    left: auto;
+  }
+
+  /* Buttons: ensure minimum touch target */
+  .btn,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Typography: scale down on mobile */
+  :root {
+    --spacing-6: 1rem;
+    --spacing-8: 1.5rem;
+    --spacing-10: 2rem;
+  }
+}
+
+/* Responsive grid helpers */
+.grid-responsive-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
+}
+
+.grid-responsive-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+}
+
+.grid-responsive-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-4);
+}
+
+@media (max-width: 1024px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-responsive-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-responsive-2,
+  .grid-responsive-3,
+  .grid-responsive-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
   }
 }

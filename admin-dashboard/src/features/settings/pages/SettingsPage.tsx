@@ -770,8 +770,8 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Commission Trend Chart */}
-                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
-                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Commission Earnings (Last 30 Days)</h3>
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 sm:p-6">
+                                    <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Commission Earnings (Last 30 Days)</h3>
                                     <ModernAreaChart
                                         data={commissionTrend}
                                         color="#FFA62B"
@@ -783,8 +783,8 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Referral Link Section */}
-                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
-                                    <h3 className="text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Your Referral Link</h3>
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 sm:p-6">
+                                    <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-4 uppercase">Your Referral Link</h3>
 
                                     <div className="space-y-4">
                                         {/* Referral Code */}
@@ -837,13 +837,34 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Referrals Table */}
-                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-6">
+                                <div className="rounded-2xl border border-[#2F6BFF]/30 bg-[#16124A]/50 p-4 sm:p-6">
                                     <div className="border-b border-[#2F6BFF]/20 bg-gradient-to-r from-[#2F6BFF]/10 to-transparent pb-4 mb-4">
-                                        <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Referral History</h3>
+                                        <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] uppercase">Referral History</h3>
                                     </div>
 
                                     <div className="overflow-x-auto w-full">
-                                        <table className="w-full min-w-[600px]">
+                                        {/* Mobile: stacked cards */}
+                                        <div className="sm:hidden divide-y divide-[#2F6BFF]/10">
+                                            {referrals.map((referral) => (
+                                                <div key={referral.id} className="py-3 flex items-center justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <div className="text-sm font-semibold text-[#efdede] truncate">{referral.name}</div>
+                                                        <div className="text-xs text-gray-400 truncate">{referral.email}</div>
+                                                        <div className="flex items-center gap-1.5 mt-1">
+                                                            {getStatusIcon(referral.status)}
+                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>{referral.status.toUpperCase()}</span>
+                                                            <span className="text-xs text-gray-400">· {referral.signupDate}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <div className="text-sm text-[#FFA62B] font-semibold">${referral.commission.toFixed(2)}</div>
+                                                        <div className="text-xs text-gray-400">{referral.totalTrades} trades</div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {/* Desktop: full table */}
+                                        <table className="hidden sm:table w-full min-w-[600px]">
                                             <thead>
                                                 <tr className="bg-gradient-to-r from-[#2F6BFF]/10 to-transparent border-b border-[#2F6BFF]/30">
                                                     <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Name</th>
@@ -858,7 +879,7 @@ export default function SettingsPage() {
                                                 {referrals.map((referral) => (
                                                     <tr key={referral.id} className="hover:bg-[#16124A]/50 transition-colors duration-200">
                                                         <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.name}</div>
+                                                            <div className="text-sm font-semibold text-[#efdede]">{referral.name}</div>
                                                         </td>
                                                         <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
                                                             <div className="text-xs text-gray-400">{referral.email}</div>
@@ -866,13 +887,11 @@ export default function SettingsPage() {
                                                         <td className="px-4 sm:px-6 py-3 whitespace-nowrap">
                                                             <div className="flex items-center gap-2">
                                                                 {getStatusIcon(referral.status)}
-                                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>
-                                                                    {referral.status.toUpperCase()}
-                                                                </span>
+                                                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(referral.status)}`}>{referral.status.toUpperCase()}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-4 sm:px-6 py-3 text-center whitespace-nowrap">
-                                                            <div className="text-sm font-semibold text-[#efdede] drop-shadow-[0_0_4px_rgba(160,167,181,0.25)]">{referral.totalTrades}</div>
+                                                            <div className="text-sm font-semibold text-[#efdede]">{referral.totalTrades}</div>
                                                         </td>
                                                         <td className="px-4 sm:px-6 py-3 text-right whitespace-nowrap">
                                                             <div className="text-sm text-[#FFA62B] font-semibold">${referral.commission.toFixed(2)}</div>

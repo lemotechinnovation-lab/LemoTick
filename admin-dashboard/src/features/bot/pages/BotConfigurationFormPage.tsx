@@ -175,7 +175,7 @@ export default function BotConfigurationFormPage() {
                     </div>
 
                     {/* Tab Content - Compact */}
-                    <div className="p-6 relative z-10">
+                    <div className="p-4 sm:p-6 relative z-10">
                         {activeTab === 'trading' && (
                             <FormContainer maxWidth="xl" className="animate-fade-in-up">
                                 <FormSection

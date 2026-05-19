@@ -37,14 +37,14 @@ function Header({
 
   return (
     <header className="sticky top-0 glass-card-elevated backdrop-blur-2xl border-b border-brand-blue/20 z-60 shrink-0 shadow-2xl shadow-brand-blue/10 overflow-visible">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4 overflow-visible">
+      <div className="px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 gap-2 sm:gap-4 overflow-visible">
 
           {/* Left: Hamburger + Search */}
-          <div className="flex items-center gap-3 flex-1 min-w-0 max-w-md">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
             {/* Hamburger button for mobile */}
             <button
-              className="text-white hover:text-brand-primary lg:hidden shrink-0 transition-colors"
+              className="text-white hover:text-brand-primary lg:hidden shrink-0 transition-colors p-1 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-brand-blue/10 border border-brand-blue/20 hover:bg-brand-blue/20"
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
               onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
@@ -57,14 +57,14 @@ function Header({
               </svg>
             </button>
 
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative flex-1 min-w-0">
+            {/* Search Bar — hidden on mobile to save space */}
+            <form onSubmit={handleSearch} className="relative hidden sm:flex flex-1 min-w-0 max-w-xs sm:max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="w-4 h-4 text-brand-blue" />
               </div>
               <input
                 type="text"
-                placeholder="Search traders, signals..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 glass-card-elevated backdrop-blur-xl border border-brand-blue/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 focus:border-brand-blue/50 hover:border-brand-blue/40 transition-all text-sm shadow-lg shadow-brand-blue/5"
@@ -73,7 +73,7 @@ function Header({
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2 shrink-0 overflow-visible">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0 overflow-visible">
             {/* Discover Button */}
             <button
               onClick={() => navigate('/social/timeline')}

@@ -168,70 +168,70 @@ export default function KYCDocumentsPage() {
                                 </div>
                                 <span className="text-sm text-gray-400">Progress</span>
                             </div>
-                            <div className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold text-[#2F6BFF] mb-1">{verificationProgress}%</div>
+                            <div className="text-base sm:text-2xl font-bold text-[#2F6BFF] mb-1">{verificationProgress}%</div>
                             <div className="text-sm text-gray-400">Verification</div>
                         </div>
 
                         {/* Approved */}
                         <div className="p-4 sm:p-6 rounded-2xl bg-[#16124A]/50 border border-green-500/20 hover:border-green-500 transition-all duration-300">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-xl flex items-center justify-center">
-                                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 sm:w-6 sm:h-6 text-green-400" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500/20 to-green-500/10 rounded-xl flex items-center justify-center">
+                                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                                 </div>
                                 <span className="text-sm text-green-400">Approved</span>
                             </div>
-                            <div className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold text-white mb-1">{approvedDocs}</div>
+                            <div className="text-base sm:text-2xl font-bold text-white mb-1">{approvedDocs}</div>
                             <div className="text-sm text-gray-400">Documents</div>
                         </div>
 
                         {/* Pending */}
                         <div className="p-4 sm:p-6 rounded-2xl bg-[#16124A]/50 border border-yellow-500/20 hover:border-yellow-500 transition-all duration-300">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-yellow-500/20 to-yellow-500/10 rounded-xl flex items-center justify-center">
-                                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 sm:w-6 sm:h-6 text-yellow-400" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500/20 to-yellow-500/10 rounded-xl flex items-center justify-center">
+                                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
                                 </div>
                                 <span className="text-sm text-yellow-400">Pending</span>
                             </div>
-                            <div className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold text-white mb-1">{pendingDocs}</div>
+                            <div className="text-base sm:text-2xl font-bold text-white mb-1">{pendingDocs}</div>
                             <div className="text-sm text-gray-400">Under Review</div>
                         </div>
 
                         {/* Rejected */}
                         <div className="p-4 sm:p-6 rounded-2xl bg-[#16124A]/50 border border-red-500/20 hover:border-red-500 transition-all duration-300">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-xl flex items-center justify-center">
-                                    <XCircle className="w-4 h-4 sm:w-5 sm:h-5 sm:w-6 sm:h-6 text-red-400" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-red-500/20 to-red-500/10 rounded-xl flex items-center justify-center">
+                                    <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                                 </div>
                                 <span className="text-sm text-red-400">Rejected</span>
                             </div>
-                            <div className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold text-white mb-1">{rejectedDocs}</div>
+                            <div className="text-base sm:text-2xl font-bold text-white mb-1">{rejectedDocs}</div>
                             <div className="text-sm text-gray-400">Need Reupload</div>
                         </div>
 
                         {/* Not Uploaded */}
                         <div className="p-4 sm:p-6 rounded-2xl bg-[#16124A]/50 border border-gray-500/20 hover:border-gray-500 transition-all duration-300">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-gray-500/20 to-gray-500/10 rounded-xl flex items-center justify-center">
-                                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 sm:w-6 sm:h-6 text-gray-400" />
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-gray-500/20 to-gray-500/10 rounded-xl flex items-center justify-center">
+                                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                                 </div>
                                 <span className="text-sm text-gray-400">Missing</span>
                             </div>
-                            <div className="text-base sm:text-lg sm:text-xl sm:text-2xl sm:text-3xl font-bold text-white mb-1">{notUploadedDocs}</div>
+                            <div className="text-base sm:text-2xl font-bold text-white mb-1">{notUploadedDocs}</div>
                             <div className="text-sm text-gray-400">Not Uploaded</div>
                         </div>
                     </div>
 
                     {/* Documents Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 sm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 sm:p-6 mb-3 sm:mb-4 sm:mb-6 sm:mb-8 w-full max-w-full sm:mb-12 w-full max-w-full w-full max-w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 w-full max-w-full">
                         {documents.map((doc) => (
                             <div
                                 key={doc.id}
                                 className="p-4 sm:p-6 rounded-2xl bg-[#16124A]/50 border border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-all duration-300 flex flex-col"
                             >
                                 {/* Header with Status Badge */}
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3 sm:mb-4 sm:mb-6">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-3 sm:mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center">
                                             {getStatusIcon(doc.status)}
                                         </div>
                                         <h3 className="text-base sm:text-lg font-semibold text-white">{doc.name}</h3>
@@ -314,11 +314,11 @@ export default function KYCDocumentsPage() {
                     {/* Info Box */}
                     <div className="p-4 sm:p-6 rounded-2xl bg-[#2F6BFF]/10 border border-[#2F6BFF]/30">
                         <div className="flex items-start gap-4">
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 sm:w-10 sm:h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Shield className="w-4 h-4 sm:w-5 sm:h-5 sm:w-6 sm:h-6 text-[#2F6BFF]" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#2F6BFF]/20 to-[#FFA62B]/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-[#2F6BFF]" />
                             </div>
                             <div>
-                                <h3 className="text-base sm:text-lg sm:text-xl font-semibold text-white mb-3">Document Requirements</h3>
+                                <h3 className="text-base sm:text-lg font-semibold text-white mb-3">Document Requirements</h3>
                                 <ul className="text-gray-300 space-y-2">
                                     <li className="flex items-start gap-2">
                                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 mt-0.5 flex-shrink-0" />

@@ -1,7 +1,6 @@
 import { PageHeader } from '@/components/ui/PageHeader';
 import {
     ContentWrapper,
-    PageContainer,
     PageGrid,
     PageSection,
     Stack,
@@ -12,7 +11,7 @@ import { Link } from 'react-router-dom';
 
 function Landing() {
     return (
-        <div className="min-h-screen bg-[#B1B1C1] relative">
+        <div className="min-h-screen bg-[#B1B1C1] relative overflow-x-hidden">
             {/* Animated Background Effects - Matching Enhanced Pages */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-brand-blue/40 rounded-full blur-[150px] animate-pulse-slow"></div>
@@ -20,21 +19,20 @@ function Landing() {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-blue/30 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
             </div>
 
-            <PageContainer noPadding className="relative z-10">
-                {/* Hero Section */}
+            <div className="relative z-10 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
                 <PageSection spacing="normal" background="transparent">
                     <PageHeader variant="hero" title="">
                         <Stack spacing="lg">
                             {/* Problem Statement Badge */}
-                            <div className="inline-block animate-pulse">
-                                <span className="px-6 py-3 bg-gradient-to-r from-red-500/20 to-orange-500/20 border-2 border-red-500/40 rounded-full text-base text-red-400 font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                            <div className="flex justify-center animate-pulse">
+                                <span className="px-4 py-2 bg-gradient-to-r from-red-500/20 to-orange-500/20 border-2 border-red-500/40 rounded-full text-sm text-red-400 font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(239,68,68,0.3)] text-center max-w-full">
                                     ⚠️ Most Prop Firms Profit When You Fail
                                 </span>
                             </div>
 
                             {/* Main Headline */}
-                            <div className="space-y-4">
-                                <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tight">
+                            <div className="space-y-2 sm:space-y-4">
+                                <h1 className="hero-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tight break-words">
                                     GET FUNDED.
                                     <br />
                                     <span className="!text-[#3474f9]">
@@ -46,20 +44,20 @@ function Landing() {
                             </div>
 
                             {/* Solution Badge */}
-                            <div className="inline-block">
-                                <span className="px-6 py-3 bg-gradient-to-r from-brand-blue/30 to-accent-orange/30 border-2 border-brand-blue/50 rounded-full text-base text-white font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(47,107,255,0.3)]">
+                            <div className="flex justify-center">
+                                <span className="px-4 py-2 bg-gradient-to-r from-brand-blue/30 to-accent-orange/30 border-2 border-brand-blue/50 rounded-full text-sm sm:text-base text-white font-bold backdrop-blur-sm shadow-[0_0_30px_rgba(47,107,255,0.3)] text-center max-w-full">
                                     ✨ South Africa's Most Transparent Prop Firm
                                 </span>
                             </div>
 
                             {/* Value Proposition */}
                             <ContentWrapper maxWidth="normal" align="center">
-                                <p className="text-xl md:text-2xl text-gray-100 leading-relaxed font-semibold">
+                                <p className="text-base sm:text-xl md:text-2xl text-gray-100 leading-relaxed font-semibold">
                                     <span className="text-white">One-step evaluation.</span>{' '}
                                     <span className="text-brand-blue">No hidden rules.</span>{' '}
                                     <span className="text-white">Bi-weekly payouts.</span>
                                 </p>
-                                <p className="text-lg md:text-xl text-white leading-relaxed font-medium mt-4">
+                                <p className="text-sm sm:text-lg md:text-xl text-white leading-relaxed font-medium mt-4">
                                     Pass our 10% profit target challenge and start trading with{' '}
                                     <span className="text-accent-orange font-bold">real capital</span>.{' '}
                                     Keep <span className="text-brand-blue font-bold">80% of every rand</span> you earn.{' '}
@@ -106,15 +104,15 @@ function Landing() {
 
                             {/* Trust Indicators */}
                             <div className="flex flex-wrap items-center justify-center gap-8 pt-4">
-                                <div className="flex items-center gap-2 text-gray-400">
+                                <div className="flex items-center gap-2 text-gray-200">
                                     <Shield className="w-5 h-5 text-green-400" />
                                     <span className="text-sm font-medium">Bank-Level Security</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-400">
+                                <div className="flex items-center gap-2 text-gray-200">
                                     <Zap className="w-5 h-5 text-yellow-400" />
                                     <span className="text-sm font-medium">Instant Activation</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-gray-400">
+                                <div className="flex items-center gap-2 text-gray-200">
                                     <Award className="w-5 h-5 text-purple-400" />
                                     <span className="text-sm font-medium">99.9% Uptime</span>
                                 </div>
@@ -133,7 +131,7 @@ function Landing() {
                             <h2 className="text-lg md:text-xl text-white font-bold tracking-tight">
                                 TRADE LIKE A PRO
                             </h2>
-                            <p className="text-sm text-black font-medium leading-relaxed max-w-3xl mx-auto">
+                            <p className="text-sm text-gray-200 font-medium leading-relaxed max-w-3xl mx-auto">
                                 Everything you need to succeed in one powerful platform
                             </p>
                         </Stack>
@@ -262,7 +260,7 @@ function Landing() {
                             <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
                                 FROM ZERO TO FUNDED IN 3 STEPS
                             </h2>
-                            <p className="text-sm text-black font-medium leading-relaxed">
+                            <p className="text-sm text-gray-200 font-medium leading-relaxed">
                                 Start earning real money in as little as 24 hours
                             </p>
                         </Stack>
@@ -367,10 +365,10 @@ function Landing() {
                                 </div>
 
                                 {/* Main Headline */}
-                                <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.4)] tracking-tight leading-tight">
+                                <h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.4)] tracking-tight leading-tight break-words">
                                     DON'T TRADE WITH
                                     <br />
-                                    <span className="text-5xl md:text-7xl lg:text-8xl">
+                                    <span className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl">
                                         YOUR OWN MONEY
                                     </span>
                                 </h2>
@@ -468,7 +466,7 @@ function Landing() {
                         </ContentWrapper>
                     </div>
                 </PageSection>
-            </PageContainer>
+            </div>
         </div>
     );
 }

@@ -38,7 +38,7 @@ export function PageHeader({
 }: PageHeaderProps) {
     if (variant === 'hero') {
         return (
-            <div className="text-center mb-6 sm:mb-8">
+            <div className="text-center mb-6 sm:mb-8 w-full overflow-hidden">
                 {/* Badge */}
                 {badge && (
                     <div className="inline-block mb-2 sm:mb-3">
@@ -56,7 +56,7 @@ export function PageHeader({
 
                 {/* Description */}
                 {description && (
-                    <p className="text-xs sm:text-sm md:text-base text-black font-medium max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-xs sm:text-sm md:text-base text-gray-200 font-medium max-w-2xl mx-auto leading-relaxed">
                         {description}
                     </p>
                 )}
@@ -89,7 +89,7 @@ export function PageHeader({
 
                     {/* Description */}
                     {description && (
-                        <p className="text-black font-medium text-xs sm:text-sm ml-0 sm:ml-10">
+                        <p className="text-gray-200 font-medium text-xs sm:text-sm ml-0 sm:ml-10">
                             {description}
                         </p>
                     )}

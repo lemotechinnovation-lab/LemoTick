@@ -107,7 +107,7 @@ function Partners() {
                     <ContentWrapper maxWidth="text">
                         <Stack spacing="sm" className="text-center">
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">COMMISSION STRUCTURE</h2>
-                            <p className="text-base text-black">Earn more as you grow your referral network</p>
+                            <p className="text-base text-gray-200">Earn more as you grow your referral network</p>
                         </Stack>
                     </ContentWrapper>
                     <PageGrid cols={3} gap="sm" className="mt-8">
@@ -145,7 +145,7 @@ function Partners() {
                     <ContentWrapper maxWidth="text">
                         <Stack spacing="sm" className="text-center">
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">WHO CAN BECOME A PARTNER?</h2>
-                            <p className="text-base text-black">We work with diverse partners across the trading ecosystem</p>
+                            <p className="text-base text-gray-200">We work with diverse partners across the trading ecosystem</p>
                         </Stack>
                     </ContentWrapper>
                     <PageGrid cols={2} gap="sm" className="mt-8">
@@ -177,7 +177,7 @@ function Partners() {
                     <ContentWrapper maxWidth="text">
                         <Stack spacing="sm" className="text-center">
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">PARTNER BENEFITS</h2>
-                            <p className="text-base text-black">Everything you need to succeed as a LemoTick partner</p>
+                            <p className="text-base text-gray-200">Everything you need to succeed as a LemoTick partner</p>
                         </Stack>
                     </ContentWrapper>
                     <PageGrid cols={2} gap="sm" className="mt-8">
@@ -197,7 +197,7 @@ function Partners() {
                     <ContentWrapper maxWidth="text">
                         <Stack spacing="sm" className="text-center">
                             <h2 className="text-xl md:text-2xl font-normal text-white uppercase text-center">HOW IT WORKS</h2>
-                            <p className="text-base text-black">Start earning in three simple steps</p>
+                            <p className="text-base text-gray-200">Start earning in three simple steps</p>
                         </Stack>
                     </ContentWrapper>
                     <PageGrid cols={3} gap="sm" className="mt-8">

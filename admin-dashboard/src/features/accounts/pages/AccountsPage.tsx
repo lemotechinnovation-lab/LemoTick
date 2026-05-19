@@ -197,12 +197,12 @@ export default function AccountsPage() {
                     />
                 </div>
 
-                <GlassCard className="p-6">
+                <GlassCard className="p-4 sm:p-6">
                     <div className="mb-4">
-                        <h3 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balance Trend</h3>
-                        <p className="text-sm text-black font-medium">Combined balance over the last 30 days</p>
+                        <h3 className="text-base sm:text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Account Balance Trend</h3>
+                        <p className="text-sm text-gray-200 font-medium">Combined balance over the last 30 days</p>
                     </div>
-                    <div className="h-64">
+                    <div className="h-48 sm:h-64">
                         <ModernAreaChart
                             data={balanceTrendData}
                             color="#10B981"
@@ -219,7 +219,7 @@ export default function AccountsPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-lg font-bold text-[#E8B4B8] uppercase">Your Accounts</h3>
-                            <p className="text-sm text-black font-medium">Manage your trading accounts</p>
+                            <p className="text-sm text-gray-200 font-medium">Manage your trading accounts</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">

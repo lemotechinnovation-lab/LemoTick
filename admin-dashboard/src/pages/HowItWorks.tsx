@@ -239,7 +239,7 @@ function HowItWorks() {
                             <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">
                                 YOUR JOURNEY IN 4 STEPS
                             </h2>
-                            <p className="text-sm text-black font-medium">
+                            <p className="text-sm text-gray-200 font-medium">
                                 From evaluation to scaling - here's how you grow with LemoTick
                             </p>
                         </Stack>
@@ -345,7 +345,7 @@ function HowItWorks() {
                             <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">
                                 WHAT WE MEASURE
                             </h2>
-                            <p className="text-sm text-black font-medium">
+                            <p className="text-sm text-gray-200 font-medium">
                                 Simple, transparent criteria to prove your trading skills
                             </p>
                         </Stack>
@@ -384,7 +384,7 @@ function HowItWorks() {
                             <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">
                                 YOUR PATH TO FUNDING
                             </h2>
-                            <p className="text-sm text-black font-medium">
+                            <p className="text-sm text-gray-200 font-medium">
                                 Two phases to prove your consistency and earn your funded account
                             </p>
                         </Stack>
@@ -423,7 +423,7 @@ function HowItWorks() {
                             <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">
                                 SCALE YOUR TRADING CAPITAL
                             </h2>
-                            <p className="text-sm text-black font-medium">
+                            <p className="text-sm text-gray-200 font-medium">
                                 Grow from starter to elite tier based on your performance
                             </p>
                         </Stack>
@@ -470,7 +470,7 @@ function HowItWorks() {
                             <h2 className="text-lg md:text-xl font-bold text-white uppercase tracking-tight">
                                 CHOOSE YOUR ACCOUNT SIZE
                             </h2>
-                            <p className="text-sm text-black font-medium">
+                            <p className="text-sm text-gray-200 font-medium">
                                 One-time fee for lifetime access to your evaluation
                             </p>
                         </Stack>

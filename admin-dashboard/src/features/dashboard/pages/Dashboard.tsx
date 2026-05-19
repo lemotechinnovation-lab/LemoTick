@@ -325,7 +325,7 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="mb-4">
           <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Advanced Trading Metrics</h2>
-          <p className="text-sm text-black font-medium">Key performance indicators for professional traders</p>
+          <p className="text-sm text-gray-200 font-medium">Key performance indicators for professional traders</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Sharpe Ratio */}
@@ -410,7 +410,7 @@ function Dashboard() {
       <PageSection spacing="normal">
         <div className="mb-4">
           <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Quick Actions</h2>
-          <p className="text-sm text-black font-medium">Common tasks and shortcuts</p>
+          <p className="text-sm text-gray-200 font-medium">Common tasks and shortcuts</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {quickActions.map((action, idx) => (
@@ -433,22 +433,50 @@ function Dashboard() {
 
       {/* Recent Trades - Enhanced Table */}
       <PageSection spacing="normal">
-        <div className="glass-card-elevated p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
+        <div className="glass-card-elevated p-4 sm:p-6 rounded-2xl smooth-hover border border-brand-blue/20 shadow-xl shadow-brand-blue/10 backdrop-blur-xl relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-          <div className="flex items-center justify-between mb-4 relative z-10">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
             <div>
-              <h2 className="text-lg font-bold text-[#E8B4B8] mb-1 uppercase">Recent Trades</h2>
-              <p className="text-sm text-black font-medium">Your latest trading activity</p>
+              <h2 className="text-base sm:text-lg font-bold text-[#E8B4B8] uppercase">Recent Trades</h2>
+              <p className="text-xs sm:text-sm text-gray-400">Your latest trading activity</p>
             </div>
-            <Link to="/trade" className="text-brand-blue hover:text-accent-orange text-sm font-semibold transition-colors flex items-center gap-1 group/link">
+            <Link to="/trade" className="text-brand-blue hover:text-accent-orange text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1 group/link shrink-0">
               <span>View All</span>
               <span className="group-hover/link:translate-x-1 inline-block transition-transform">→</span>
             </Link>
           </div>
-          <div className="overflow-x-auto relative z-10">
-            <table className="w-full min-w-[600px]">
+
+          {/* Mobile: stacked cards */}
+          <div className="sm:hidden space-y-2 relative z-10">
+            {recentTrades.map((trade, index) => (
+              <div key={index} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-brand-blue/5 border border-brand-blue/10 hover:border-brand-blue/25 transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-black ${trade.type === 'Buy' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                    {trade.type === 'Buy' ? '↑' : '↓'}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm text-white font-bold">{trade.pair}</div>
+                    <div className="text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3 shrink-0" />
+                      <span>{trade.time}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className={`text-sm font-bold ${trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
+                  </div>
+                  <StatusBadge status={trade.status === 'open' ? 'active' : 'inactive'} label={trade.status} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: full table */}
+          <div className="hidden sm:block overflow-x-auto relative z-10">
+            <table className="w-full min-w-[500px]">
               <thead>
-                <tr className="bg-gradient-to-r from-primary/5 to-transparent">
+                <tr className="bg-gradient-to-r from-primary/5 to-transparent border-b border-brand-blue/10">
                   <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Pair</th>
                   <th className="text-left px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Type</th>
                   <th className="text-right px-4 py-3 text-gray-400 font-semibold text-xs uppercase tracking-wide">Profit/Loss</th>
@@ -461,27 +489,16 @@ function Dashboard() {
                   <TableRow key={index}>
                     <TableCell className="text-white font-bold">{trade.pair}</TableCell>
                     <TableCell>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Buy'
-                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                        : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        }`}>
-                        {trade.type}
-                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${trade.type === 'Buy' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>{trade.type}</span>
                     </TableCell>
                     <TableCell align="right" className={`font-bold ${trade.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
                     </TableCell>
                     <TableCell align="center">
-                      <StatusBadge
-                        status={trade.status === 'open' ? 'active' : 'inactive'}
-                        label={trade.status}
-                      />
+                      <StatusBadge status={trade.status === 'open' ? 'active' : 'inactive'} label={trade.status} />
                     </TableCell>
                     <TableCell className="text-gray-400">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        {trade.time}
-                      </div>
+                      <div className="flex items-center gap-2"><Clock className="w-4 h-4" />{trade.time}</div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -584,7 +601,7 @@ function Dashboard() {
                   { label: 'Sat', value: 38, color: '#10B981' },
                   { label: 'Sun', value: 45, color: '#10B981' },
                 ]}
-                height={240}
+                height={180}
                 showValues={true}
                 animate={true}
                 yAxisLabel="Trades"
@@ -611,8 +628,8 @@ function Dashboard() {
                   { label: 'Indices', value: 15, color: '#F59E0B' },
                   { label: 'Commodities', value: 10, color: '#8B5CF6' },
                 ]}
-                size={220}
-                thickness={35}
+                size={160}
+                thickness={28}
                 showLegend={true}
                 animate={true}
                 centerText="Total"
@@ -634,7 +651,7 @@ function Dashboard() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Account Balance Trend (30 Days)</h3>
-              <p className="text-sm text-black font-medium">Your account performance over the last month</p>
+              <p className="text-sm text-gray-200 font-medium">Your account performance over the last month</p>
             </div>
           </div>
           <div className="relative z-10">
@@ -649,7 +666,7 @@ function Dashboard() {
               color="#2F6BFF"
               gradientFrom="#2F6BFF"
               gradientTo="#FFA62B"
-              height={280}
+              height={200}
               showGrid={true}
               yAxisLabel="Balance (R)"
               xAxisLabel="Days"
@@ -672,7 +689,7 @@ function Dashboard() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Trade Distribution</h3>
-                <p className="text-sm text-black font-medium">Pie chart visualization</p>
+                <p className="text-sm text-gray-200 font-medium">Pie chart visualization</p>
               </div>
             </div>
             <div className="relative z-10">
@@ -681,8 +698,8 @@ function Dashboard() {
                   { label: 'Winning Trades', value: 97, color: '#10B981' },
                   { label: 'Losing Trades', value: 45, color: '#EF4444' },
                 ]}
-                size={200}
-                thickness={30}
+                size={160}
+                thickness={26}
                 showLegend={true}
                 animate={true}
                 centerText="Total"
@@ -840,12 +857,12 @@ function Dashboard() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-[#E8B4B8] group-hover:text-brand-blue transition-colors uppercase">Live Activity Logs</h3>
-                <p className="text-sm text-black font-medium">Real-time bot activity and trade execution</p>
+                <p className="text-sm text-gray-200 font-medium">Real-time bot activity and trade execution</p>
               </div>
             </div>
             <StatusBadge status="active" label="LIVE" pulse={true} />
           </div>
-          <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative z-10">
+          <div className="space-y-2 max-h-64 md:max-h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent relative z-10">
             {[
               { time: '19:49:53', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
               { time: '19:49:43', bot: 'Trend Follower Beta', message: 'Live update: Market analysis in progress...', type: 'info' },
@@ -884,8 +901,8 @@ function Dashboard() {
                     <span className="text-xs font-mono text-gray-400 font-medium">{log.time}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold text-white mb-1">{log.bot}</div>
-                    <div className="text-xs text-gray-300 font-medium">{log.message}</div>
+                    <div className="text-xs font-bold text-white mb-1 truncate">{log.bot}</div>
+                    <div className="text-xs text-gray-300 font-medium line-clamp-2">{log.message}</div>
                   </div>
                   <StatusBadge status={statusMap[log.type as keyof typeof statusMap]} />
                 </div>

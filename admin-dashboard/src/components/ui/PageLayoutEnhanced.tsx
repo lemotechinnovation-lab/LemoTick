@@ -34,7 +34,7 @@ export function PageContainer({
         full: 'max-w-full'       // No limit
     };
 
-    const paddingClasses = noPadding ? '' : 'px-1 sm:px-2 lg:px-2 py-1 sm:py-2 lg:py-2';
+    const paddingClasses = noPadding ? '' : 'px-4 sm:px-6 lg:px-8 py-4 sm:py-6';
 
     return (
         <div className={`w-full min-w-0 ${paddingClasses} ${className}`}>
@@ -232,7 +232,7 @@ export function ContentWrapper({
     };
 
     return (
-        <div className={`${widthClasses[maxWidth]} ${alignClasses[align]} ${className}`}>
+        <div className={`w-full ${widthClasses[maxWidth]} ${alignClasses[align]} ${className}`}>
             {children}
         </div>
     );
